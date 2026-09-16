@@ -1,0 +1,22 @@
+# Variáveis de ambiente e segredos
+.env
+.env.*
+*.pem
+*.key
+
+# Dependências
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Build
+dist/
+build/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
