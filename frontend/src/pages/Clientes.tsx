@@ -84,7 +84,7 @@ export default function Clientes() {
               <div className="flex items-start justify-between gap-3">
                 <strong className="leading-tight">{c.nome_completo}</strong>
                 <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${selo[c.status_cadastro] ?? ''}`}>
-                  {c.status_cadastro}
+                  {{ pendente: '🟡 pendente', aprovado: '✅ aprovado', reprovado: '❌ reprovado' }[c.status_cadastro] ?? c.status_cadastro}
                 </span>
               </div>
               <p className="mt-1 text-sm text-slate-500">

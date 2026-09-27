@@ -38,6 +38,8 @@ export default function ClienteFicha() {
   const [erroCpf, setErroCpf] = useState('')
   const [recarregar, setRecarregar] = useState(0)
   const [urls, setUrls] = useState<Record<string, string>>({})
+  const [salvandoStatus, setSalvandoStatus] = useState(false)
+  const [erroStatus, setErroStatus] = useState('')
 
   useEffect(() => {
     supabase
@@ -78,6 +80,16 @@ export default function ClienteFicha() {
     setRecarregar((n) => n + 1)
   }
 
+  async function mudarStatus(novo: 'aprovado' | 'reprovado') {
+    if (novo === 'reprovado' && !window.confirm('Reprovar este cadastro? Ele fica guardado como reprovado e pode ser aprovado depois.')) return
+    setErroStatus('')
+    setSalvandoStatus(true)
+    const { error } = await supabase.from('clientes').update({ status_cadastro: novo }).eq('id', id!)
+    setSalvandoStatus(false)
+    if (error) return setErroStatus('Não foi possível salvar. Confira se a mensalidade está em dia.')
+    setRecarregar((n) => n + 1)
+  }
+
   if (carregando) return <Tela voltar="/clientes"><p className="mt-6 text-slate-600">Carregando…</p></Tela>
   if (!cliente) return <Tela voltar="/clientes"><p className="mt-6 text-slate-600">Cliente não encontrado.</p></Tela>
 
@@ -98,10 +110,27 @@ export default function ClienteFicha() {
           <h1 className="text-2xl font-bold leading-tight">{cliente.nome_completo}</h1>
           <p className="mt-1 text-sm text-slate-500">
             {new Date(cliente.criado_em).toLocaleDateString('pt-BR')} ·{' '}
-            {cliente.status_cadastro === 'pendente' ? '🟡 pendente de aprovação' : cliente.status_cadastro}
+            {{ pendente: '🟡 pendente de aprovação', aprovado: '✅ aprovado', reprovado: '❌ reprovado' }[cliente.status_cadastro] ?? cliente.status_cadastro}
           </p>
         </div>
       </div>
+
+      {cliente.status_cadastro !== 'aprovado' && (
+        <section className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+          <p className="font-semibold">
+            {cliente.status_cadastro === 'pendente' ? 'Cadastro esperando sua análise' : 'Cadastro reprovado'}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button onClick={() => mudarStatus('aprovado')} disabled={salvandoStatus}
+              className="flex-1 rounded-xl bg-emerald-600 py-3 font-semibold text-white disabled:opacity-60">✅ Aprovar</button>
+            {cliente.status_cadastro === 'pendente' && (
+              <button onClick={() => mudarStatus('reprovado')} disabled={salvandoStatus}
+                className="flex-1 rounded-xl border border-red-300 bg-white py-3 font-semibold text-red-700 disabled:opacity-60">❌ Reprovar</button>
+            )}
+          </div>
+          {erroStatus && <p role="alert" className="mt-2 text-sm text-red-700">{erroStatus}</p>}
+        </section>
+      )}
 
       <a href={linkWhatsApp(cliente.telefone)} target="_blank" rel="noreferrer"
          className="mt-4 block w-full rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white">
@@ -178,7 +207,7 @@ export default function ClienteFicha() {
             <div className="mt-3 flex gap-2">
               <a href={mapa(l)} target="_blank" rel="noreferrer" className="flex-1 rounded-xl bg-slate-900 py-2 text-center text-sm font-semibold text-white">🗺️ Abrir no mapa</a>
               <a href={`https://wa.me/?text=${encodeURIComponent(`${cliente.nome_completo} - ${l.nome}: ${mapa(l)}`)}`} target="_blank" rel="noreferrer"
-                 className="flex-1 rounded-xl bg-emerald-600 py-2 text-center text-sm font-semibold text-white">💬 Enviar</a>
+                 className="flex-1 rounded-xl bg-emerald-600 py-2 text-center text-sm font-semibold text-white">💬 Mandar no WhatsApp</a>
             </div>
           </div>
         ))}

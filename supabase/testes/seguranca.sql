@@ -66,6 +66,16 @@ do $$ begin
 exception when insufficient_privilege then perform pg_temp.r('8. CPF criptografado NAO sai pela consulta direta', true); end $$;
 reset role;
 
+-- Aprovar / reprovar
+select pg_temp.como('00000000-0000-0000-0000-00000000000a');
+update public.clientes set status_cadastro = 'reprovado' where nome_completo = 'Sem Cpf Dois';
+select pg_temp.r('26. A aprova/reprova o proprio cliente', (select status_cadastro from public.clientes where nome_completo='Sem Cpf Dois')='reprovado');
+reset role;
+select pg_temp.como('00000000-0000-0000-0000-00000000000b');
+update public.clientes set status_cadastro = 'aprovado' where nome_completo = 'Sem Cpf Dois';
+reset role;
+select pg_temp.r('27. B NAO muda status de cliente de A', (select status_cadastro from public.clientes where nome_completo='Sem Cpf Dois')='reprovado');
+
 -- Dono do GIRON: ve empresas, NAO ve clientes
 select pg_temp.como('00000000-0000-0000-0000-00000000000d');
 select pg_temp.r('9. Dono do GIRON ve as empresas de teste', (select count(*) from public.fomentados where subdominio in ('empresaa','empresab'))=2);
