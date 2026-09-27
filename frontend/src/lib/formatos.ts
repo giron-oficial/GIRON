@@ -18,8 +18,9 @@ export function mascaraCpf(t: string): string {
   return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1-$2')
 }
 
-// so os 4 ultimos digitos: 8909 -> ***.***.*89-09
-export const cpfEscondido = (final4: string) => `***.***.*${final4.slice(0, 2)}-${final4.slice(2)}`
+// so os 4 ultimos digitos: 8909 -> ***.***.*89-09 (cliente sem CPF -> 'SEM CPF')
+export const cpfEscondido = (final4: string | null) =>
+  final4 ? `***.***.*${final4.slice(0, 2)}-${final4.slice(2)}` : 'SEM CPF'
 
 // 63999990000 -> (63) 99999-0000
 export function mascaraTelefone(t: string): string {

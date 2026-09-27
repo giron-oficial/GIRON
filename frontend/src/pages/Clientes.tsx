@@ -4,7 +4,7 @@ import Tela from '../components/Tela'
 import { cpfEscondido, mascaraTelefone } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
-type Cliente = { id: string; nome_completo: string; cpf_final: string; telefone: string; status_cadastro: string }
+type Cliente = { id: string; nome_completo: string; cpf_final: string | null; telefone: string; status_cadastro: string }
 
 const selo: Record<string, string> = {
   pendente: 'bg-amber-100 text-amber-800',
@@ -30,7 +30,7 @@ export default function Clientes() {
 
   const termo = busca.trim().toLowerCase()
   const lista = termo
-    ? clientes.filter((c) => c.nome_completo.toLowerCase().includes(termo) || c.cpf_final.includes(termo) || c.telefone.includes(termo))
+    ? clientes.filter((c) => c.nome_completo.toLowerCase().includes(termo) || (c.cpf_final ?? '').includes(termo) || c.telefone.includes(termo))
     : clientes
 
   return (
@@ -57,7 +57,7 @@ export default function Clientes() {
                 </span>
               </div>
               <p className="mt-1 text-sm text-slate-500">
-                {mascaraTelefone(c.telefone)} · CPF {cpfEscondido(c.cpf_final)}
+                {mascaraTelefone(c.telefone)} · {c.cpf_final ? `CPF ${cpfEscondido(c.cpf_final)}` : '⚠️ sem CPF'}
               </p>
             </Link>
           </li>

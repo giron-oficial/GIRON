@@ -18,7 +18,7 @@ export default function ClienteNovo() {
     e.preventDefault()
     setErro('')
     if (nome.trim().length < 3) return setErro('Informe o nome completo.')
-    if (!cpfValido(cpf)) return setErro('CPF inválido. Confira os números.')
+    if (cpf && !cpfValido(cpf)) return setErro('CPF inválido. Confira os números ou deixe em branco.')
     const tel = soDigitos(telefone)
     if (tel.length < 10) return setErro('Telefone inválido. Use DDD + número.')
     setSalvando(true)
@@ -34,8 +34,9 @@ export default function ClienteNovo() {
         <label className="block text-sm font-medium" htmlFor="nome">Nome completo</label>
         <input id="nome" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className={campo} />
 
-        <label className="mt-4 block text-sm font-medium" htmlFor="cpf">CPF</label>
+        <label className="mt-4 block text-sm font-medium" htmlFor="cpf">CPF <span className="font-normal text-slate-500">(se tiver)</span></label>
         <input id="cpf" inputMode="numeric" value={cpf} onChange={(e) => setCpf(mascaraCpf(e.target.value))} placeholder="000.000.000-00" className={campo} />
+        <p className="mt-1 text-xs text-slate-500">Sem CPF? Deixe em branco. Dá pra completar depois na ficha.</p>
 
         <label className="mt-4 block text-sm font-medium" htmlFor="tel">Telefone (WhatsApp)</label>
         <input id="tel" inputMode="tel" value={telefone} onChange={(e) => setTelefone(mascaraTelefone(e.target.value))} placeholder="(63) 99999-0000" className={campo} />

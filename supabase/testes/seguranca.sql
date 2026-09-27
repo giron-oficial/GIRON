@@ -31,7 +31,16 @@ do $$ begin perform public.cliente_criar('Fulano de Tal','111.111.111-11','63999
 exception when others then perform pg_temp.r('19. CPF invalido e recusado', sqlerrm = 'CPF inválido'); end $$;
 do $$ begin perform public.cliente_criar('Maria Repetida','12345678909','63999990000'); perform pg_temp.r('20. CPF repetido na mesma empresa e recusado', false);
 exception when others then perform pg_temp.r('20. CPF repetido na mesma empresa e recusado', sqlerrm like 'Já existe%'); end $$;
-select pg_temp.r('21. Cliente cadastrado a mao nasce aprovado', (select status_cadastro from public.clientes limit 1)='aprovado');
+select pg_temp.r('21. Cliente cadastrado a mao nasce aprovado', (select status_cadastro from public.clientes where nome_completo='Maria Souza')='aprovado');
+select public.cliente_criar('Sem Cpf Um','','63999990001');
+select public.cliente_criar('Sem Cpf Dois',null,'63999990002');
+select pg_temp.r('22. Dois clientes SEM CPF podem ser cadastrados', (select count(*) from public.clientes where cpf_final is null)=2);
+select public.cliente_definir_cpf((select id from public.clientes where nome_completo='Sem Cpf Um'),'529.982.247-25');
+select pg_temp.r('23. CPF completado depois e lido certo', public.cliente_cpf((select id from public.clientes where nome_completo='Sem Cpf Um'))='52998224725');
+do $$ begin perform public.cliente_definir_cpf((select id from public.clientes where nome_completo='Sem Cpf Dois'),'529.982.247-25'); perform pg_temp.r('24. Completar com CPF repetido e recusado', false);
+exception when others then perform pg_temp.r('24. Completar com CPF repetido e recusado', sqlerrm like 'Já existe%'); end $$;
+do $$ begin perform public.cliente_definir_cpf((select id from public.clientes where nome_completo='Sem Cpf Um'),'111.444.777-35'); perform pg_temp.r('25. Nao troca CPF de quem ja tem', false);
+exception when others then perform pg_temp.r('25. Nao troca CPF de quem ja tem', sqlerrm like '%já tem CPF'); end $$;
 reset role;
 
 -- B nao ve nada de A
@@ -72,7 +81,7 @@ reset role;
 -- Bloqueio parcial: ve, nao altera
 update public.fomentados set status_acesso='bloqueio_parcial' where id='10000000-0000-0000-0000-00000000000a';
 select pg_temp.como('00000000-0000-0000-0000-00000000000a');
-select pg_temp.r('12. Bloqueio parcial: ainda VE os clientes', (select count(*) from public.clientes)=1);
+select pg_temp.r('12. Bloqueio parcial: ainda VE os clientes', (select count(*) from public.clientes)=3);
 do $$ begin perform public.cliente_criar('Joao','98765432100','63988880000'); perform pg_temp.r('13. Bloqueio parcial: NAO cadastra', false);
 exception when others then perform pg_temp.r('13. Bloqueio parcial: NAO cadastra', true); end $$;
 reset role;
