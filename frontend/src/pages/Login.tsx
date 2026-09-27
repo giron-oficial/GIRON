@@ -17,7 +17,7 @@ export default function Login() {
     e.preventDefault()
     setErro('')
     setEnviando(true)
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha })
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha.trim() })
     setEnviando(false)
     if (error) setErro(erroEmPortugues(error.message))
   }
@@ -30,7 +30,7 @@ export default function Login() {
 
         <label className="mt-6 block text-sm font-medium" htmlFor="email">E-mail</label>
         <input
-          id="email" type="email" inputMode="email" autoComplete="email" required
+          id="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required
           value={email} onChange={(e) => setEmail(e.target.value)}
           className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-slate-900"
         />
@@ -38,7 +38,7 @@ export default function Login() {
         <label className="mt-4 block text-sm font-medium" htmlFor="senha">Senha</label>
         <div className="mt-1 flex rounded-xl border border-slate-300 focus-within:border-slate-900">
           <input
-            id="senha" type={verSenha ? 'text' : 'password'} autoComplete="current-password" required
+            id="senha" type={verSenha ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required
             value={senha} onChange={(e) => setSenha(e.target.value)}
             className="w-full rounded-xl px-4 py-3 text-base outline-none"
           />
