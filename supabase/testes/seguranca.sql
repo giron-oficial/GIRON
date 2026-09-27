@@ -27,6 +27,11 @@ select pg_temp.como('00000000-0000-0000-0000-00000000000a');
 select public.cliente_criar('Maria Souza','123.456.789-09','63999990000');
 select pg_temp.r('1. A ve o proprio cliente', (select count(*) from public.clientes)=1);
 select pg_temp.r('2. A le o CPF completo do proprio cliente', public.cliente_cpf((select id from public.clientes limit 1))='12345678909');
+do $$ begin perform public.cliente_criar('Fulano de Tal','111.111.111-11','63999990000'); perform pg_temp.r('19. CPF invalido e recusado', false);
+exception when others then perform pg_temp.r('19. CPF invalido e recusado', sqlerrm = 'CPF inválido'); end $$;
+do $$ begin perform public.cliente_criar('Maria Repetida','12345678909','63999990000'); perform pg_temp.r('20. CPF repetido na mesma empresa e recusado', false);
+exception when others then perform pg_temp.r('20. CPF repetido na mesma empresa e recusado', sqlerrm like 'Já existe%'); end $$;
+select pg_temp.r('21. Cliente cadastrado a mao nasce aprovado', (select status_cadastro from public.clientes limit 1)='aprovado');
 reset role;
 
 -- B nao ve nada de A
@@ -54,7 +59,7 @@ reset role;
 
 -- Dono do GIRON: ve empresas, NAO ve clientes
 select pg_temp.como('00000000-0000-0000-0000-00000000000d');
-select pg_temp.r('9. Dono do GIRON ve as 2 empresas', (select count(*) from public.fomentados)=2);
+select pg_temp.r('9. Dono do GIRON ve as empresas de teste', (select count(*) from public.fomentados where subdominio in ('empresaa','empresab'))=2);
 select pg_temp.r('10. Dono do GIRON NAO ve clientes dos Fomentados', (select count(*) from public.clientes)=0);
 reset role;
 

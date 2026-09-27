@@ -2,6 +2,9 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import { AuthProvider } from './lib/AuthProvider'
+import ClienteFicha from './pages/ClienteFicha'
+import ClienteNovo from './pages/ClienteNovo'
+import Clientes from './pages/Clientes'
 import Inicio from './pages/Inicio'
 import Login from './pages/Login'
 import Status from './pages/Status'
@@ -20,6 +23,9 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/status" element={<Status />} />
           <Route path="/" element={<Protegida><Inicio /></Protegida>} />
+          <Route path="/clientes" element={<Protegida><Clientes /></Protegida>} />
+          <Route path="/clientes/novo" element={<Protegida><ClienteNovo /></Protegida>} />
+          <Route path="/clientes/:id" element={<Protegida><ClienteFicha /></Protegida>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

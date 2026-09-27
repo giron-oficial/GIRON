@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 type Empresa = { nome_empresa: string; subdominio: string; status_acesso: string; teste_gratis_ate: string | null }
@@ -52,7 +53,10 @@ export default function Inicio() {
                   <strong>{new Date(empresa.teste_gratis_ate + 'T12:00:00').toLocaleDateString('pt-BR')}</strong>
                 </div>
               )}
-              <p className="mt-6 text-sm text-slate-500">Em breve: clientes, empréstimos e painel do dia.</p>
+              <Link to="/clientes" className="mt-6 block w-full rounded-xl bg-slate-900 py-3 text-center font-semibold text-white">
+                👥 Clientes
+              </Link>
+              <p className="mt-4 text-sm text-slate-500">Em breve: empréstimos e painel do dia.</p>
             </>
           ) : (
             <p className="text-slate-600">Sua conta ainda não está ligada a uma empresa. Fale com o suporte do GIRON.</p>
