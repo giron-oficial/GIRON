@@ -6,6 +6,7 @@ import ClienteFicha from './pages/ClienteFicha'
 import ClienteNovo from './pages/ClienteNovo'
 import Clientes from './pages/Clientes'
 import Inicio from './pages/Inicio'
+import LinkCadastro from './pages/LinkCadastro'
 import Login from './pages/Login'
 import Status from './pages/Status'
 
@@ -21,6 +22,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/c/:codigo" element={<LinkCadastro />} />
           <Route path="/status" element={<Status />} />
           <Route path="/" element={<Protegida><Inicio /></Protegida>} />
           <Route path="/clientes" element={<Protegida><Clientes /></Protegida>} />

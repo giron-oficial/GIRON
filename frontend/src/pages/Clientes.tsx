@@ -16,6 +16,22 @@ export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
+  const [link, setLink] = useState('')
+  const [copiado, setCopiado] = useState(false)
+  const [erroLink, setErroLink] = useState('')
+
+  async function gerarLink() {
+    setErroLink('')
+    setCopiado(false)
+    const { data, error } = await supabase.rpc('link_cadastro_criar')
+    if (error) return setErroLink('Não foi possível gerar o link.')
+    setLink(`${window.location.origin}/c/${data}`)
+  }
+
+  async function copiar() {
+    await navigator.clipboard.writeText(link)
+    setCopiado(true)
+  }
 
   useEffect(() => {
     supabase
@@ -38,6 +54,21 @@ export default function Clientes() {
       <Link to="/clientes/novo" className="mt-4 block w-full rounded-xl bg-slate-900 py-3 text-center font-semibold text-white">
         + Novo cliente
       </Link>
+      <button onClick={gerarLink} className="mt-2 block w-full rounded-xl border border-slate-300 bg-white py-3 text-center font-semibold">
+        📨 Gerar link de cadastro
+      </button>
+      {erroLink && <p className="mt-2 text-sm text-red-700">{erroLink}</p>}
+      {link && (
+        <div className="mt-3 rounded-2xl bg-white p-4 shadow-sm">
+          <p className="text-sm text-slate-600">Link novo (vale 7 dias, uma vez só):</p>
+          <p className="mt-1 break-all text-sm font-medium">{link}</p>
+          <div className="mt-3 flex gap-2">
+            <a href={`https://wa.me/?text=${encodeURIComponent('Olá! Para fazer seu cadastro, preencha por este link: ' + link)}`} target="_blank" rel="noreferrer"
+               className="flex-1 rounded-xl bg-emerald-600 py-2 text-center font-semibold text-white">💬 WhatsApp</a>
+            <button onClick={copiar} className="flex-1 rounded-xl border border-slate-300 py-2 font-semibold">{copiado ? '✅ Copiado' : '📋 Copiar'}</button>
+          </div>
+        </div>
+      )}
       <input
         type="search" placeholder="Buscar por nome, telefone ou final do CPF" value={busca}
         onChange={(e) => setBusca(e.target.value)}
