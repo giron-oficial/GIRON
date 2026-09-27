@@ -2,34 +2,29 @@
 
 Plataforma SaaS white-label de gestão e automação para microcrédito.
 
-## O que é
+O GIRON não empresta dinheiro a ninguém. É um sistema que donos de operação de crédito (os **Fomentados**) pagam mensalidade para usar, gerenciando a própria carteira de clientes dentro da própria conta.
 
-O GIRON não empresta dinheiro a ninguém. É um sistema que outros donos de operação de crédito (chamados de **Fomentados**) pagam mensalidade pra usar, gerenciando a própria carteira de clientes dentro da própria conta.
+## Estrutura
 
-## Como funciona
+- `frontend/` — telas do sistema (React + TypeScript + Tailwind), feitas primeiro para celular.
+- `supabase/migrations/` — criação das tabelas do banco (SQL, em ordem).
+- `scripts/` — atalhos (ex.: publicar no ambiente de teste).
 
-- Cada Fomentado acessa por um subdomínio próprio (ex: `joao.giron.app`)
-- Sistema multi-tenant: um banco só, isolado por `tenant_id`
-- White-label: cada Fomentado personaliza cor e logo
-- Cobrança por mensalidade fixa — se vencer sem pagar, o acesso é bloqueado automaticamente
+## Rodar no computador
 
-## Infraestrutura
+```bash
+cd frontend
+cp .env.example .env   # preencher a chave pública (anon)
+npm install
+npm run dev
+```
 
-- VPS: Hostinger, Ubuntu 24.04 LTS
-- Banco de dados: Postgres + Supabase self-hosted
-- Roteamento por subdomínio
+## Ambientes
 
-## Estrutura do projeto
+- **Teste:** `https://teste.2-25-228-237.sslip.io` (endereço provisório).
+- **Produção:** ainda não existe.
 
-- `backend/` — API e lógica do sistema
-- `frontend/` — interface visual
-- `docs/` — documentação do projeto
+## Regras
 
-## Status
-
-Em construção. Roadmap:
-1. ✅ Contratar VPS
-2. ✅ Criar repositório GitHub
-3. 🔄 Instalar banco de dados
-4. ⏳ Construir a aplicação
-5. ⏳ Ligar agentes de IA de monitoramento
+- Nunca colocar senhas, tokens ou dados reais de clientes neste repositório (ele é público).
+- Documentação completa e decisões do projeto ficam no cofre privado (GIRON-CEREBRO).

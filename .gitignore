@@ -20,3 +20,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Exemplo de configuração (pode ir pro GitHub, não tem segredo)
+!.env.example
