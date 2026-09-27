@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 
 // Pagina PUBLICA (sem login) que o cliente abre pelo link de cadastro (RN-30 a RN-46)
 
-type Info = { valido: boolean; empresa?: string; tenant_id?: string; tipo?: string }
+type Info = { valido: boolean; empresa?: string; tenant_id?: string; tipo?: string; motivo?: string }
 type TipoArquivo = 'selfie' | 'documento' | 'comprovante' | 'foto_casa'
 
 const campo = 'mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-slate-900'
@@ -130,11 +130,18 @@ export default function LinkCadastro() {
       <p className="mt-2 text-slate-600">{info.empresa} vai analisar seu cadastro e entrar em contato.</p>
     </div>,
   )
+  if (!info.valido && info.motivo === 'usado') return moldura(
+    <div className="mt-10 rounded-2xl bg-white p-6 text-center shadow-sm">
+      <p className="text-5xl">✅</p>
+      <h1 className="mt-3 text-2xl font-bold">Seu cadastro já foi enviado!</h1>
+      <p className="mt-2 text-slate-600">{info.empresa ?? 'A empresa'} vai analisar e entrar em contato. Não precisa enviar de novo.</p>
+    </div>,
+  )
   if (!info.valido) return moldura(
     <div className="mt-10 rounded-2xl bg-white p-6 text-center shadow-sm">
       <p className="text-5xl">⛔</p>
-      <h1 className="mt-3 text-xl font-bold">Este link não está mais valendo</h1>
-      <p className="mt-2 text-slate-600">Ele já foi usado ou venceu. Peça um novo link para quem te enviou.</p>
+      <h1 className="mt-3 text-xl font-bold">{info.motivo === 'vencido' ? 'Este link venceu' : 'Este link não está valendo'}</h1>
+      <p className="mt-2 text-slate-600">Peça um novo link para quem te enviou.</p>
     </div>,
   )
 
