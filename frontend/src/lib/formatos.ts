@@ -37,3 +37,20 @@ export function linkWhatsApp(telefone: string, texto?: string): string {
   if (!d.startsWith('55')) d = '55' + d
   return `https://wa.me/${d}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`
 }
+
+// 1234.5 -> R$ 1.234,50
+export const reais = (v: number | string | null | undefined) =>
+  Number(v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+// "1.234,56" ou "1234.56" -> 1234.56
+export function numeroBr(t: string): number {
+  const limpo = t.replace(/[^\d,.-]/g, '')
+  if (limpo.includes(',')) return Number(limpo.replace(/\./g, '').replace(',', '.'))
+  return Number(limpo)
+}
+
+// data ISO (2026-10-01) -> 01/10/2026
+export const dataBr = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR')
+
+export const nomeModalidade: Record<string, string> = { diario: 'Diário', semanal: 'Semanal', mensal: 'Mensal', recorrente: 'Recorrente' }
+export const nomeSistema: Record<string, string> = { empresa: 'Forma da Empresa', price: 'Tabela Price', sac: 'SAC' }

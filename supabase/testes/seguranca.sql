@@ -76,6 +76,26 @@ update public.clientes set status_cadastro = 'aprovado' where nome_completo = 'S
 reset role;
 select pg_temp.r('27. B NAO muda status de cliente de A', (select status_cadastro from public.clientes where nome_completo='Sem Cpf Dois')='reprovado');
 
+-- Emprestimos
+select pg_temp.como('00000000-0000-0000-0000-00000000000a');
+select public.contrato_criar((select id from public.clientes where nome_completo='Maria Souza'), 'mensal', 'empresa', 1000, 10, 10, '2026-10-01', '2026-11-01');
+select pg_temp.r('28. A faz emprestimo pra cliente aprovado (10 parcelas de R$200)',
+  (select count(*) from public.parcelas p join public.contratos c on c.id = p.contrato_id where p.valor = 200 and c.numero = 1) = 10);
+do $$ begin perform public.contrato_criar((select id from public.clientes where nome_completo='Sem Cpf Dois'), 'mensal', 'empresa', 500, 10, 5, '2026-10-01', '2026-11-01');
+  perform pg_temp.r('29. Cliente reprovado NAO recebe emprestimo', false);
+exception when others then perform pg_temp.r('29. Cliente reprovado NAO recebe emprestimo', sqlerrm like 'Aprove%'); end $$;
+do $$ begin insert into public.contratos (tenant_id, cliente_id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato, capital_em_aberto)
+  select tenant_id, id, 99, 'mensal', 'empresa', 1, 0, 0, 1, current_date, 1 from public.clientes limit 1;
+  perform pg_temp.r('30. Contrato NAO nasce fora da funcao (conta sempre certa)', false);
+exception when insufficient_privilege then perform pg_temp.r('30. Contrato NAO nasce fora da funcao (conta sempre certa)', true); end $$;
+reset role;
+select pg_temp.como('00000000-0000-0000-0000-00000000000b');
+select pg_temp.r('31. B NAO ve emprestimo de A', (select count(*) from public.contratos) = 0 and (select count(*) from public.parcelas) = 0);
+do $$ begin perform public.contrato_criar((select id from public.clientes limit 1), 'mensal', 'empresa', 1000, 10, 10, '2026-10-01', '2026-11-01');
+  perform pg_temp.r('32. B NAO faz emprestimo pra cliente de A', false);
+exception when others then perform pg_temp.r('32. B NAO faz emprestimo pra cliente de A', true); end $$;
+reset role;
+
 -- Dono do GIRON: ve empresas, NAO ve clientes
 select pg_temp.como('00000000-0000-0000-0000-00000000000d');
 select pg_temp.r('9. Dono do GIRON ve as empresas de teste', (select count(*) from public.fomentados where subdominio in ('empresaa','empresab'))=2);

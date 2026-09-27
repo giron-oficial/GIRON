@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import Tela from '../components/Tela'
-import { cpfEscondido, cpfValido, linkWhatsApp, mascaraCpf, mascaraTelefone } from '../lib/formatos'
+import { cpfEscondido, cpfValido, dataBr, linkWhatsApp, mascaraCpf, mascaraTelefone, reais } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
 type Arquivo = { id: string; tipo: string; caminho_arquivo: string }
@@ -12,6 +12,7 @@ type Cliente = {
   trabalho_telefone: string | null; trabalho_referencia: string | null; indicado_por: string | null
   valor_pretendido: number | null; modalidade_preferida: string | null; dia_vencimento_preferido: number | null
   cliente_arquivos: Arquivo[]; cliente_localizacoes: Local[]
+  contratos: { id: string; numero: number; modalidade: string; capital: number; status: string; data_contrato: string }[]
 }
 
 const nomeTipo: Record<string, string> = { selfie: 'Selfie', documento: 'CNH / RG', comprovante: 'Comprovante', foto_casa: 'Casa' }
@@ -31,6 +32,7 @@ const mapa = (l: Local) => `https://www.google.com/maps/search/?api=1&query=${l.
 
 export default function ClienteFicha() {
   const { id } = useParams()
+  const navegar = useNavigate()
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [cpfCompleto, setCpfCompleto] = useState('')
@@ -48,7 +50,8 @@ export default function ClienteFicha() {
                trabalho_endereco, trabalho_telefone, trabalho_referencia, indicado_por, valor_pretendido,
                modalidade_preferida, dia_vencimento_preferido,
                cliente_arquivos(id, tipo, caminho_arquivo),
-               cliente_localizacoes(id, nome, latitude, longitude, precisao_metros, foto_arquivo, registrado_em)`)
+               cliente_localizacoes(id, nome, latitude, longitude, precisao_metros, foto_arquivo, registrado_em),
+               contratos(id, numero, modalidade, capital, status, data_contrato)`)
       .eq('id', id!)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -87,6 +90,8 @@ export default function ClienteFicha() {
     const { error } = await supabase.from('clientes').update({ status_cadastro: novo }).eq('id', id!)
     setSalvandoStatus(false)
     if (error) return setErroStatus('Não foi possível salvar. Confira se a mensalidade está em dia.')
+    // aprovou: ja vai direto pro emprestimo, preenchido com o que o cliente pediu (RN-35)
+    if (novo === 'aprovado') return navegar(`/clientes/${id}/emprestimo`)
     setRecarregar((n) => n + 1)
   }
 
@@ -132,10 +137,32 @@ export default function ClienteFicha() {
         </section>
       )}
 
+      {cliente.status_cadastro === 'aprovado' && (
+        <Link to={`/clientes/${cliente.id}/emprestimo`} className="mt-4 block w-full rounded-xl bg-slate-900 py-3 text-center font-semibold text-white">
+          💰 Novo empréstimo
+        </Link>
+      )}
+
       <a href={linkWhatsApp(cliente.telefone)} target="_blank" rel="noreferrer"
-         className="mt-4 block w-full rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white">
+         className="mt-2 block w-full rounded-xl bg-emerald-600 py-3 text-center font-semibold text-white">
         💬 Chamar no WhatsApp
       </a>
+
+      {cliente.contratos.length > 0 && (
+        <section className="mt-4 rounded-2xl bg-white p-4 shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">EMPRÉSTIMOS</p>
+          <ul className="mt-2 divide-y divide-slate-100">
+            {[...cliente.contratos].sort((a, b) => a.numero - b.numero).map((k) => (
+              <li key={k.id}>
+                <Link to={`/contratos/${k.id}`} className="flex items-center justify-between py-3">
+                  <span><strong>Contrato {String(k.numero).padStart(2, '0')}</strong> <span className="text-sm text-slate-500">· {dataBr(k.data_contrato)} · {k.status}</span></span>
+                  <strong>{reais(k.capital)}</strong>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-4 divide-y divide-slate-100 rounded-2xl bg-white shadow-sm">
         <Linha rotulo="Telefone" valor={mascaraTelefone(cliente.telefone)} />
