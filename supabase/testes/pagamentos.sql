@@ -55,7 +55,7 @@ do $$ begin perform public.pagamento_registrar(pg_temp.pid('Cliente Empresa',1),
 exception when others then perform pg_temp.r('E9. Pagar parcela ja paga e recusado', sqlerrm = 'Esta parcela já está paga'); end $$;
 
 -- Recorrente: paga so juro, R$1000 10% = parcela R$100. Tambem aceita parcial (sem piso).
-select public.cliente_criar('Cliente Recorrente','926.157.020-06','63999990002');
+select public.cliente_criar('Cliente Recorrente','926.157.020-84','63999990002');
 select public.contrato_criar((select id from public.clientes where nome_completo='Cliente Recorrente'), 'recorrente', null, 1000, 10, null, '2026-10-01','2026-11-01');
 
 select public.pagamento_registrar(pg_temp.pid('Cliente Recorrente',1), 40);
@@ -67,7 +67,7 @@ select pg_temp.r('E12. Contrato recorrente NAO vira quitado so por pagar 1 parce
 -- ===========================================================================
 -- Price: mensal, R$1000, 10%, 5x
 -- ===========================================================================
-select public.cliente_criar('Cliente Price','438.837.240-06','63999990003');
+select public.cliente_criar('Cliente Price','438.837.240-41','63999990003');
 select public.contrato_criar((select id from public.clientes where nome_completo='Cliente Price'), 'mensal','price',1000,10,5,'2026-10-01','2026-11-01');
 create table pg_temp.antes as select parte_juro as juro3_antes from public.parcelas where id=pg_temp.pid('Cliente Price',3);
 
@@ -97,7 +97,7 @@ exception when others then perform pg_temp.r('P6. Price recusa valor maior que a
 -- ===========================================================================
 -- SAC: mensal, R$1000, 10%, 5x -> capital igual (200) e juro sobre saldo
 -- ===========================================================================
-select public.cliente_criar('Cliente Sac','241.615.590-05','63999990004');
+select public.cliente_criar('Cliente Sac','241.615.590-38','63999990004');
 select public.contrato_criar((select id from public.clientes where nome_completo='Cliente Sac'), 'mensal','sac',1000,10,5,'2026-10-01','2026-11-01');
 
 select public.pagamento_registrar(pg_temp.pid('Cliente Sac',1), 200); -- juro 100 + so metade do capital previsto (100 de 200)
