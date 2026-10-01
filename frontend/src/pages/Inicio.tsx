@@ -5,12 +5,12 @@ import Moldura from '../components/Moldura'
 import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 
-// Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia
+// Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
 const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-critico text-white shadow-critico/35', sub: 'text-[#E4DCFF]', bolinha: 'bg-white', clara: 'bg-[#EFE9FF]', escura: 'text-[#5B3BE0]' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-vencido text-white shadow-vencido/35', sub: 'text-[#FFDADB]', bolinha: 'bg-white', clara: 'bg-[#FFE9E8]', escura: 'text-[#D13438]' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-hoje text-white shadow-hoje/35', sub: 'text-[#D6E4FF]', bolinha: 'bg-white anima-pulso', clara: 'bg-[#E4EEFF]', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-amanha text-sobre-amanha shadow-amanha/35', sub: 'text-[#5C3D00]', bolinha: 'bg-sobre-amanha', clara: 'bg-[#FFF3D1]', escura: 'text-[#C27C00]' },
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-[#E4DCFF]', bolinha: 'bg-white', clara: 'bg-[#EFE9FF]', escura: 'text-[#5B3BE0]' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-[#FFDADB]', bolinha: 'bg-white', clara: 'bg-[#FFE9E8]', escura: 'text-[#D13438]' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-[#D6E4FF]', bolinha: 'bg-white anima-pulso', clara: 'bg-[#E4EEFF]', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FFD25C] to-[#F09400] text-sobre-amanha shadow-amanha/35', sub: 'text-[#5C3D00]', bolinha: 'bg-sobre-amanha', clara: 'bg-[#FFF3D1]', escura: 'text-[#C27C00]' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
