@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Icone from '../components/Icone'
 import Tela from '../components/Tela'
+import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { cpfValido, mascaraCpf, mascaraTelefone, soDigitos } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
-
-const campo = 'mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-slate-900'
 
 export default function ClienteNovo() {
   const navegar = useNavigate()
@@ -29,24 +29,33 @@ export default function ClienteNovo() {
   }
 
   return (
-    <Tela titulo="Novo cliente" voltar="/clientes">
-      <form onSubmit={salvar} className="mt-4 rounded-2xl bg-white p-6 shadow-sm">
-        <label className="block text-sm font-medium" htmlFor="nome">Nome completo</label>
-        <input id="nome" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} className={campo} />
+    <Tela titulo="Novo cliente" subtitulo="Cadastro rápido. O resto dá pra completar depois." voltar="/clientes">
+      <form onSubmit={salvar} className="cartao mt-4 flex flex-col gap-4 rounded-[26px] p-5 lg:p-7">
+        <div>
+          <label className={rotulo} htmlFor="nome">Nome completo</label>
+          <input id="nome" autoComplete="off" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Maria Souza da Silva" className={campo} />
+        </div>
 
-        <label className="mt-4 block text-sm font-medium" htmlFor="cpf">CPF <span className="font-normal text-slate-500">(se tiver)</span></label>
-        <input id="cpf" inputMode="numeric" value={cpf} onChange={(e) => setCpf(mascaraCpf(e.target.value))} placeholder="000.000.000-00" className={campo} />
-        <p className="mt-1 text-xs text-slate-500">Sem CPF? Deixe em branco. Dá pra completar depois na ficha.</p>
+        <div>
+          <label className={rotulo} htmlFor="tel">Telefone (WhatsApp)</label>
+          <input id="tel" inputMode="tel" value={telefone} onChange={(e) => setTelefone(mascaraTelefone(e.target.value))} placeholder="(63) 99999-0000" className={campo} />
+        </div>
 
-        <label className="mt-4 block text-sm font-medium" htmlFor="tel">Telefone (WhatsApp)</label>
-        <input id="tel" inputMode="tel" value={telefone} onChange={(e) => setTelefone(mascaraTelefone(e.target.value))} placeholder="(63) 99999-0000" className={campo} />
+        <div>
+          <label className={rotulo} htmlFor="cpf">
+            CPF <span className="font-normal text-suave">(se tiver)</span>
+          </label>
+          <input id="cpf" inputMode="numeric" value={cpf} onChange={(e) => setCpf(mascaraCpf(e.target.value))} placeholder="000.000.000-00" className={campo} />
+          <p className="mt-1.5 text-xs text-suave">Sem CPF? Deixe em branco e complete depois na ficha.</p>
+        </div>
 
-        {erro && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
+        {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
 
-        <button type="submit" disabled={salvando} className="mt-6 w-full rounded-xl bg-slate-900 py-3 font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={salvando} className={`${botaoVerde} mt-1 w-full`}>
+          <Icone nome="certo" tamanho={18} />
           {salvando ? 'Salvando…' : 'Salvar cliente'}
         </button>
-        <p className="mt-3 text-center text-xs text-slate-500">O CPF fica guardado criptografado.</p>
+        <p className="text-center text-xs text-suave">O CPF fica guardado criptografado.</p>
       </form>
     </Tela>
   )

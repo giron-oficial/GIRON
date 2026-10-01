@@ -40,7 +40,8 @@ Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em bot
 ## Peças prontas — reutilize, não recrie
 
 - `components/Moldura.tsx`: menu lateral preto (computador) + barra preta flutuante embaixo (celular). Toda tela interna fica dentro dela.
-- `components/Tela.tsx`: Moldura + "← Voltar" + título. Use em telas simples.
+- `components/Tela.tsx`: Moldura + "← Voltar" + título/subtítulo + `acoes` (botões à direita) + `largo` (ocupa a largura toda no computador).
+- `components/estilo.ts`: classes prontas (`campo`, `rotulo`, `botaoVerde`, `botaoClaro`, `botaoEscuro`, `tituloSecao`, `erroCaixa`), selos de cadastro e de contrato, `iniciais()`. Use estas em vez de reinventar.
 - `components/Icone.tsx`: ícones de traço. Precisa de um novo? Acrescente o desenho lá (24x24, traço 1.8).
 - `lib/formatos.ts`: `reais()`, `dataBr()`, `linkWhatsApp()`, `nomeModalidade`.
 - `lib/painel.ts`: números do painel e classificação das situações.
@@ -48,7 +49,7 @@ Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em bot
 
 ## Telas antigas
 
-Clientes, contratos, empréstimo, login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
+Já no tema: painel, lista de clientes, ficha do cliente e novo cliente (referência de lista, ficha e formulário). Contratos, empréstimo, login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
 
 ## Antes de entregar
 

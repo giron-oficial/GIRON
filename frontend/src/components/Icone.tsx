@@ -9,6 +9,37 @@ const caminhos = {
   ),
   mais: <path d="M12 5v14M5 12h14" />,
   contratos: <path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5" />,
+  lupa: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-4-4" />
+    </>
+  ),
+  link: <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />,
+  copiar: <path d="M8 8h11v12H8zM5 16V4h11" />,
+  pin: (
+    <>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+      <circle cx="12" cy="10" r="2.3" />
+    </>
+  ),
+  certo: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+  xis: <path d="M6 6l12 12M18 6 6 18" />,
+  usuario: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 20c1-3.8 4-6 7.5-6s6.5 2.2 7.5 6" />
+    </>
+  ),
+  maleta: <path d="M4 8h16v11H4zM9 8V5h6v3M4 13h16" />,
+  imagem: (
+    <>
+      <path d="M4 5h16v14H4z" />
+      <circle cx="9" cy="10" r="1.8" />
+      <path d="m4 17 5-4 4 3 3-2 4 3" />
+    </>
+  ),
+  seta: <path d="M9 6l6 6-6 6" />,
   relatorios: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   ajustes: (
     <>
