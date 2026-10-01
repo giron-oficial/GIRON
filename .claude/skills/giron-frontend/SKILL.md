@@ -37,6 +37,14 @@ Fonte: **uma só no sistema todo, Plus Jakarta Sans** (`font-sans` e `font-displ
 Utilitários: `cartao` (branco + sombra suave) e `verde` (degradê #22D184 → #0B8A55 com texto branco: botão principal, "+", WhatsApp).
 Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em botões.
 
+## Campos de digitar (regras do dono, 01/10/2026)
+
+- **Valor a preencher aparece em CINZA** (placeholder). Não deixe número "de exemplo" preto dentro do campo: preto é só o que a pessoa digitou ou um dado real do cliente.
+- **Dinheiro sempre no formato do Brasil enquanto digita:** use `mascaraReais()` (os números entram pela direita: 150000 → 1.500,00) com "R$" fixo na frente do campo; mostrar com `reais()` ou `reaisCampo()`.
+- **Porcentagem completa, sem arredondar**, com vírgula: `percentualCompleto()` (ex.: 5,676594878984537). Digitação com `mascaraPercentual()`.
+- **Juro ligado nos dois sentidos:** digitou o %, aparece o valor em R$; digitou o valor em R$, aparece o % (ver `pages/EmprestimoNovo.tsx`). Mudou o valor emprestado ou o prazo, recalcula o lado que não foi digitado por último.
+- O banco guarda o % com 8 casas depois da vírgula (`numeric(12,8)`); a diferença é desprezível (frações de centavo).
+
 ## Peças prontas — reutilize, não recrie
 
 - `components/Moldura.tsx`: menu lateral preto (computador) + barra preta flutuante embaixo (celular). Toda tela interna fica dentro dela.
@@ -49,7 +57,7 @@ Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em bot
 
 ## Telas antigas
 
-Já no tema: painel, lista de clientes, ficha do cliente e novo cliente (referência de lista, ficha e formulário). Contratos, empréstimo, login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
+Já no tema: painel, lista/ficha/novo cliente, novo empréstimo e contrato. Login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
 
 ## Antes de entregar
 

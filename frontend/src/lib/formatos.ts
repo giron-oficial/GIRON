@@ -49,6 +49,25 @@ export function numeroBr(t: string): number {
   return Number(limpo)
 }
 
+// 1500 -> "1.500,00" (sem o R$, pra campos de digitar)
+export const reaisCampo = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+// Campo de dinheiro enquanto digita: "150000" -> "1.500,00" (os números entram pela direita, como na maquininha)
+export function mascaraReais(t: string): string {
+  const d = soDigitos(t).replace(/^0+/, '').slice(0, 13)
+  return d ? reaisCampo(Number(d) / 100) : ''
+}
+
+// Campo de porcentagem enquanto digita: só números e uma vírgula ("5.5" vira "5,5")
+export function mascaraPercentual(t: string): string {
+  const s = t.replace(/\./g, ',').replace(/[^\d,]/g, '')
+  const i = s.indexOf(',')
+  return i < 0 ? s : s.slice(0, i + 1) + s.slice(i + 1).replace(/,/g, '')
+}
+
+// 5.676594878984537 -> "5,676594878984537" (porcentagem completa, sem arredondar)
+export const percentualCompleto = (v: number) => (Number.isFinite(v) ? String(v).replace('.', ',') : '')
+
 // data ISO (2026-10-01) -> 01/10/2026
 export const dataBr = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR')
 
