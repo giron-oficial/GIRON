@@ -29,7 +29,7 @@ Fonte visual: canvas no Claude Design https://claude.ai/artifact/D39ZyGM9XKzJuzw
 | `marca` / `marca-clara` / `marca-brilho` | #0B8A55 / #22D184 / #5BE3A4 | verde: texto-link / começo do degradê / destaque sobre fundo escuro |
 | `critico` | #7C5CFA (roxa) | crítico: atraso a partir de `dias_para_critico` |
 | `vencido` | #E5484D (vermelha) | venceu (1 dia até virar crítico) |
-| `hoje` | #2F6FED (azul) | vence hoje (bolinha branca pulsa: `anima-pulso`) |
+| `hoje` | #2F6FED (azul) | vence hoje (bolinha VERMELHA piscando: `anima-pulso`, pedido do dono) |
 | `amanha` / `sobre-amanha` | #F5A800 / #3D2800 | vence amanhã / texto em cima do amarelo |
 
 Fontes: `font-display` = **Sora** (títulos e números de dinheiro, peso 700–800), `font-sans` = **Manrope** (resto). Carregadas no `index.html`.

@@ -50,11 +50,11 @@
   }
 }
 
-/* Bolinha "vence hoje" pulsando (branca, dentro do cartão azul) */
+/* Bolinha "vence hoje" piscando em vermelho (dentro do cartão azul) */
 @keyframes pulso {
-  0% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0.7); }
-  70% { box-shadow: 0 0 0 9px rgb(255 255 255 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(255 59 59 / 0.85); }
+  70% { box-shadow: 0 0 0 10px rgb(255 59 59 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(255 59 59 / 0); }
 }
 .anima-pulso {
   animation: pulso 2s infinite;
