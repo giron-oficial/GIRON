@@ -1,1 +1,94 @@
 @import "tailwindcss";
+
+/* Tema "Pulso" do GIRON (aprovado pelo dono em 01/10/2026).
+   Regras completas: .claude/skills/giron-frontend/SKILL.md */
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+
+  /* Tokens do tema: use ESTES nas telas novas */
+  --color-fundo: #0A0E17;
+  --color-superficie: #121826;
+  --color-superficie-2: #1A2232;
+  --color-borda: #252F42;
+  --color-texto: #EEF2F7;
+  --color-suave: #8B95A7;
+  --color-marca: #3DDC97;
+  --color-marca-escura: #1E9E6A;
+  --color-sobre-marca: #06281A;
+  --color-critico: #A78BFA;
+  --color-vencido: #F87171;
+  --color-hoje: #60A5FA;
+  --color-amanha: #FBBF24;
+
+  /* Paleta antiga remapeada pro escuro, só pra as telas feitas antes do Pulso
+     ficarem coerentes. Ao refazer uma tela, troque por tokens acima. */
+  --color-white: #121826;
+  --color-slate-50: #0A0E17;
+  --color-slate-100: #1A2232;
+  --color-slate-200: #232D40;
+  --color-slate-300: #2E3A50;
+  --color-slate-400: #6B7588;
+  --color-slate-500: #8B95A7;
+  --color-slate-600: #A9B3C4;
+  --color-slate-900: #EEF2F7;
+  --color-emerald-50: #10261D;
+  --color-emerald-100: #143425;
+  --color-emerald-400: #2FB57B;
+  --color-emerald-500: #3DDC97;
+  --color-emerald-600: #3DDC97;
+  --color-emerald-800: #8FE9C0;
+  --color-red-50: #2A1417;
+  --color-red-100: #3A191D;
+  --color-red-300: #7F2D33;
+  --color-red-700: #F87171;
+  --color-red-800: #FCA5A5;
+  --color-amber-50: #2A2210;
+  --color-amber-100: #3A2E12;
+  --color-amber-300: #6B5212;
+  --color-amber-700: #FBBF24;
+  --color-amber-800: #FDE3A0;
+}
+
+/* Cartão de vidro: fundo translúcido + borda fina */
+@utility vidro {
+  background-color: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-fundo);
+    color: var(--color-texto);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  input,
+  select,
+  textarea {
+    color: inherit;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Bolinha "vence hoje" pulsando */
+@keyframes pulso {
+  0% { box-shadow: 0 0 0 0 rgb(96 165 250 / 0.55); }
+  70% { box-shadow: 0 0 0 10px rgb(96 165 250 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(96 165 250 / 0); }
+}
+.anima-pulso {
+  animation: pulso 2s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anima-pulso {
+    animation: none;
+  }
+}
