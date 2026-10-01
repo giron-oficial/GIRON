@@ -14,7 +14,7 @@ Fonte visual: canvas no Claude Design https://claude.ai/artifact/D39ZyGM9XKzJuzw
 1. **Celular primeiro.** O Fomentado usa o GIRON andando, no celular. Toda tela tem que funcionar bem com 390 px de largura, com botões de pelo menos 44 px. O computador é a versão ampliada.
 2. **Informação primordial no topo.** No painel: capital em trânsito (cartão verde-escuro → preto, o maior), depois juros recebidos, capital recebido e emprestado no mês (cartões brancos menores); logo abaixo, as 4 situações.
 3. **Claro e leve, com pontos fortes de cor.** Fundo cinza bem claro com brilho suave de verde e lilás no alto, cartões brancos com sombra leve (sem borda), menus em preto (`tinta`).
-4. **Situações em cor CHEIA, com degradê da mesma cor.** Os cartões de críticos/vencidos/hoje/amanhã são pintados inteiros (pedido do dono: "uma cor só, não deixa branco"), num degradê de 135° do tom claro pro forte da MESMA cor (valores no objeto `situacoes` de `pages/Inicio.tsx`). Texto branco; no amarelo, texto escuro (`sobre-amanha`).
+4. **Situações em cor CHEIA, com degradê da mesma cor.** Os cartões de críticos/vencidos/hoje/amanhã são pintados inteiros (pedido do dono: "uma cor só, não deixa branco"), num degradê de 135° do tom claro pro forte da MESMA cor (valores no objeto `situacoes` de `pages/Inicio.tsx`). Todas as letras BRANCAS, nos 4 cartões (pedido do dono: "letras de uma cor só"); por isso o amarelo é um degradê mais forte (#FBB224 → #D97706). Cartões compactos.
 5. **Português simples na tela.** "Cobrar", "vence hoje", "voltou pro caixa". Sem termos técnicos e sem emoji na interface.
 
 ## Tokens (definidos em `frontend/src/index.css`, bloco `@theme`)

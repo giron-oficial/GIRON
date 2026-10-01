@@ -7,10 +7,10 @@ import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../li
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
 const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-[#E4DCFF]', bolinha: 'bg-white', clara: 'bg-[#EFE9FF]', escura: 'text-[#5B3BE0]' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-[#FFDADB]', bolinha: 'bg-white', clara: 'bg-[#FFE9E8]', escura: 'text-[#D13438]' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-[#D6E4FF]', bolinha: 'bg-[#FF3B3B] anima-pulso', clara: 'bg-[#E4EEFF]', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FFD25C] to-[#F09400] text-sobre-amanha shadow-amanha/35', sub: 'text-[#5C3D00]', bolinha: 'bg-sobre-amanha', clara: 'bg-[#FFF3D1]', escura: 'text-[#C27C00]' },
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#EFE9FF]', escura: 'text-[#5B3BE0]' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#FFE9E8]', escura: 'text-[#D13438]' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#FF3B3B] anima-pulso', clara: 'bg-[#E4EEFF]', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FBB224] to-[#D97706] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#FFF3D1]', escura: 'text-[#C27C00]' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
@@ -203,19 +203,19 @@ export default function Inicio() {
                 key={s}
                 onClick={() => setFiltro(ativo ? null : s)}
                 aria-pressed={ativo}
-                className={`flex flex-col items-center gap-0.5 rounded-[20px] px-1.5 pt-3 pb-2.5 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-3 lg:rounded-3xl lg:p-5 ${info.cartao} ${ativo ? 'ring-4 ring-tinta/80 ring-offset-2 ring-offset-fundo' : ''}`}
+                className={`flex flex-col items-center gap-0.5 rounded-[18px] px-1.5 pt-2.5 pb-2 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-2 lg:rounded-[22px] lg:px-4 lg:py-3.5 ${info.cartao} ${ativo ? 'ring-4 ring-tinta/80 ring-offset-2 ring-offset-fundo' : ''}`}
               >
                 <span className="flex items-center gap-2 lg:justify-between">
-                  <span className="flex items-center gap-2 text-sm font-semibold lg:text-[15px]">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
                     <span className={`size-2.5 rounded-full ring-4 ring-white/25 ${info.bolinha}`} />
                     <span className="hidden lg:inline">{info.titulo}</span>
                   </span>
-                  <span className="hidden text-3xl leading-none font-bold lg:inline">{clientes.length}</span>
+                  <span className="hidden text-2xl leading-none font-bold lg:inline">{clientes.length}</span>
                 </span>
-                <span className="text-[26px] leading-tight font-bold lg:hidden">{clientes.length}</span>
+                <span className="text-[22px] leading-tight font-bold lg:hidden">{clientes.length}</span>
                 <span className="text-[11px] font-semibold lg:hidden">{info.rotulo}</span>
-                <span className="text-[10px] font-semibold lg:text-xl lg:font-bold">{semCentavos(total)}</span>
-                <span className={`hidden flex-col gap-1.5 border-t pt-3 text-[13px] font-medium lg:flex ${s === 'amanha' ? 'border-black/10' : 'border-white/20'}`}>
+                <span className="text-[10px] font-semibold lg:text-base lg:font-bold">{semCentavos(total)}</span>
+                <span className={`hidden flex-col gap-1 border-t border-white/25 pt-2 text-xs font-medium lg:flex`}>
                   {clientes.slice(0, 2).map((c) => (
                     <span key={c.nome} className="flex justify-between gap-2">
                       <span className="truncate">{c.nome}</span>
