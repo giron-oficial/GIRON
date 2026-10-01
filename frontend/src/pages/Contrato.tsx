@@ -7,10 +7,14 @@ import { dataBr, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentual
 import { supabase } from '../lib/supabase'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
+type Pagamento = {
+  id: string; parcela_id: string | null; valor_pago: number; desconto: number; acrescimo: number; parte_juro: number; parte_capital: number
+  pago_em: string; observacao: string | null; estornado_em: string | null; motivo_estorno: string | null; ordem: number
+}
 type ContratoT = {
   id: string; numero: number; modalidade: string; sistema_calculo: string | null; capital: number; juro_percentual: number
   juro_valor: number; quantidade_parcelas: number | null; data_contrato: string; status: string; capital_em_aberto: number
-  cliente_id: string; clientes: { nome_completo: string } | null; parcelas: Parcela[]
+  cliente_id: string; clientes: { nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
 }
 
 const hoje = () => new Date().toLocaleDateString('sv-SE')
@@ -47,12 +51,17 @@ export default function Contrato() {
   const [observacao, setObservacao] = useState('')
   const [erroPag, setErroPag] = useState('')
   const [salvandoPag, setSalvandoPag] = useState(false)
+  const [estornando, setEstornando] = useState<string | null>(null)
+  const [motivo, setMotivo] = useState('')
+  const [erroEst, setErroEst] = useState('')
+  const [salvandoEst, setSalvandoEst] = useState(false)
 
   const carregar = useCallback(() => {
     return supabase
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
-               status, capital_em_aberto, cliente_id, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status)`)
+               status, capital_em_aberto, cliente_id, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
+               pagamentos(id, parcela_id, valor_pago, desconto, acrescimo, parte_juro, parte_capital, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
       .maybeSingle()
@@ -89,10 +98,22 @@ export default function Contrato() {
     carregar()
   }
 
+  async function estornar(pagamentoId: string) {
+    if (motivo.trim().length < 3) return setErroEst('Escreva o motivo do estorno.')
+    setErroEst(''); setSalvandoEst(true)
+    const { error } = await supabase.rpc('estorno_registrar', { p_pagamento_id: pagamentoId, p_motivo: motivo.trim() })
+    setSalvandoEst(false)
+    if (error) return setErroEst(error.message)
+    setEstornando(null); setMotivo('')
+    carregar()
+  }
+
   if (carregando) return <Tela voltar="/clientes"><div className="mt-4 h-48 animate-pulse rounded-[26px] bg-black/5" /></Tela>
   if (!c) return <Tela voltar="/clientes"><p className="mt-6 text-suave">Empréstimo não encontrado.</p></Tela>
 
   const recorrente = c.modalidade === 'recorrente'
+  const historico = [...(c.pagamentos ?? [])].sort((a, b) => b.ordem - a.ordem)
+  const ultimoValido = historico.find((pg) => !pg.estornado_em)
   const total = c.parcelas.reduce((s, p) => s + Number(p.valor), 0)
   const pagas = c.parcelas.filter((p) => p.status === 'paga').length
   const sc = seloContrato[c.status] ?? seloContrato.ativo
@@ -215,6 +236,79 @@ export default function Contrato() {
           </ul>
         </section>
       </div>
+
+      <section className="cartao mt-3 rounded-[22px] p-4 lg:p-5">
+        <h2 className={tituloSecao}>Pagamentos recebidos</h2>
+        <p className="mt-0.5 text-xs text-suave">Lançou errado? Dá pra estornar o último pagamento. Nada é apagado: fica registrado com o motivo.</p>
+        {historico.length === 0 && <p className="mt-3 text-sm text-suave">Nenhum pagamento ainda.</p>}
+        <ul className="mt-3 flex flex-col gap-2">
+          {historico.map((pg) => {
+            const parcela = c.parcelas.find((p) => p.id === pg.parcela_id)
+            const ultimo = pg.id === ultimoValido?.id
+            const abrir = estornando === pg.id
+            return (
+              <li key={pg.id} className={`rounded-2xl p-3 ${pg.estornado_em ? 'bg-superficie-2/40' : abrir ? 'bg-[#FFF5F5] ring-2 ring-vencido/40' : 'bg-superficie-2/60'}`}>
+                <div className="flex items-center gap-3">
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${pg.estornado_em ? 'bg-[#FFE9E8] text-[#B42318]' : 'bg-[#DDF7EA] text-marca'}`}>
+                    <Icone nome={pg.estornado_em ? 'xis' : 'certo'} tamanho={18} />
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className={`text-sm font-bold tabular-nums ${pg.estornado_em ? 'text-suave line-through' : ''}`}>
+                      {reais(Number(pg.parte_juro) + Number(pg.parte_capital))}
+                      {parcela && <span className="font-normal text-suave"> · {parcela.numero}ª parcela</span>}
+                    </span>
+                    <span className="text-xs text-suave">
+                      {dataBr(pg.pago_em)} · juro {reais(pg.parte_juro)} · capital {reais(pg.parte_capital)}
+                    </span>
+                    {pg.observacao && !pg.estornado_em && <span className="text-xs text-suave">"{pg.observacao}"</span>}
+                    {pg.estornado_em && (
+                      <span className="text-xs font-semibold text-[#B42318]">
+                        Estornado em {new Date(pg.estornado_em).toLocaleDateString('pt-BR')}: {pg.motivo_estorno}
+                      </span>
+                    )}
+                  </div>
+                  {ultimo && !abrir && (
+                    <button
+                      type="button"
+                      onClick={() => { setEstornando(pg.id); setMotivo(''); setErroEst('') }}
+                      className="h-9 shrink-0 rounded-xl bg-white px-3 text-xs font-bold text-[#B42318] shadow-sm"
+                    >
+                      Estornar
+                    </button>
+                  )}
+                </div>
+
+                {abrir && (
+                  <div className="mt-3 flex flex-col gap-3">
+                    <div>
+                      <label className={rotulo} htmlFor="motivo">Motivo do estorno</label>
+                      <input id="motivo" autoFocus value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: lancei o valor errado" className={campo} />
+                    </div>
+                    <p className="text-xs text-suave">
+                      O valor volta a ficar em aberto: {reais(pg.parte_juro)} de juro e {reais(pg.parte_capital)} de capital.
+                    </p>
+                    {erroEst && <p role="alert" className={erroCaixa}>{erroEst}</p>}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => estornar(pg.id)}
+                        disabled={salvandoEst}
+                        className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-135 from-[#FF8A7A] to-[#D92D3A] font-bold text-white shadow-lg shadow-vencido/30 disabled:opacity-60"
+                      >
+                        <Icone nome="xis" tamanho={18} />
+                        {salvandoEst ? 'Estornando…' : 'Confirmar estorno'}
+                      </button>
+                      <button type="button" onClick={() => setEstornando(null)} className="h-12 rounded-2xl bg-white px-4 font-semibold text-suave">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </section>
     </Tela>
   )
 }
