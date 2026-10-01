@@ -32,7 +32,7 @@ Fonte visual: canvas no Claude Design https://claude.ai/artifact/D39ZyGM9XKzJuzw
 | `hoje` | #2F6FED (azul) | vence hoje (bolinha VERMELHA piscando: `anima-pulso`, pedido do dono) |
 | `amanha` / `sobre-amanha` | #F5A800 / #3D2800 | vence amanhã / texto em cima do amarelo |
 
-Fontes: `font-display` = **Sora** (títulos e números de dinheiro, peso 700–800), `font-sans` = **Manrope** (resto). Carregadas no `index.html`.
+Fonte: **uma só no sistema todo, Plus Jakarta Sans** (`font-sans` e `font-display` apontam pra ela). O dono achou feia a mistura Sora + Manrope ("feia e não uniforme"): NÃO misture fontes. Números de dinheiro: peso 700 (bold), com `tabular-nums`; textos 500–600. Carregada no `index.html`.
 
 Utilitários: `cartao` (branco + sombra suave) e `verde` (degradê #22D184 → #0B8A55 com texto branco: botão principal, "+", WhatsApp).
 Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em botões.

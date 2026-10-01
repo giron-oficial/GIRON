@@ -3,8 +3,8 @@
 /* Tema "Pulso Claro" do GIRON (aprovado pelo dono em 01/10/2026).
    Regras completas: .claude/skills/giron-frontend/SKILL.md */
 @theme {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   /* Tokens do tema: use ESTES nas telas novas */
   --color-fundo: #F5F6F8;

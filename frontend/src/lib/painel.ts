@@ -6,6 +6,7 @@ export type Situacao = 'critico' | 'vencido' | 'hoje' | 'amanha'
 export type Cobranca = {
   parcelaId: string
   contratoId: string
+  clienteId: string
   cliente: string
   telefone: string
   modalidade: string
@@ -38,7 +39,7 @@ type LinhaPendente = {
   valor: number
   parte_juro: number
   status: string
-  contratos: { id: string; modalidade: string; clientes: { nome_completo: string; telefone: string } | null }
+  contratos: { id: string; cliente_id: string; modalidade: string; clientes: { nome_completo: string; telefone: string } | null }
 }
 
 const ordem: Record<Situacao, number> = { critico: 0, vencido: 1, hoje: 2, amanha: 3 }
@@ -66,7 +67,7 @@ export async function carregarPainel(): Promise<Painel> {
     supabase.from('pagamentos').select('parte_juro, parte_capital').is('estornado_em', null).gte('pago_em', inicioMes).lte('pago_em', fimMes),
     supabase
       .from('parcelas')
-      .select('id, vencimento, valor, parte_juro, status, contratos!inner(id, modalidade, status, clientes(nome_completo, telefone))')
+      .select('id, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, status, clientes(nome_completo, telefone))')
       .neq('status', 'paga')
       .lte('vencimento', limite)
       .eq('contratos.status', 'ativo'),
@@ -112,6 +113,7 @@ export async function carregarPainel(): Promise<Painel> {
     cobrancas.push({
       parcelaId: l.id,
       contratoId: l.contratos.id,
+      clienteId: l.contratos.cliente_id,
       cliente: l.contratos.clientes?.nome_completo ?? 'Cliente',
       telefone: l.contratos.clientes?.telefone ?? '',
       modalidade: l.contratos.modalidade,

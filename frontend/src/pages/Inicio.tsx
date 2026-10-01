@@ -186,33 +186,44 @@ export default function Inicio() {
         <section aria-label="Situação dos clientes" className="grid grid-cols-4 gap-2 lg:gap-3.5">
           {ordemSituacoes.map((s) => {
             const info = situacoes[s]
-            const itens = p.cobrancas.filter((c) => c.situacao === s)
+            const doGrupo = p.cobrancas.filter((c) => c.situacao === s)
+            const total = doGrupo.reduce((t, c) => t + c.valor, 0)
+            // Um cliente com várias parcelas no mesmo grupo aparece uma vez só, com o valor somado
+            const porCliente = new Map<string, { nome: string; valor: number; atraso: number }>()
+            for (const c of doGrupo) {
+              const atual = porCliente.get(c.clienteId) ?? { nome: c.cliente, valor: 0, atraso: 0 }
+              atual.valor += c.valor
+              atual.atraso = Math.max(atual.atraso, c.atraso)
+              porCliente.set(c.clienteId, atual)
+            }
+            const clientes = [...porCliente.values()]
             const ativo = filtro === s
             return (
               <button
                 key={s}
                 onClick={() => setFiltro(ativo ? null : s)}
                 aria-pressed={ativo}
-                className={`flex flex-col items-center gap-0.5 rounded-[20px] px-1.5 pt-3 pb-2.5 text-left shadow-lg transition lg:items-stretch lg:gap-2.5 lg:rounded-3xl lg:p-4.5 ${info.cartao} ${ativo ? 'ring-4 ring-tinta/80 ring-offset-2 ring-offset-fundo' : ''}`}
+                className={`flex flex-col items-center gap-0.5 rounded-[20px] px-1.5 pt-3 pb-2.5 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-3 lg:rounded-3xl lg:p-5 ${info.cartao} ${ativo ? 'ring-4 ring-tinta/80 ring-offset-2 ring-offset-fundo' : ''}`}
               >
                 <span className="flex items-center gap-2 lg:justify-between">
-                  <span className="flex items-center gap-2 text-sm font-bold">
+                  <span className="flex items-center gap-2 text-sm font-semibold lg:text-[15px]">
                     <span className={`size-2.5 rounded-full ring-4 ring-white/25 ${info.bolinha}`} />
                     <span className="hidden lg:inline">{info.titulo}</span>
                   </span>
-                  <span className="hidden font-display text-[32px] font-extrabold lg:inline">{itens.length}</span>
+                  <span className="hidden text-3xl leading-none font-bold lg:inline">{clientes.length}</span>
                 </span>
-                <span className="font-display text-[28px] font-extrabold lg:hidden">{itens.length}</span>
-                <span className="text-[11px] font-bold lg:hidden">{info.rotulo}</span>
-                <span className={`text-[10px] lg:text-[13px] ${info.sub}`}>{semCentavos(itens.reduce((t, c) => t + c.valor, 0))}</span>
-                <span className="hidden flex-col gap-1 text-[13px] lg:flex">
-                  {itens.slice(0, 2).map((c) => (
-                    <span key={c.parcelaId} className="flex justify-between gap-2">
-                      <span className="truncate">{c.cliente}</span>
-                      <span className={`shrink-0 ${info.sub}`}>{c.situacao === 'critico' ? `${c.atraso} dias` : semCentavos(c.valor)}</span>
+                <span className="text-[26px] leading-tight font-bold lg:hidden">{clientes.length}</span>
+                <span className="text-[11px] font-semibold lg:hidden">{info.rotulo}</span>
+                <span className="text-[10px] font-semibold lg:text-xl lg:font-bold">{semCentavos(total)}</span>
+                <span className={`hidden flex-col gap-1.5 border-t pt-3 text-[13px] font-medium lg:flex ${s === 'amanha' ? 'border-black/10' : 'border-white/20'}`}>
+                  {clientes.slice(0, 2).map((c) => (
+                    <span key={c.nome} className="flex justify-between gap-2">
+                      <span className="truncate">{c.nome}</span>
+                      <span className={`shrink-0 ${info.sub}`}>{s === 'critico' ? `${c.atraso} dias` : semCentavos(c.valor)}</span>
                     </span>
                   ))}
-                  {itens.length === 0 && <span className={info.sub}>Ninguém aqui</span>}
+                  {clientes.length > 2 && <span className={info.sub}>e mais {clientes.length - 2}</span>}
+                  {clientes.length === 0 && <span className={info.sub}>Ninguém aqui</span>}
                 </span>
               </button>
             )
