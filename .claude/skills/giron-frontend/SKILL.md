@@ -1,57 +1,54 @@
 ---
 name: giron-frontend
-description: Regras do visual do GIRON (tema "Pulso"). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
+description: Regras do visual do GIRON (tema "Pulso Claro"). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
 ---
 
-# GIRON — tema Pulso
+# GIRON — tema Pulso Claro
 
-O dono (Tom) aprovou o tema **Pulso** em 01/10/2026 e não quer nada com cara de SaaS genérico.
+O dono (Tom) aprovou o tema **Pulso Claro** em 01/10/2026. Ele não quer nada com cara de SaaS genérico e **não quer parecido com o CredPlus** (o CredPlus é escuro, azul-marinho, com bordas de vidro, dourado e letra pesada: evite tudo isso).
 Fonte visual: canvas no Claude Design https://claude.ai/artifact/D39ZyGM9XKzJuzwFjpc4RA
-(artboards "4 · Pulso — celular" e "4 · Pulso — computador"). As outras propostas daquele canvas foram RECUSADAS: não copie nada delas.
+(artboards "4 · Pulso CLARO — celular" e "4 · Pulso CLARO — computador"). As outras propostas do canvas foram RECUSADAS, inclusive o Pulso escuro.
 
 ## Princípios
 
 1. **Celular primeiro.** O Fomentado usa o GIRON andando, no celular. Toda tela tem que funcionar bem com 390 px de largura, com botões de pelo menos 44 px. O computador é a versão ampliada.
-2. **Informação primordial no topo.** No painel: capital em trânsito (destaque verde, maior), depois juros recebidos, capital recebido e emprestado no mês; logo abaixo, as 4 situações.
-3. **Escuro, vidro e brilho de cor.** Fundo quase preto azulado, cartões translúcidos (`vidro`), brilhos suaves de verde e azul no fundo. Nada de cartões brancos.
-4. **Cor tem significado.** As cores das situações são fixas (ver tabela). Verde é a marca e o dinheiro entrando. Não use essas cores para enfeite.
+2. **Informação primordial no topo.** No painel: capital em trânsito (cartão verde-escuro → preto, o maior), depois juros recebidos, capital recebido e emprestado no mês (cartões brancos menores); logo abaixo, as 4 situações.
+3. **Claro e leve, com pontos fortes de cor.** Fundo cinza bem claro com brilho suave de verde e lilás no alto, cartões brancos com sombra leve (sem borda), menus em preto (`tinta`).
+4. **Situações em cor CHEIA.** Os cartões de críticos/vencidos/hoje/amanhã são pintados inteiros da cor (pedido do dono: "uma cor só, não deixa branco"). Texto branco; no amarelo, texto escuro (`sobre-amanha`).
 5. **Português simples na tela.** "Cobrar", "vence hoje", "voltou pro caixa". Sem termos técnicos e sem emoji na interface.
 
 ## Tokens (definidos em `frontend/src/index.css`, bloco `@theme`)
 
 | Token (classe Tailwind) | Valor | Uso |
 |---|---|---|
-| `fundo` | #0A0E17 | fundo da página |
-| `superficie` / `superficie-2` | #121826 / #1A2232 | áreas sólidas, hover |
-| `borda` | #252F42 | divisórias sólidas |
-| `texto` / `suave` | #EEF2F7 / #8B95A7 | texto principal / secundário |
-| `marca` / `marca-escura` / `sobre-marca` | #3DDC97 / #1E9E6A / #06281A | botão principal, destaque, texto em cima do verde |
-| `critico` | #A78BFA (roxa) | crítico: atraso a partir de `dias_para_critico` |
-| `vencido` | #F87171 (vermelha) | venceu (1 dia até virar crítico) |
-| `hoje` | #60A5FA (azul) | vence hoje (bolinha pulsa: `anima-pulso`) |
-| `amanha` | #FBBF24 (amarela) | vence amanhã |
+| `fundo` | #F5F6F8 | fundo da página |
+| `superficie` / `superficie-2` | #FFFFFF / #F0F1F4 | cartões / trilhos, divisórias, hover |
+| `borda` | #E6E8EC | linhas finas quando precisar |
+| `texto` / `suave` | #111318 / #6B7280 | texto principal / secundário |
+| `tinta` | #111318 | menu lateral, barra de baixo, avatar |
+| `marca` / `marca-clara` / `marca-brilho` | #0B8A55 / #22D184 / #5BE3A4 | verde: texto-link / começo do degradê / destaque sobre fundo escuro |
+| `critico` | #7C5CFA (roxa) | crítico: atraso a partir de `dias_para_critico` |
+| `vencido` | #E5484D (vermelha) | venceu (1 dia até virar crítico) |
+| `hoje` | #2F6FED (azul) | vence hoje (bolinha branca pulsa: `anima-pulso`) |
+| `amanha` / `sobre-amanha` | #F5A800 / #3D2800 | vence amanhã / texto em cima do amarelo |
 
-Fontes: `font-display` = **Sora** (títulos e números de dinheiro), `font-sans` = **Manrope** (resto). Carregadas no `index.html`.
+Fontes: `font-display` = **Sora** (títulos e números de dinheiro, peso 700–800), `font-sans` = **Manrope** (resto). Carregadas no `index.html`.
 
-Utilitário `vidro`: fundo branco 4% + borda branca 8%. Use em cartões comuns.
-Cartão de destaque (só o capital em trânsito): `border-marca/35 bg-linear-150 from-marca/30 to-marca/5`.
-Cartão de situação: `bg-linear-to-b from-<cor>/20 to-white/[0.02] border-<cor>/30`.
-Botão principal: `bg-linear-135 from-marca to-marca-escura text-sobre-marca font-bold shadow-lg shadow-marca/25`, cantos `rounded-xl`/`rounded-2xl`.
+Utilitários: `cartao` (branco + sombra suave) e `verde` (degradê #22D184 → #0B8A55 com texto branco: botão principal, "+", WhatsApp).
+Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em botões.
 
 ## Peças prontas — reutilize, não recrie
 
-- `components/Moldura.tsx`: menu lateral (computador) + barra flutuante embaixo (celular). Toda tela interna fica dentro dela.
+- `components/Moldura.tsx`: menu lateral preto (computador) + barra preta flutuante embaixo (celular). Toda tela interna fica dentro dela.
 - `components/Tela.tsx`: Moldura + "← Voltar" + título. Use em telas simples.
 - `components/Icone.tsx`: ícones de traço. Precisa de um novo? Acrescente o desenho lá (24x24, traço 1.8).
 - `lib/formatos.ts`: `reais()`, `dataBr()`, `linkWhatsApp()`, `nomeModalidade`.
 - `lib/painel.ts`: números do painel e classificação das situações.
+- `pages/Inicio.tsx`: referência de como aplicar o tema (cores das situações no objeto `situacoes`).
 
-## Atenção: paleta antiga remapeada
+## Telas antigas
 
-As telas feitas antes do Pulso usam `bg-white`, `text-slate-600`, `bg-emerald-600` etc. No `@theme` essas cores foram **remapeadas para o escuro** (`white` virou #121826, `slate-900` virou texto claro...). Isso é provisório.
-- Em código novo, **use só os tokens da tabela**, nunca `white`/`slate`/`emerald`/`red`/`amber`.
-- Ao mexer numa tela antiga, aproveite e troque as classes antigas pelos tokens.
-- Não use `bg-white/5` pensando em branco translúcido: `white` agora é escuro. Use `vidro` ou `bg-[rgb(255_255_255/0.05)]`.
+Clientes, contratos, empréstimo, login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
 
 ## Antes de entregar
 
