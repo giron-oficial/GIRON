@@ -8,6 +8,20 @@ const caminhos = {
     </>
   ),
   mais: <path d="M12 5v14M5 12h14" />,
+  contratos: <path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5" />,
+  relatorios: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  ajustes: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2.5v3M12 18.5v3M4.2 6l2.1 2.1M17.7 15.9l2.1 2.1M2.5 12h3M18.5 12h3M4.2 18l2.1-2.1M17.7 8.1l2.1-2.1" />
+    </>
+  ),
+  globo: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5s1.2-6.1 3.5-8.5z" />
+    </>
+  ),
   sair: <path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" />,
   subindo: <path d="M4 17l5-5 4 4 7-8M15 8h5v5" />,
   moeda: (
