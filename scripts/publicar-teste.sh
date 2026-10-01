@@ -5,4 +5,4 @@ set -euo pipefail
 cd "$(dirname "$0")/../frontend"
 npm run build
 rsync -a --delete dist/ giron-vps:/opt/giron/app-teste/html/
-echo "Publicado em https://teste.2-25-228-237.sslip.io"
+echo "Publicado em https://teste.gironga.com.br"

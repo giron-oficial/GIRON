@@ -21,7 +21,7 @@ npm run dev
 
 ## Ambientes
 
-- **Teste:** `https://teste.2-25-228-237.sslip.io` (endereço provisório).
+- **Teste:** `https://teste.gironga.com.br` (o provisório `teste.2-25-228-237.sslip.io` continua de reserva).
 - **Produção:** ainda não existe.
 
 ## Regras

@@ -42,7 +42,7 @@ export default function Inicio() {
             <>
               <p className="text-slate-600">Olá! 👋</p>
               <h2 className="mt-1 text-xl font-semibold">{empresa.nome_empresa}</h2>
-              <p className="mt-1 text-sm text-slate-500">{empresa.subdominio}.giron.app</p>
+              <p className="mt-1 text-sm text-slate-500">{empresa.subdominio}.gironga.com.br</p>
               <div className="mt-6 flex items-center justify-between rounded-xl bg-slate-100 px-4 py-3">
                 <span>Situação</span>
                 <strong className="text-right">{statusTexto[empresa.status_acesso] ?? empresa.status_acesso}</strong>
