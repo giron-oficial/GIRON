@@ -23,3 +23,4 @@ Thumbs.db
 
 # Exemplo de configuração (pode ir pro GitHub, não tem segredo)
 !.env.example
+.superpowers/
