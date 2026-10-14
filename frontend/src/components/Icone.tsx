@@ -40,6 +40,12 @@ const caminhos = {
     </>
   ),
   seta: <path d="M9 6l6 6-6 6" />,
+  calculadora: (
+    <>
+      <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
+      <path d="M8.5 6.5h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5V18M8.5 18h.01M12 18h.01" />
+    </>
+  ),
   relatorios: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
   ajustes: (
     <>

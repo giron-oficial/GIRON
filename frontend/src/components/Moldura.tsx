@@ -8,6 +8,7 @@ import Icone, { type NomeIcone } from './Icone'
 const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
   { to: '/', rotulo: 'Início', icone: 'inicio' },
   { to: '/clientes', rotulo: 'Clientes', icone: 'clientes' },
+  { to: '/calculadora', rotulo: 'Calculadora', icone: 'calculadora' },
 ]
 
 const emBreve: { rotulo: string; icone: NomeIcone }[] = [

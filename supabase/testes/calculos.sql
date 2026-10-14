@@ -42,3 +42,13 @@ select pg_temp.r('C10. Centavos: R$1000 em 3x fecha exato no capital',
 select pg_temp.r('C11. Mensal: vencimentos 01/11, 01/12, 01/01',
   (select array_agg((p->>'vencimento')::date order by (p->>'numero')::int) = array['2026-11-01','2026-12-01','2027-01-01']::date[]
      from jsonb_array_elements(pg_temp.c('mensal','empresa',1000,10,3,'2026-10-01','2026-11-01')->'parcelas') p));
+-- Calculadora GIRON (exemplos do dono, 14/10/2026)
+select pg_temp.r('C12. Calculadora: Welves R$1000 15% 4x = 4 de R$400, de 01/11/26 a 01/02/27',
+  (select bool_and((p->>'valor')::numeric = 400)
+          and array_agg((p->>'vencimento')::date order by (p->>'numero')::int) = array['2026-11-01','2026-12-01','2027-01-01','2027-02-01']::date[]
+     from jsonb_array_elements(pg_temp.c('mensal','empresa',1000,15,4,'2026-10-13','2026-11-01')->'parcelas') p));
+select pg_temp.r('C13. Calculadora: R$1000 10% 6x = 5 de R$266,67 + ultima R$266,65 (total R$1600)',
+  (select count(*) filter (where (p->>'valor')::numeric = 266.67) = 5
+          and bool_or((p->>'numero')::int = 6 and (p->>'valor')::numeric = 266.65)
+          and sum((p->>'valor')::numeric) = 1600
+     from jsonb_array_elements(pg_temp.c('mensal','empresa',1000,10,6,'2026-10-05','2026-11-05')->'parcelas') p));

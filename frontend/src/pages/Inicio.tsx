@@ -138,6 +138,10 @@ export default function Inicio() {
               {saudacao()}, {nome}
             </h1>
           </div>
+          <Link to="/calculadora" className="cartao flex h-11 items-center gap-2 rounded-2xl px-3.5 text-sm font-semibold hover:text-marca lg:px-4">
+            <Icone nome="calculadora" tamanho={18} />
+            <span className="hidden lg:inline">Calculadora</span>
+          </Link>
           <Link to="/clientes" className="cartao hidden h-11 items-center rounded-2xl px-4 text-sm font-semibold hover:text-marca lg:flex">
             Ver clientes
           </Link>

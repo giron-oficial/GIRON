@@ -5,6 +5,7 @@ import { AuthProvider } from './lib/AuthProvider'
 import ClienteFicha from './pages/ClienteFicha'
 import ClienteNovo from './pages/ClienteNovo'
 import Clientes from './pages/Clientes'
+import Calculadora from './pages/Calculadora'
 import Contrato from './pages/Contrato'
 import EmprestimoNovo from './pages/EmprestimoNovo'
 import Inicio from './pages/Inicio'
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/clientes/novo" element={<Protegida><ClienteNovo /></Protegida>} />
           <Route path="/clientes/:id" element={<Protegida><ClienteFicha /></Protegida>} />
           <Route path="/clientes/:id/emprestimo" element={<Protegida><EmprestimoNovo /></Protegida>} />
+          <Route path="/calculadora" element={<Protegida><Calculadora /></Protegida>} />
           <Route path="/contratos/:id" element={<Protegida><Contrato /></Protegida>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
