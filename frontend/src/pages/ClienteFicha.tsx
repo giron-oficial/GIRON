@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Tela from '../components/Tela'
+import BarraRecuperacao from '../components/BarraRecuperacao'
+import { recuperacao } from '../lib/recuperacao'
 import { botaoClaro, botaoVerde, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
 import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
@@ -14,7 +16,7 @@ type Cliente = {
   trabalho_telefone: string | null; trabalho_referencia: string | null; indicado_por: string | null
   valor_pretendido: number | null; modalidade_preferida: string | null; dia_vencimento_preferido: number | null
   cliente_arquivos: Arquivo[]; cliente_localizacoes: Local[]
-  contratos: { id: string; numero: number; modalidade: string; capital: number; capital_em_aberto: number; status: string; data_contrato: string }[]
+  contratos: { id: string; numero: number; modalidade: string; capital: number; capital_em_aberto: number; status: string; data_contrato: string; pagamentos: { valor_pago: number; estornado_em: string | null }[] }[]
 }
 
 const nomeTipo: Record<string, string> = { selfie: 'Selfie', documento: 'CNH / RG', comprovante: 'Comprovante', foto_casa: 'Casa' }
@@ -63,7 +65,7 @@ export default function ClienteFicha() {
                modalidade_preferida, dia_vencimento_preferido,
                cliente_arquivos(id, tipo, caminho_arquivo),
                cliente_localizacoes(id, nome, latitude, longitude, precisao_metros, foto_arquivo, registrado_em),
-               contratos(id, numero, modalidade, capital, capital_em_aberto, status, data_contrato)`)
+               contratos(id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, pagamentos(valor_pago, estornado_em))`)
       .eq('id', id!)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -260,6 +262,7 @@ export default function ClienteFicha() {
                           {dataBr(k.data_contrato)}
                           {k.status === 'ativo' ? ` · falta ${reais(k.capital_em_aberto)}` : ''}
                         </span>
+                        <BarraRecuperacao r={recuperacao(k.capital, k.pagamentos ?? [])} compacta />
                       </div>
                       <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${sc.classe}`}>{sc.texto}</span>
                     </Link>

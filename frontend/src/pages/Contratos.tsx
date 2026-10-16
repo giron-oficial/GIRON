@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
+import BarraRecuperacao from '../components/BarraRecuperacao'
+import { recuperacao } from '../lib/recuperacao'
 import { seloContrato } from '../components/estilo'
 import { regraDaConfig } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, lerId, nomeModalidade, reais } from '../lib/formatos'
@@ -17,6 +19,7 @@ type Linha = {
   data_contrato: string
   clientes: { numero: number; nome_completo: string } | null
   parcelas: { vencimento: string; status: string }[]
+  pagamentos: { valor_pago: number; estornado_em: string | null }[]
 }
 
 // Situação do contrato pela parcela em aberto mais antiga
@@ -53,7 +56,7 @@ export default function Contratos() {
     Promise.all([
       supabase
         .from('contratos')
-        .select('id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, clientes(numero, nome_completo), parcelas(vencimento, status)')
+        .select('id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, clientes(numero, nome_completo), parcelas(vencimento, status), pagamentos(valor_pago, estornado_em)')
         .order('data_contrato', { ascending: false }),
       supabase.from('fomentado_configuracoes').select('dias_para_critico').maybeSingle(),
     ]).then(([c, cfg]) => {
@@ -148,6 +151,7 @@ export default function Contratos() {
                     {nomeModalidade[k.modalidade] ?? k.modalidade} · {reais(k.capital)}
                     {k.status === 'ativo' && k.proximo ? ` · vence ${dataBr(k.proximo)}` : ` · ${dataBr(k.data_contrato)}`}
                   </span>
+                  <BarraRecuperacao r={recuperacao(k.capital, k.pagamentos ?? [])} compacta />
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   {k.status === 'ativo' && <span className="text-sm font-bold tabular-nums">{reais(k.capital_em_aberto).replace(',00', '')}</span>}

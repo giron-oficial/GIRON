@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'reac
 import { Link, useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
+import BarraRecuperacao from '../components/BarraRecuperacao'
+import { recuperacao } from '../lib/recuperacao'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
 import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
@@ -166,6 +168,7 @@ export default function Contrato() {
   const juroDoMes = Math.round(Number(c.capital_em_aberto) * Number(c.juro_percentual)) / 100
   const vAmort = valorAmort ? numeroBr(valorAmort) : 0
   const capitalDepois = Math.max(0, Number(c.capital_em_aberto) - vAmort)
+  const rec = recuperacao(Number(c.capital), c.pagamentos ?? [])
   const recuperado = Number(c.capital) > 0 ? Math.round(((Number(c.capital) - Number(c.capital_em_aberto)) / Number(c.capital)) * 100) : 0
 
   return (
@@ -258,6 +261,11 @@ export default function Contrato() {
               </div>
             </section>
           )}
+
+          <section className="cartao rounded-[22px] p-4 lg:p-5">
+            <h2 className={tituloSecao}>Recuperação de capital</h2>
+            <div className="mt-3"><BarraRecuperacao r={rec} /></div>
+          </section>
 
           <section className="cartao rounded-[22px] p-4 lg:p-5">
             <h2 className={tituloSecao}>Resumo</h2>
