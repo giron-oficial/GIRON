@@ -3,13 +3,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
-import { cpfEscondido, cpfValido, dataBr, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
+import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
 type Arquivo = { id: string; tipo: string; caminho_arquivo: string }
 type Local = { id: string; nome: string; latitude: number; longitude: number; precisao_metros: number | null; foto_arquivo: string | null; registrado_em: string }
 type Cliente = {
-  id: string; nome_completo: string; cpf_final: string | null; telefone: string; status_cadastro: string; criado_em: string
+  id: string; numero: number; nome_completo: string; cpf_final: string | null; telefone: string; status_cadastro: string; criado_em: string
   endereco: string | null; cep: string | null; trabalho_empresa: string | null; trabalho_endereco: string | null
   trabalho_telefone: string | null; trabalho_referencia: string | null; indicado_por: string | null
   valor_pretendido: number | null; modalidade_preferida: string | null; dia_vencimento_preferido: number | null
@@ -58,7 +58,7 @@ export default function ClienteFicha() {
   useEffect(() => {
     supabase
       .from('clientes')
-      .select(`id, nome_completo, cpf_final, telefone, status_cadastro, criado_em, endereco, cep, trabalho_empresa,
+      .select(`id, numero, nome_completo, cpf_final, telefone, status_cadastro, criado_em, endereco, cep, trabalho_empresa,
                trabalho_endereco, trabalho_telefone, trabalho_referencia, indicado_por, valor_pretendido,
                modalidade_preferida, dia_vencimento_preferido,
                cliente_arquivos(id, tipo, caminho_arquivo),
@@ -131,6 +131,7 @@ export default function ClienteFicha() {
           )}
           <div className="min-w-0">
             <h1 className="text-xl leading-tight font-bold lg:text-2xl">{cliente.nome_completo}</h1>
+            <p className="mt-0.5 text-sm font-bold text-texto/80 tabular-nums">{idCliente(cliente.numero)}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${selo.classe}`}>{selo.texto}</span>
               <span className="text-xs text-suave">desde {new Date(cliente.criado_em).toLocaleDateString('pt-BR')}</span>
@@ -250,7 +251,7 @@ export default function ClienteFicha() {
                 return (
                   <li key={k.id}>
                     <Link to={`/contratos/${k.id}`} className="flex items-center gap-3 rounded-2xl bg-superficie-2/70 p-3 transition hover:bg-superficie-2">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-superficie text-sm font-extrabold">{String(k.numero).padStart(2, '0')}</span>
+                      <span className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-superficie px-2.5 text-xs font-extrabold tabular-nums">{idContrato(k.numero)}</span>
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="text-sm font-bold">
                           {reais(k.capital)} <span className="font-normal text-suave">· {nomeModalidade[k.modalidade] ?? k.modalidade}</span>

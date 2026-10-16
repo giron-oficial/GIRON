@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
-import { dataBr, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
+import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { supabase } from '../lib/supabase'
 
@@ -15,7 +15,7 @@ type Pagamento = {
 type ContratoT = {
   id: string; numero: number; modalidade: string; sistema_calculo: string | null; capital: number; juro_percentual: number
   juro_valor: number; quantidade_parcelas: number | null; data_contrato: string; status: string; capital_em_aberto: number
-  cliente_id: string; convertido_de: string | null; convertido_para: string | null; clientes: { nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
+  cliente_id: string; convertido_de: string | null; convertido_para: string | null; clientes: { numero: number; nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
 }
 
 const hoje = () => new Date().toLocaleDateString('sv-SE')
@@ -70,7 +70,7 @@ export default function Contrato() {
     return supabase
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
-               status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
+               status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(numero, nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
                pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, multa, juro_atraso, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
@@ -169,7 +169,7 @@ export default function Contrato() {
   const recuperado = Number(c.capital) > 0 ? Math.round(((Number(c.capital) - Number(c.capital_em_aberto)) / Number(c.capital)) * 100) : 0
 
   return (
-    <Tela titulo={`Contrato ${String(c.numero).padStart(2, '0')}`} subtitulo={c.clientes?.nome_completo} voltar={`/clientes/${c.cliente_id}`} largo>
+    <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} largo>
       {c.convertido_para && (
         <Link to={`/contratos/${c.convertido_para}`} className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-hoje/15 px-4 py-3 text-sm font-semibold text-hoje">
           Este Recorrente foi transformado em parcelado. Não cobra mais juro todo mês.

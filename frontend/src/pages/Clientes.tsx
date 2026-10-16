@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, iniciais, seloCadastro } from '../components/estilo'
-import { cpfEscondido, mascaraTelefone, reais } from '../lib/formatos'
+import { cpfEscondido, idCliente, lerId, mascaraTelefone, reais } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
 type Cliente = {
   id: string
+  numero: number
   nome_completo: string
   cpf_final: string | null
   telefone: string
@@ -52,7 +53,7 @@ export default function Clientes() {
   useEffect(() => {
     supabase
       .from('clientes')
-      .select('id, nome_completo, cpf_final, telefone, status_cadastro, contratos(status, capital_em_aberto)')
+      .select('id, numero, nome_completo, cpf_final, telefone, status_cadastro, contratos(status, capital_em_aberto)')
       .order('nome_completo')
       .then(({ data }) => {
         setClientes((data ?? []) as Cliente[])
@@ -62,7 +63,10 @@ export default function Clientes() {
 
   const termo = busca.trim().toLowerCase()
   const doFiltro = filtro === 'todos' ? clientes : clientes.filter((c) => c.status_cadastro === filtro)
-  const lista = termo
+  const porId = lerId(busca)
+  const lista = porId
+    ? doFiltro.filter((c) => c.numero === porId.cliente)
+    : termo
     ? doFiltro.filter((c) => c.nome_completo.toLowerCase().includes(termo) || (c.cpf_final ?? '').includes(termo) || c.telefone.includes(termo))
     : doFiltro
   const quantos = (f: Filtro) => (f === 'todos' ? clientes.length : clientes.filter((c) => c.status_cadastro === f).length)
@@ -128,7 +132,7 @@ export default function Clientes() {
           <input
             id="busca-clientes"
             type="search"
-            placeholder="Buscar por nome, telefone ou final do CPF"
+            placeholder="Buscar por nome, #ID, telefone ou final do CPF"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full bg-transparent text-base text-texto outline-none placeholder:text-suave"
@@ -162,6 +166,7 @@ export default function Clientes() {
                 <span className={`flex size-11 shrink-0 items-center justify-center rounded-[14px] text-sm font-extrabold ${selo.avatar}`}>{iniciais(c.nome_completo)}</span>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate font-bold">{c.nome_completo}</span>
+                  <span className="text-xs font-bold text-texto/80 tabular-nums">{idCliente(c.numero)}</span>
                   <span className="truncate text-xs text-suave">
                     {mascaraTelefone(c.telefone)} · {c.cpf_final ? `CPF ${cpfEscondido(c.cpf_final)}` : 'sem CPF'}
                   </span>

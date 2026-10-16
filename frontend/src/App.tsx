@@ -8,6 +8,7 @@ import Clientes from './pages/Clientes'
 import Configuracoes from './pages/Configuracoes'
 import Calculadora from './pages/Calculadora'
 import Contrato from './pages/Contrato'
+import Contratos from './pages/Contratos'
 import EmprestimoNovo from './pages/EmprestimoNovo'
 import Inicio from './pages/Inicio'
 import LinkCadastro from './pages/LinkCadastro'
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/clientes/:id/emprestimo" element={<Protegida><EmprestimoNovo /></Protegida>} />
           <Route path="/calculadora" element={<Protegida><Calculadora /></Protegida>} />
           <Route path="/configuracoes" element={<Protegida><Configuracoes /></Protegida>} />
+          <Route path="/contratos" element={<Protegida><Contratos /></Protegida>} />
           <Route path="/contratos/:id" element={<Protegida><Contrato /></Protegida>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

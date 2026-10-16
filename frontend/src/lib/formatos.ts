@@ -73,3 +73,13 @@ export const dataBr = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateS
 
 export const nomeModalidade: Record<string, string> = { diario: 'Diário', semanal: 'Semanal', mensal: 'Mensal', recorrente: 'Recorrente' }
 export const nomeSistema: Record<string, string> = { empresa: 'Forma da Empresa', price: 'Tabela Price', sac: 'SAC' }
+
+// ID de busca: cliente #0650, contrato CT-02 (pedido do dono, 17/10/2026)
+export const idCliente = (n: number) => '#' + String(n).padStart(4, '0')
+export const idContrato = (n: number) => 'CT-' + String(n).padStart(2, '0')
+
+// "#20", "#0020", "#20 CT-2", "#20ct02" -> { cliente: 20, contrato: 2 }; null se não for busca por ID
+export function lerId(texto: string): { cliente: number; contrato?: number } | null {
+  const m = texto.trim().toLowerCase().match(/^#\s*(\d+)(?:\s*[-/ ]?\s*ct\s*-?\s*(\d+))?$/)
+  return m ? { cliente: Number(m[1]), contrato: m[2] ? Number(m[2]) : undefined } : null
+}
