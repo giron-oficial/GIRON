@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import Interruptor from '../components/Interruptor'
 import { useParams } from 'react-router-dom'
 import { cpfValido, mascaraCpf, mascaraTelefone, soDigitos } from '../lib/formatos'
 import { useGps } from '../lib/gps'
@@ -229,10 +230,10 @@ export default function LinkCadastro() {
       </Bloco>
 
       <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-        <label className="flex items-start gap-3">
-          <input type="checkbox" checked={consentimento} onChange={(e) => setConsentimento(e.target.checked)} className="mt-1 h-5 w-5 shrink-0" />
-          <span className="text-sm">Autorizo o uso dos meus dados, fotos e localização por <strong>{info.empresa}</strong> para análise e controle do meu cadastro.</span>
-        </label>
+        <div className="flex items-center gap-4">
+          <span className="min-w-0 flex-1 text-sm">Autorizo o uso dos meus dados, fotos e localização por <strong>{info.empresa}</strong> para análise e controle do meu cadastro.</span>
+          <Interruptor claro ligado={consentimento} onChange={setConsentimento} rotulo="Autorizo o uso dos meus dados" />
+        </div>
       </section>
 
       {erro && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}

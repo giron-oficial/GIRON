@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CampoMini, Grupo, Linha, Passos, Segmentos } from '../components/Ajustes'
+import { CampoMini, Grupo, Linha, Passos } from '../components/Ajustes'
 import ChavesPix from '../components/ChavesPix'
 import Icone from '../components/Icone'
 import Interruptor from '../components/Interruptor'
@@ -121,8 +121,8 @@ export default function Configuracoes() {
             <CampoMini id="jd" valor={v.juroDia} onChange={(x) => muda('juroDia', mascaraReais(x))} prefixo="R$" placeholder="0,00" />
           </Linha>
           {regra.juroDia > 0 && (
-            <Linha titulo="O juro por dia começa a contar" empilha>
-              <Segmentos valor={v.desde} onChange={(x) => muda('desde', x)} opcoes={[['vencimento', 'Desde o vencimento'], ['critico', 'Só a partir do Crítico']]} />
+            <Linha titulo="Juro conta desde o vencimento" dica={v.desde === 'vencimento' ? 'Ligado: conta desde o 1º dia de atraso (cobrado quando vira Crítico)' : 'Desligado: só começa a contar no dia que vira Crítico'}>
+              <Interruptor ligado={v.desde === 'vencimento'} onChange={(x) => muda('desde', x ? 'vencimento' : 'critico')} rotulo="Juro por dia conta desde o vencimento" />
             </Linha>
           )}
           {cobra && (

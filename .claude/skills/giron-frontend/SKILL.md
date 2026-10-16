@@ -5,7 +5,7 @@ description: Regras do visual do GIRON (tema escuro com verde). Use SEMPRE que f
 
 O dono (Tom) aprovou em 14/10/2026 o visual **escuro com verde neon**: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo"). Substitui o Pulso Claro (01/10), que NÃO vale mais.
 Modelo: https://claude.ai/artifact/NqxuhdY8gcq1PwyeYbsSC7 . Aplicado no sistema em 16/10/2026.
-Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui é preto-azulado + verde neon, sem dourado, sem vidro.
+Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui é preto-azulado + verde neon, sem dourado, sem vidro nos cartões. **Exceção pedida pelo dono (16/10/2026): o liga/desliga é em VIDRO (glass)** — `components/Interruptor.tsx`, use em TODO lugar que é "sim ou não" (nunca caixinha de marcar); nas páginas claras do cliente, passe `claro`.
 
 ## Princípios
 
