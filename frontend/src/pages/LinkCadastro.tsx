@@ -4,10 +4,11 @@ import { cpfValido, mascaraCpf, mascaraTelefone, soDigitos } from '../lib/format
 import { useGps } from '../lib/gps'
 import { prepararArquivo } from '../lib/imagem'
 import { supabase } from '../lib/supabase'
+import LinkLocalizacao from './LinkLocalizacao'
 
 // Pagina PUBLICA (sem login) que o cliente abre pelo link de cadastro (RN-30 a RN-46)
 
-type Info = { valido: boolean; empresa?: string; tenant_id?: string; tipo?: string; motivo?: string }
+type Info = { valido: boolean; empresa?: string; tenant_id?: string; tipo?: string; motivo?: string; primeiro_nome?: string }
 type TipoArquivo = 'selfie' | 'documento' | 'comprovante' | 'foto_casa'
 
 const campo = 'mt-1 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none focus:border-slate-900'
@@ -123,6 +124,7 @@ export default function LinkCadastro() {
   )
 
   if (!info) return moldura(<p className="text-slate-600">Carregando…</p>)
+  if (info.valido && info.tipo === 'nova_localizacao') return <LinkLocalizacao codigo={codigo} info={info} />
   if (enviado) return moldura(
     <div className="mt-10 rounded-2xl bg-white p-6 text-center shadow-sm">
       <p className="text-5xl">✅</p>
@@ -133,8 +135,8 @@ export default function LinkCadastro() {
   if (!info.valido && info.motivo === 'usado') return moldura(
     <div className="mt-10 rounded-2xl bg-white p-6 text-center shadow-sm">
       <p className="text-5xl">✅</p>
-      <h1 className="mt-3 text-2xl font-bold">Seu cadastro já foi enviado!</h1>
-      <p className="mt-2 text-slate-600">{info.empresa ?? 'A empresa'} vai analisar e entrar em contato. Não precisa enviar de novo.</p>
+      <h1 className="mt-3 text-2xl font-bold">{info.tipo === 'nova_localizacao' ? 'Sua localização já foi enviada!' : 'Seu cadastro já foi enviado!'}</h1>
+      <p className="mt-2 text-slate-600">{info.empresa ?? 'A empresa'} {info.tipo === 'nova_localizacao' ? 'já recebeu.' : 'vai analisar e entrar em contato.'} Não precisa enviar de novo.</p>
     </div>,
   )
   if (!info.valido) return moldura(

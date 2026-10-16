@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
+import ChavesPix from '../components/ChavesPix'
 import { botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
 import { encargosAtraso } from '../lib/atraso'
 import { mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
-// Configurações do Fomentado (fomentado_configuracoes). Por enquanto: juro padrão e regras de atraso (passo 5.5).
+// Configurações do Fomentado (fomentado_configuracoes): juro padrão, regras de atraso (5.5) e chaves Pix (5.9).
 
 type Desde = 'vencimento' | 'critico'
 
@@ -132,6 +133,8 @@ export default function Configuracoes() {
         <Icone nome="certo" tamanho={18} />
         {salvando ? 'Salvando…' : 'Salvar configurações'}
       </button>
+
+      <ChavesPix tenant={tenant} />
     </Tela>
   )
 }

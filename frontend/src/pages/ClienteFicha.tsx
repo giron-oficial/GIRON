@@ -16,7 +16,7 @@ type Cliente = {
   trabalho_telefone: string | null; trabalho_referencia: string | null; indicado_por: string | null
   valor_pretendido: number | null; modalidade_preferida: string | null; dia_vencimento_preferido: number | null
   cliente_arquivos: Arquivo[]; cliente_localizacoes: Local[]
-  contratos: { id: string; numero: number; modalidade: string; capital: number; capital_em_aberto: number; status: string; data_contrato: string; pagamentos: { valor_pago: number; estornado_em: string | null }[] }[]
+  contratos: { id: string; numero: number; modalidade: string; capital: number; capital_em_aberto: number; status: string; data_contrato: string; pagamentos: { valor_pago: number; estornado_em: string | null; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[] }[]
 }
 
 const nomeTipo: Record<string, string> = { selfie: 'Selfie', documento: 'CNH / RG', comprovante: 'Comprovante', foto_casa: 'Casa' }
@@ -56,6 +56,9 @@ export default function ClienteFicha() {
   const [urls, setUrls] = useState<Record<string, string>>({})
   const [salvandoStatus, setSalvandoStatus] = useState(false)
   const [erroStatus, setErroStatus] = useState('')
+  const [linkLocal, setLinkLocal] = useState('')
+  const [copiadoLocal, setCopiadoLocal] = useState(false)
+  const [erroLocal, setErroLocal] = useState('')
 
   useEffect(() => {
     supabase
@@ -65,7 +68,7 @@ export default function ClienteFicha() {
                modalidade_preferida, dia_vencimento_preferido,
                cliente_arquivos(id, tipo, caminho_arquivo),
                cliente_localizacoes(id, nome, latitude, longitude, precisao_metros, foto_arquivo, registrado_em),
-               contratos(id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, pagamentos(valor_pago, estornado_em))`)
+               contratos(id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, pagamentos(valor_pago, estornado_em, parte_juro, parte_capital, multa, juro_atraso))`)
       .eq('id', id!)
       .maybeSingle()
       .then(async ({ data }) => {
@@ -116,6 +119,30 @@ export default function ClienteFicha() {
   const fotos = cliente.cliente_arquivos.filter((a) => a.tipo !== 'selfie')
   const selo = seloCadastro[cliente.status_cadastro] ?? seloCadastro.pendente
   const contratos = [...cliente.contratos].sort((a, b) => b.numero - a.numero)
+  // Histórico (regra 5.4): soma de todos os contratos que valem (sem cancelados e sem o Recorrente que virou parcelado)
+  const valem = cliente.contratos.filter((k) => k.status !== 'cancelado' && k.status !== 'convertido')
+  const pagosValidos = valem.flatMap((k) => k.pagamentos ?? []).filter((p) => !p.estornado_em)
+  const hist = {
+    contratos: valem.length,
+    quitados: valem.filter((k) => k.status === 'quitado').length,
+    emprestado: valem.reduce((t, k) => t + Number(k.capital), 0),
+    pago: pagosValidos.reduce((t, p) => t + Number(p.valor_pago), 0),
+    juros: pagosValidos.reduce((t, p) => t + Number(p.parte_juro) + Number(p.multa) + Number(p.juro_atraso), 0),
+    capital: pagosValidos.reduce((t, p) => t + Number(p.parte_capital), 0),
+    encargos: pagosValidos.reduce((t, p) => t + Number(p.multa) + Number(p.juro_atraso), 0),
+    comAtraso: pagosValidos.filter((p) => Number(p.multa) + Number(p.juro_atraso) > 0).length,
+  }
+  const saldo = hist.pago - hist.emprestado
+
+  async function pedirLocalizacao() {
+    setErroLocal(''); setCopiadoLocal(false)
+    const { data, error } = await supabase.rpc('link_localizacao_criar', { p_cliente_id: cliente!.id })
+    if (error) return setErroLocal('Não foi possível gerar o link.')
+    setLinkLocal(`${window.location.origin}/c/${data}`)
+  }
+  async function copiarLocal() {
+    try { await navigator.clipboard.writeText(linkLocal); setCopiadoLocal(true) } catch { setErroLocal('Não deu pra copiar sozinho. Segure o dedo no link e copie.') }
+  }
   const ativos = contratos.filter((k) => k.status === 'ativo')
   const emAberto = ativos.reduce((t, k) => t + Number(k.capital_em_aberto), 0)
 
@@ -245,6 +272,27 @@ export default function ClienteFicha() {
         </div>
 
         <div className="flex flex-col gap-3">
+          {hist.contratos > 0 && (
+            <Bloco titulo="Histórico" icone="relatorios">
+              <div className="grid grid-cols-2 gap-x-4 pt-2 sm:grid-cols-4">
+                <div className="py-2"><p className="text-xs text-suave">Emprestado no total</p><p className="text-base font-bold tabular-nums">{reais(hist.emprestado)}</p></div>
+                <div className="py-2"><p className="text-xs text-suave">Pago no total</p><p className="text-base font-bold tabular-nums">{reais(hist.pago)}</p></div>
+                <div className="py-2"><p className="text-xs text-suave">Foi juro</p><p className="text-base font-bold text-marca tabular-nums">{reais(hist.juros)}</p>{hist.encargos > 0 && <p className="text-[11px] text-suave">inclui {reais(hist.encargos)} de atraso</p>}</div>
+                <div className="py-2"><p className="text-xs text-suave">Foi capital</p><p className="text-base font-bold text-hoje tabular-nums">{reais(hist.capital)}</p></div>
+              </div>
+              <div className={`mt-1 flex flex-wrap items-center justify-between gap-2 rounded-2xl p-3 ${saldo < 0 ? 'bg-vencido/15' : saldo === 0 ? 'bg-hoje/15' : 'bg-marca/15'}`}>
+                <span className="text-sm font-semibold">{saldo < 0 ? 'Ainda em risco' : saldo === 0 ? 'Empatou' : 'Já deu lucro'}</span>
+                <span className={`text-sm font-extrabold tabular-nums ${saldo < 0 ? 'text-vencido' : saldo === 0 ? 'text-hoje' : 'text-marca'}`}>
+                  {saldo < 0 ? `falta ${reais(-saldo)} pra empatar` : saldo === 0 ? reais(0) : `${reais(saldo)} acima do emprestado`}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-suave">
+                {hist.contratos} {hist.contratos === 1 ? 'contrato' : 'contratos'} · {hist.quitados} {hist.quitados === 1 ? 'quitado' : 'quitados'} · {pagosValidos.length} {pagosValidos.length === 1 ? 'pagamento' : 'pagamentos'}
+                {hist.comAtraso > 0 ? ` · ${hist.comAtraso} com multa ou juro de atraso` : pagosValidos.length > 0 ? ' · nenhum com atraso cobrado' : ''}
+              </p>
+            </Bloco>
+          )}
+
           <Bloco titulo="Empréstimos" icone="contratos">
             {contratos.length === 0 && <p className="py-3 text-sm text-suave">Nenhum empréstimo ainda.</p>}
             <ul className="flex flex-col gap-2 pt-2">
@@ -273,6 +321,29 @@ export default function ClienteFicha() {
           </Bloco>
 
           <Bloco titulo="Localizações" icone="pin">
+            <div className="flex flex-col gap-2 pt-2">
+              <button type="button" onClick={pedirLocalizacao} className={`${botaoClaro} w-full`}>
+                <Icone nome="link" tamanho={18} />
+                Pedir nova localização
+              </button>
+              {erroLocal && <p className="text-sm font-semibold text-vencido">{erroLocal}</p>}
+              {linkLocal && (
+                <div className="flex flex-col gap-2 rounded-2xl bg-superficie-2/70 p-3">
+                  <p className="text-xs text-suave">Link pronto. Vale 7 dias e só pode ser usado uma vez. O cliente só vê o nome da empresa e o primeiro nome dele.</p>
+                  <p className="rounded-xl bg-superficie px-3 py-2 text-xs font-medium break-all">{linkLocal}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a href={linkWhatsApp(cliente.telefone, `Olá, ${cliente.nome_completo.split(' ')[0]}! Quando estiver no local, abra este link e envie sua nova localização: ${linkLocal}`)} target="_blank" rel="noreferrer" className="verde inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold">
+                      <Icone nome="whatsapp" tamanho={16} />
+                      Mandar
+                    </a>
+                    <button type="button" onClick={copiarLocal} className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-borda bg-superficie-2 text-sm font-semibold">
+                      <Icone nome={copiadoLocal ? 'certo' : 'copiar'} tamanho={16} />
+                      {copiadoLocal ? 'Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             {cliente.cliente_localizacoes.length === 0 && <p className="py-3 text-sm text-suave">Sem localização registrada.</p>}
             <div className="flex flex-col gap-2 pt-2">
               {cliente.cliente_localizacoes.map((l) => (
