@@ -19,6 +19,8 @@ export default function Configuracoes() {
   const [multa, setMulta] = useState('')
   const [juroDia, setJuroDia] = useState('')
   const [desde, setDesde] = useState<Desde>('vencimento')
+  const [juroExtrato, setJuroExtrato] = useState(false)
+  const [totalExtrato, setTotalExtrato] = useState(false)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
@@ -26,7 +28,7 @@ export default function Configuracoes() {
   useEffect(() => {
     Promise.all([
       supabase.from('fomentados').select('id').maybeSingle(),
-      supabase.from('fomentado_configuracoes').select('juro_padrao_percentual, dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
+      supabase.from('fomentado_configuracoes').select('juro_padrao_percentual, dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde, mostrar_juro_no_extrato, mostrar_total_no_extrato').maybeSingle(),
     ]).then(([{ data: f }, { data: c }]) => {
       setTenant(f?.id ?? null)
       if (c) {
@@ -35,6 +37,8 @@ export default function Configuracoes() {
         if (Number(c.multa_atraso_valor)) setMulta(reaisCampo(Number(c.multa_atraso_valor)))
         if (Number(c.juro_diario_atraso_valor)) setJuroDia(reaisCampo(Number(c.juro_diario_atraso_valor)))
         setDesde(c.juro_atraso_desde === 'critico' ? 'critico' : 'vencimento')
+        setJuroExtrato(!!c.mostrar_juro_no_extrato)
+        setTotalExtrato(!!c.mostrar_total_no_extrato)
       }
       setCarregando(false)
     })
@@ -57,6 +61,8 @@ export default function Configuracoes() {
       multa_atraso_valor: regra.multa,
       juro_diario_atraso_valor: regra.juroDia,
       juro_atraso_desde: desde,
+      mostrar_juro_no_extrato: juroExtrato,
+      mostrar_total_no_extrato: totalExtrato,
     })
     setSalvando(false)
     if (error) return setErro('Não foi possível salvar. Confira os valores e tente de novo.')
@@ -124,6 +130,19 @@ export default function Configuracoes() {
             ({exemplo.dias} {exemplo.dias === 1 ? 'dia' : 'dias'}) = <strong className="text-marca">{reais(exemplo.total)}</strong> a mais.
           </p>
         )}
+      </section>
+
+      <section className="cartao mt-3 flex flex-col gap-3 rounded-[22px] p-5 lg:p-6">
+        <div>
+          <h2 className={tituloSecao}>Extrato que vai pro cliente</h2>
+          <p className="mt-1 text-xs text-suave">O extrato interno (só seu) sempre mostra tudo. Aqui você escolhe o que o cliente vê.</p>
+        </div>
+        {([[juroExtrato, setJuroExtrato, 'Mostrar o % de juro ao mês'], [totalExtrato, setTotalExtrato, 'Mostrar o valor total a pagar']] as [boolean, (v: boolean) => void, string][]).map(([v, set, t]) => (
+          <label key={t} className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-superficie-2 px-4 py-3 text-sm font-semibold">
+            {t}
+            <input type="checkbox" checked={v} onChange={(e) => set(e.target.checked)} className="size-5 accent-marca" />
+          </label>
+        ))}
       </section>
 
       {erro && <p role="alert" className={`${erroCaixa} mt-4`}>{erro}</p>}

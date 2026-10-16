@@ -10,6 +10,7 @@ import Calculadora from './pages/Calculadora'
 import Contrato from './pages/Contrato'
 import Contratos from './pages/Contratos'
 import EmprestimoNovo from './pages/EmprestimoNovo'
+import Extrato from './pages/Extrato'
 import Inicio from './pages/Inicio'
 import LinkCadastro from './pages/LinkCadastro'
 import Login from './pages/Login'
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/configuracoes" element={<Protegida><Configuracoes /></Protegida>} />
           <Route path="/contratos" element={<Protegida><Contratos /></Protegida>} />
           <Route path="/contratos/:id" element={<Protegida><Contrato /></Protegida>} />
+          <Route path="/contratos/:id/extrato" element={<Protegida><Extrato /></Protegida>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -172,7 +172,14 @@ export default function Contrato() {
   const recuperado = Number(c.capital) > 0 ? Math.round(((Number(c.capital) - Number(c.capital_em_aberto)) / Number(c.capital)) * 100) : 0
 
   return (
-    <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} largo>
+    <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} largo
+      acoes={
+        <Link to={`/contratos/${c.id}/extrato`} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-borda bg-superficie px-4 text-sm font-bold">
+          <Icone nome="relatorios" tamanho={18} />
+          Extrato
+        </Link>
+      }
+    >
       {c.convertido_para && (
         <Link to={`/contratos/${c.convertido_para}`} className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-hoje/15 px-4 py-3 text-sm font-semibold text-hoje">
           Este Recorrente foi transformado em parcelado. Não cobra mais juro todo mês.
