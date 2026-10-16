@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
@@ -144,6 +145,11 @@ export default function Configuracoes() {
           </label>
         ))}
       </section>
+
+      <Link to="/nova-senha" className="cartao mt-3 flex items-center justify-between rounded-[22px] p-5 text-sm font-bold lg:p-6">
+        Trocar minha senha
+        <span className="text-suave">›</span>
+      </Link>
 
       {erro && <p role="alert" className={`${erroCaixa} mt-4`}>{erro}</p>}
       {salvo && <p className="mt-4 rounded-2xl bg-marca/15 px-4 py-3 text-sm font-semibold text-marca">Salvo. Já vale pros próximos cálculos.</p>}

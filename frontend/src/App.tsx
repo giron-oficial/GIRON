@@ -10,10 +10,12 @@ import Calculadora from './pages/Calculadora'
 import Contrato from './pages/Contrato'
 import Contratos from './pages/Contratos'
 import EmprestimoNovo from './pages/EmprestimoNovo'
+import EsqueciSenha from './pages/EsqueciSenha'
 import Extrato from './pages/Extrato'
 import Inicio from './pages/Inicio'
 import LinkCadastro from './pages/LinkCadastro'
 import Login from './pages/Login'
+import NovaSenha from './pages/NovaSenha'
 import Relatorios from './pages/Relatorios'
 import Status from './pages/Status'
 
@@ -29,6 +31,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+          <Route path="/nova-senha" element={<NovaSenha />} />
           <Route path="/c/:codigo" element={<LinkCadastro />} />
           <Route path="/status" element={<Status />} />
           <Route path="/" element={<Protegida><Inicio /></Protegida>} />

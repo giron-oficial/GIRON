@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { erroEmPortugues, useAuth } from '../lib/auth'
 import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { supabase } from '../lib/supabase'
@@ -59,6 +59,7 @@ export default function Login() {
         >
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>
+        <Link to="/esqueci-senha" className="mt-4 block text-center text-sm font-semibold text-suave hover:text-texto">Esqueci minha senha</Link>
       </form>
     </main>
   )
