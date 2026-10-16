@@ -1,3 +1,4 @@
+import { encargosAtraso, regraDaConfig } from './atraso'
 import { supabase } from './supabase'
 
 // Situação de uma parcela pendente (cores das bolinhas de vencimento)
@@ -11,7 +12,8 @@ export type Cobranca = {
   telefone: string
   modalidade: string
   vencimento: string
-  valor: number
+  valor: number // valor cheio: o que falta da parcela + multa e juro de atraso
+  encargos: number // só a multa + juro de atraso (0 antes do Crítico)
   atraso: number
   situacao: Situacao
 }
@@ -62,9 +64,9 @@ export async function carregarPainel(): Promise<Painel> {
 
   const [empresa, config, contratos, pagamentos, pendentes, parcelasMes, pix] = await Promise.all([
     supabase.from('fomentados').select('nome_empresa, status_acesso, teste_gratis_ate').maybeSingle(),
-    supabase.from('fomentado_configuracoes').select('dias_para_critico').maybeSingle(),
+    supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
     supabase.from('contratos').select('capital, capital_em_aberto, data_contrato, status, convertido_de'),
-    supabase.from('pagamentos').select('parte_juro, parte_capital').is('estornado_em', null).gte('pago_em', inicioMes).lte('pago_em', fimMes),
+    supabase.from('pagamentos').select('parte_juro, parte_capital, multa, juro_atraso').is('estornado_em', null).gte('pago_em', inicioMes).lte('pago_em', fimMes),
     supabase
       .from('parcelas')
       .select('id, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, status, clientes(nome_completo, telefone))')
@@ -85,31 +87,35 @@ export async function carregarPainel(): Promise<Painel> {
   const listaContratos = (contratos.data ?? []) as { capital: number; capital_em_aberto: number; data_contrato: string; status: string; convertido_de: string | null }[]
   const ativos = listaContratos.filter((c) => c.status === 'ativo')
   const novos = listaContratos.filter((c) => c.data_contrato >= inicioMes && c.data_contrato <= fimMes && c.status !== 'cancelado' && !c.convertido_de) // conversão não é dinheiro novo
-  const pagos = (pagamentos.data ?? []) as { parte_juro: number; parte_capital: number }[]
+  const pagos = (pagamentos.data ?? []) as { parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
 
   // Parcelas com pagamento parcial: desconta o que já entrou
   const parciais = linhas.filter((l) => l.status === 'parcial').map((l) => l.id)
-  const jaPago = new Map<string, { juro: number; total: number }>()
+  const jaPago = new Map<string, { juro: number; total: number; multa: number; juroAtraso: number }>()
   if (parciais.length) {
-    const { data } = await supabase.from('pagamentos').select('parcela_id, parte_juro, parte_capital').in('parcela_id', parciais).is('estornado_em', null)
-    for (const p of (data ?? []) as { parcela_id: string; parte_juro: number; parte_capital: number }[]) {
-      const atual = jaPago.get(p.parcela_id) ?? { juro: 0, total: 0 }
+    const { data } = await supabase.from('pagamentos').select('parcela_id, parte_juro, parte_capital, multa, juro_atraso').in('parcela_id', parciais).is('estornado_em', null)
+    for (const p of (data ?? []) as { parcela_id: string; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]) {
+      const atual = jaPago.get(p.parcela_id) ?? { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
       atual.juro += Number(p.parte_juro)
       atual.total += Number(p.parte_juro) + Number(p.parte_capital)
+      atual.multa += Number(p.multa)
+      atual.juroAtraso += Number(p.juro_atraso)
       jaPago.set(p.parcela_id, atual)
     }
   }
 
-  const dias = Number(config.data?.dias_para_critico ?? 2)
+  const regra = regraDaConfig(config.data)
+  const dias = regra.diasCritico
   const cobrancas: Cobranca[] = []
   let jurosPendentes = 0
   for (const l of linhas) {
-    const pago = jaPago.get(l.id) ?? { juro: 0, total: 0 }
+    const pago = jaPago.get(l.id) ?? { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
     if (l.vencimento >= inicioMes && l.vencimento <= fimMes) jurosPendentes += Math.max(0, Number(l.parte_juro) - pago.juro)
     const atraso = diasEntre(l.vencimento, hoje)
     if (atraso < -1) continue
     const situacao: Situacao = atraso >= dias ? 'critico' : atraso >= 1 ? 'vencido' : atraso === 0 ? 'hoje' : 'amanha'
+    const encargos = encargosAtraso(atraso, regra, pago.multa, pago.juroAtraso).total
     cobrancas.push({
       parcelaId: l.id,
       contratoId: l.contratos.id,
@@ -118,7 +124,8 @@ export async function carregarPainel(): Promise<Painel> {
       telefone: l.contratos.clientes?.telefone ?? '',
       modalidade: l.contratos.modalidade,
       vencimento: l.vencimento,
-      valor: Math.max(0, Number(l.valor) - pago.total),
+      valor: Math.max(0, Number(l.valor) - pago.total) + encargos,
+      encargos,
       atraso,
       situacao,
     })
@@ -136,7 +143,8 @@ export async function carregarPainel(): Promise<Painel> {
     empresa: empresa.data as Empresa | null,
     capitalTransito: soma(ativos, (c) => Number(c.capital_em_aberto)),
     contratosAtivos: ativos.length,
-    jurosRecebidos: soma(pagos, (p) => Number(p.parte_juro)),
+    // multa e juro de atraso também são ganho de juro
+    jurosRecebidos: soma(pagos, (p) => Number(p.parte_juro) + Number(p.multa) + Number(p.juro_atraso)),
     jurosPendentes,
     capitalRecebido: soma(pagos, (p) => Number(p.parte_capital)),
     emprestado: soma(novos, (c) => Number(c.capital)),

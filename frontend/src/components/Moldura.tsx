@@ -9,12 +9,12 @@ const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
   { to: '/', rotulo: 'Início', icone: 'inicio' },
   { to: '/clientes', rotulo: 'Clientes', icone: 'clientes' },
   { to: '/calculadora', rotulo: 'Calculadora', icone: 'calculadora' },
+  { to: '/configuracoes', rotulo: 'Configurações', icone: 'ajustes' },
 ]
 
 const emBreve: { rotulo: string; icone: NomeIcone }[] = [
   { rotulo: 'Contratos', icone: 'contratos' },
   { rotulo: 'Relatórios', icone: 'relatorios' },
-  { rotulo: 'Configurações', icone: 'ajustes' },
 ]
 
 const TESTE_DIAS = 30
@@ -170,6 +170,10 @@ export default function Moldura({ children }: { children: ReactNode }) {
               {resumo && <span className="truncate text-sm font-bold">{resumo.nome}</span>}
               <span className="truncate text-xs text-suave">{session?.user.email}</span>
               {resumo && <Plano r={resumo} />}
+              <Link to="/configuracoes" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-superficie-2 text-sm font-semibold">
+                <Icone nome="ajustes" tamanho={18} />
+                Configurações
+              </Link>
               <button onClick={() => supabase.auth.signOut()} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-superficie-2 text-sm font-semibold">
                 <Icone nome="sair" tamanho={18} />
                 Sair

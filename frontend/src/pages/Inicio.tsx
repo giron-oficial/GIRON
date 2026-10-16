@@ -50,7 +50,9 @@ function mensagem(c: Cobranca, pix: string | null) {
       ? `${nome}, hoje vence sua parcela de ${valor}.`
       : c.situacao === 'amanha'
         ? `${nome}, amanhã vence sua parcela de ${valor}.`
-        : `${nome}, sua parcela de ${valor} venceu em ${dataBr(c.vencimento)}.`
+        : c.encargos > 0
+          ? `${nome}, sua parcela venceu em ${dataBr(c.vencimento)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
+          : `${nome}, sua parcela de ${valor} venceu em ${dataBr(c.vencimento)}.`
   return pix ? `${texto} Pix: ${pix}` : texto
 }
 
@@ -123,7 +125,7 @@ export default function Inicio() {
 
   const p = painel
   const totalJuros = p.jurosRecebidos + p.jurosPendentes
-  const percentual = totalJuros > 0 ? Math.round((p.jurosRecebidos / totalJuros) * 100) : 0
+  const percentual = totalJuros > 0 ? Math.min(100, Math.round((p.jurosRecebidos / totalJuros) * 100)) : 0
   const lista = filtro ? p.cobrancas.filter((c) => c.situacao === filtro) : p.cobrancas
   const visiveis = verTodos ? lista : lista.slice(0, 5)
   const nome = empresa.nome_empresa.split(' ')[0]
@@ -263,6 +265,7 @@ export default function Inicio() {
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
                       <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)} · {reais(c.valor)}
+                      {c.encargos > 0 && <span> (com {reais(c.encargos)} de multa/juros)</span>}
                       <span className="hidden lg:inline"> · {nomeModalidade[c.modalidade] ?? c.modalidade}</span>
                     </span>
                   </Link>

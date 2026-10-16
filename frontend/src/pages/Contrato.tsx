@@ -4,11 +4,12 @@ import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
 import { dataBr, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
+import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { supabase } from '../lib/supabase'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = {
-  id: string; parcela_id: string | null; tipo: string; valor_pago: number; desconto: number; acrescimo: number; parte_juro: number; parte_capital: number
+  id: string; parcela_id: string | null; tipo: string; valor_pago: number; desconto: number; acrescimo: number; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number
   pago_em: string; observacao: string | null; estornado_em: string | null; motivo_estorno: string | null; ordem: number
 }
 type ContratoT = {
@@ -21,10 +22,11 @@ const hoje = () => new Date().toLocaleDateString('sv-SE')
 const diasEntre = (de: string, ate: string) => Math.round((Date.parse(ate + 'T12:00:00') - Date.parse(de + 'T12:00:00')) / 86400000)
 
 // Selo de cada parcela, com as cores das situações do painel
-function seloParcela(p: Parcela) {
+function seloParcela(p: Parcela, diasCritico: number) {
   if (p.status === 'paga') return { texto: 'Paga', classe: 'bg-marca/15 text-marca', bolinha: 'bg-marca-clara' }
   const atraso = diasEntre(p.vencimento, hoje())
   const parcial = p.status === 'parcial' ? 'Parcial · ' : ''
+  if (atraso >= diasCritico) return { texto: `${parcial}Crítico · ${atraso} dias`, classe: 'bg-critico/15 text-critico', bolinha: 'bg-critico' }
   if (atraso > 0) return { texto: `${parcial}${atraso === 1 ? 'Venceu ontem' : `${atraso} dias de atraso`}`, classe: 'bg-vencido/15 text-vencido', bolinha: 'bg-vencido' }
   if (atraso === 0) return { texto: `${parcial}Vence hoje`, classe: 'bg-hoje/15 text-hoje', bolinha: 'bg-hoje' }
   if (atraso === -1) return { texto: `${parcial}Vence amanhã`, classe: 'bg-amanha/15 text-amanha', bolinha: 'bg-amanha' }
@@ -49,6 +51,9 @@ export default function Contrato() {
   const [desconto, setDesconto] = useState('')
   const [acrescimo, setAcrescimo] = useState('')
   const [observacao, setObservacao] = useState('')
+  const [multa, setMulta] = useState('')
+  const [juroAtraso, setJuroAtraso] = useState('')
+  const [regra, setRegra] = useState<RegraAtraso>(regraDaConfig(null))
   const [erroPag, setErroPag] = useState('')
   const [salvandoPag, setSalvandoPag] = useState(false)
   const [estornando, setEstornando] = useState<string | null>(null)
@@ -66,7 +71,7 @@ export default function Contrato() {
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
                status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
-               pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
+               pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, multa, juro_atraso, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
       .maybeSingle()
@@ -80,21 +85,43 @@ export default function Contrato() {
     carregar()
   }, [carregar])
 
+  useEffect(() => {
+    supabase
+      .from('fomentado_configuracoes')
+      .select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde')
+      .maybeSingle()
+      .then(({ data }) => setRegra(regraDaConfig(data)))
+  }, [])
+
+  // Multa e juro de atraso que esta parcela deve hoje (descontando o que já entrou dela)
+  function encargosDe(p: Parcela) {
+    const validos = (c?.pagamentos ?? []).filter((pg) => pg.parcela_id === p.id && !pg.estornado_em)
+    const jaMulta = validos.reduce((t, pg) => t + Number(pg.multa), 0)
+    const jaJuro = validos.reduce((t, pg) => t + Number(pg.juro_atraso), 0)
+    return encargosAtraso(diasEntre(p.vencimento, hoje()), regra, jaMulta, jaJuro)
+  }
+
   function abrirPagamento(p: Parcela) {
     setPagando(pagando?.id === p.id ? null : p)
     setValorPago('')
     setDesconto(''); setAcrescimo(''); setObservacao(''); setErroPag('')
+    const e = encargosDe(p)
+    setMulta(e.multa ? reaisCampo(e.multa) : '')
+    setJuroAtraso(e.juro ? reaisCampo(e.juro) : '')
   }
 
   async function registrarPagamento() {
     if (!pagando) return
-    // campo vazio = paga o valor da parcela (que aparece em cinza)
-    const v = valorPago ? numeroBr(valorPago) : pagando.status === 'aberta' ? Number(pagando.valor) : 0
+    // campo vazio = paga o valor da parcela + multa e juro de atraso (que aparece em cinza)
+    const m = multa ? numeroBr(multa) : 0
+    const ja = juroAtraso ? numeroBr(juroAtraso) : 0
+    const v = valorPago ? numeroBr(valorPago) : pagando.status === 'aberta' ? Number(pagando.valor) + m + ja : 0
     if (!v || v <= 0) return setErroPag('Informe o valor pago.')
     setErroPag(''); setSalvandoPag(true)
     const { error } = await supabase.rpc('pagamento_registrar', {
       p_parcela_id: pagando.id, p_valor_pago: v,
       p_desconto: desconto ? numeroBr(desconto) : 0, p_acrescimo: acrescimo ? numeroBr(acrescimo) : 0,
+      p_multa: m, p_juro_atraso: ja,
       p_observacao: observacao || null,
     })
     setSalvandoPag(false)
@@ -255,8 +282,10 @@ export default function Contrato() {
           <p className="mt-0.5 text-xs text-suave">Toque numa parcela em aberto pra registrar o pagamento.</p>
           <ul className="mt-3 flex flex-col gap-2">
             {c.parcelas.map((p) => {
-              const selo = seloParcela(p)
+              const selo = seloParcela(p, regra.diasCritico)
               const aberta = pagando?.id === p.id
+              const enc = p.status !== 'paga' && c.status === 'ativo' ? encargosDe(p) : null
+              const somaEnc = (multa ? numeroBr(multa) : 0) + (juroAtraso ? numeroBr(juroAtraso) : 0)
               return (
                 <li key={p.id} className={`rounded-2xl transition ${aberta ? 'bg-superficie-2 ring-2 ring-marca-clara' : 'bg-superficie-2/60'}`}>
                   <button
@@ -276,6 +305,7 @@ export default function Contrato() {
                     <div className="flex shrink-0 flex-col items-end">
                       <span className="text-sm font-bold tabular-nums">{reais(p.valor)}</span>
                       <span className="text-[11px] text-suave tabular-nums">juro {reais(p.parte_juro)}</span>
+                      {enc && enc.total > 0 && <span className="text-[11px] font-bold text-critico tabular-nums">+ {reais(enc.total)} multa/juros</span>}
                     </div>
                   </button>
 
@@ -288,10 +318,29 @@ export default function Contrato() {
                           autoFocus
                           value={valorPago}
                           onChange={(e) => setValorPago(mascaraReais(e.target.value))}
-                          placeholder={p.status === 'aberta' ? reaisCampo(Number(p.valor)) : '0,00'}
+                          placeholder={p.status === 'aberta' ? reaisCampo(Number(p.valor) + somaEnc) : '0,00'}
                         />
-                        {p.status === 'aberta' && <p className="mt-1 text-xs text-suave">Deixe em branco pra pagar o valor da parcela.</p>}
+                        {p.status === 'aberta' && (
+                          <p className="mt-1 text-xs text-suave">
+                            Deixe em branco pra pagar {somaEnc > 0 ? 'a parcela + multa e juros de atraso' : 'o valor da parcela'}.
+                          </p>
+                        )}
                       </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className={rotulo} htmlFor="mu">Multa</label>
+                          <CampoReais id="mu" value={multa} onChange={(e) => setMulta(mascaraReais(e.target.value))} placeholder="0,00" />
+                        </div>
+                        <div>
+                          <label className={rotulo} htmlFor="ja">Juro de atraso</label>
+                          <CampoReais id="ja" value={juroAtraso} onChange={(e) => setJuroAtraso(mascaraReais(e.target.value))} placeholder="0,00" />
+                        </div>
+                      </div>
+                      {enc && enc.total > 0 && (
+                        <p className="-mt-1 text-xs text-suave">
+                          Calculado pelas suas Configurações ({enc.dias} {enc.dias === 1 ? 'dia' : 'dias'} de juro). Negociou? É só mudar ou apagar.
+                        </p>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className={rotulo} htmlFor="dc">Desconto</label>
@@ -314,7 +363,7 @@ export default function Contrato() {
                       <div className="flex gap-2">
                         <button type="button" onClick={registrarPagamento} disabled={salvandoPag} className={`${botaoVerde} flex-1`}>
                           <Icone nome="certo" tamanho={18} />
-                          {salvandoPag ? 'Salvando…' : 'Confirmar pagamento'}
+                          {salvandoPag ? 'Salvando…' : 'Confirmar'}
                         </button>
                         <button type="button" onClick={() => setPagando(null)} className="h-12 rounded-2xl border border-borda bg-superficie px-4 font-semibold text-suave">
                           Cancelar
@@ -352,6 +401,7 @@ export default function Contrato() {
                     </span>
                     <span className="text-xs text-suave">
                       {dataBr(pg.pago_em)} · juro {reais(pg.parte_juro)} · capital {reais(pg.parte_capital)}
+                      {Number(pg.multa) + Number(pg.juro_atraso) > 0 && ` · multa/juros de atraso ${reais(Number(pg.multa) + Number(pg.juro_atraso))}`}
                     </span>
                     {pg.observacao && !pg.estornado_em && <span className="text-xs text-suave">"{pg.observacao}"</span>}
                     {pg.estornado_em && (
