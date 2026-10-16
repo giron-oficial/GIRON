@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { erroEmPortugues, useAuth } from '../lib/auth'
+import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
@@ -23,35 +24,38 @@ export default function Login() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 text-slate-900">
-      <form onSubmit={entrar} className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight">GIRON</h1>
-        <p className="mt-1 text-slate-600">Entre na sua conta</p>
+    <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(124_255_178/0.12),transparent_70%)] px-4">
+      <form onSubmit={entrar} className="cartao w-full max-w-sm rounded-[18px] p-6">
+        <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-wider">
+          <span className="verde flex size-9 items-center justify-center rounded-xl text-base">G</span>
+          GIRON
+        </h1>
+        <p className="mt-2 text-suave">Entre na sua conta</p>
 
-        <label className="mt-6 block text-sm font-medium" htmlFor="email">E-mail</label>
+        <label className={`mt-6 ${rotulo}`} htmlFor="email">E-mail</label>
         <input
           id="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required
           value={email} onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-slate-900"
+          className={campo}
         />
 
-        <label className="mt-4 block text-sm font-medium" htmlFor="senha">Senha</label>
-        <div className="mt-1 flex rounded-xl border border-slate-300 focus-within:border-slate-900">
+        <label className={`mt-4 ${rotulo}`} htmlFor="senha">Senha</label>
+        <div className="mt-1.5 flex rounded-2xl border border-borda bg-superficie-2 focus-within:border-marca focus-within:ring-4 focus-within:ring-marca/15">
           <input
             id="senha" type={verSenha ? 'text' : 'password'} autoComplete="current-password" autoCapitalize="none" autoCorrect="off" spellCheck={false} required
             value={senha} onChange={(e) => setSenha(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-base outline-none"
+            className="w-full rounded-2xl bg-transparent px-4 py-3 text-base outline-none"
           />
-          <button type="button" onClick={() => setVerSenha(!verSenha)} className="px-4 text-sm text-slate-600">
+          <button type="button" onClick={() => setVerSenha(!verSenha)} className="px-4 text-sm font-semibold text-suave hover:text-texto">
             {verSenha ? 'Ocultar' : 'Mostrar'}
           </button>
         </div>
 
-        {erro && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
+        {erro && <p role="alert" className={`mt-4 ${erroCaixa}`}>{erro}</p>}
 
         <button
           type="submit" disabled={enviando}
-          className="mt-6 w-full rounded-xl bg-slate-900 py-3 text-base font-semibold text-white disabled:opacity-60"
+          className={`mt-6 w-full ${botaoVerde}`}
         >
           {enviando ? 'Entrando…' : 'Entrar'}
         </button>

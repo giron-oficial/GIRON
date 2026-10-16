@@ -131,7 +131,7 @@ export default function Clientes() {
             placeholder="Buscar por nome, telefone ou final do CPF"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full bg-transparent text-base text-texto outline-none placeholder:text-[#A0A6B1]"
+            className="w-full bg-transparent text-base text-texto outline-none placeholder:text-suave"
           />
         </label>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:px-0 lg:pb-0">
@@ -141,11 +141,11 @@ export default function Clientes() {
               onClick={() => setFiltro(f.id)}
               aria-pressed={filtro === f.id}
               className={`flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition ${
-                filtro === f.id ? 'bg-tinta text-white' : 'cartao text-suave hover:text-texto'
+                filtro === f.id ? 'verde font-bold' : 'cartao text-suave hover:text-texto'
               }`}
             >
               {f.texto}
-              <span className={`text-xs ${filtro === f.id ? 'text-white/60' : 'text-[#A0A6B1]'}`}>{quantos(f.id)}</span>
+              <span className={`text-xs ${filtro === f.id ? 'text-sobre-verde/60' : 'text-suave'}`}>{quantos(f.id)}</span>
             </button>
           ))}
         </div>
@@ -158,7 +158,7 @@ export default function Clientes() {
           const aberto = ativos.reduce((t, k) => t + Number(k.capital_em_aberto), 0)
           return (
             <li key={c.id}>
-              <Link to={`/clientes/${c.id}`} className="cartao flex items-center gap-3 rounded-[20px] p-3 transition hover:shadow-lg active:scale-[0.99]">
+              <Link to={`/clientes/${c.id}`} className="cartao flex items-center gap-3 rounded-[20px] p-3 transition hover:border-marca/40 active:scale-[0.99]">
                 <span className={`flex size-11 shrink-0 items-center justify-center rounded-[14px] text-sm font-extrabold ${selo.avatar}`}>{iniciais(c.nome_completo)}</span>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate font-bold">{c.nome_completo}</span>
@@ -178,7 +178,7 @@ export default function Clientes() {
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${selo.classe}`}>{selo.texto}</span>
                   )}
                 </div>
-                <Icone nome="seta" tamanho={16} className="shrink-0 text-[#A0A6B1]" />
+                <Icone nome="seta" tamanho={16} className="shrink-0 text-suave" />
               </Link>
             </li>
           )

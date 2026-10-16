@@ -150,7 +150,7 @@ export default function EmprestimoNovo() {
     navegar(`/contratos/${data}`, { replace: true })
   }
 
-  if (!cliente) return <Tela voltar={`/clientes/${id}`}><div className="mt-4 h-60 animate-pulse rounded-[26px] bg-black/5" /></Tela>
+  if (!cliente) return <Tela voltar={`/clientes/${id}`}><div className="mt-4 h-60 animate-pulse rounded-[26px] bg-superficie-2" /></Tela>
   if (cliente.status_cadastro !== 'aprovado') return (
     <Tela voltar={`/clientes/${id}`}><p className="cartao mt-4 rounded-[22px] p-6 text-suave">Aprove o cadastro do cliente antes de fazer o empréstimo.</p></Tela>
   )
@@ -174,7 +174,7 @@ export default function EmprestimoNovo() {
                 type="button"
                 onClick={() => trocarModalidade(m)}
                 aria-pressed={modalidade === m}
-                className={`h-10 rounded-xl text-[13px] font-semibold transition ${modalidade === m ? 'bg-white text-texto shadow-sm' : 'text-suave'}`}
+                className={`h-10 rounded-xl text-[13px] font-semibold transition ${modalidade === m ? 'bg-superficie text-marca' : 'text-suave'}`}
               >
                 {nomeModalidade[m]}
               </button>
@@ -251,14 +251,14 @@ export default function EmprestimoNovo() {
       )}
 
       {escolhido && (
-        <section className="mt-4 overflow-hidden rounded-[22px] bg-linear-135 from-[#0E4D36] to-tinta to-70% p-5 text-white shadow-xl shadow-[#0E4D36]/25">
+        <section className="mt-4 overflow-hidden rounded-[22px] bg-linear-135 border border-[#1F4A38] from-[#0E3A2A] to-superficie to-70% p-5 text-white">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-[#B7F0D3]">Cliente vai pagar</span>
             <strong className="text-2xl tabular-nums">{recorrente ? `${reais(escolhido.juro_total)} /mês` : reais(escolhido.total)}</strong>
           </div>
           {!recorrente && (
             <>
-              <p className="mt-1 text-xs text-[#A1A7B3]">
+              <p className="mt-1 text-xs text-suave">
                 De {dataBr(escolhido.parcelas[0].vencimento)} até {dataBr(escolhido.parcelas[escolhido.parcelas.length - 1].vencimento)}
               </p>
               <button type="button" onClick={() => setVerParcelas(!verParcelas)} className="mt-3 text-sm font-semibold text-marca-brilho">
@@ -270,7 +270,7 @@ export default function EmprestimoNovo() {
                     <li key={p.numero} className="flex justify-between gap-3 py-2">
                       <span className="text-[#B7BDC8]">{p.numero}ª · {dataBr(p.vencimento)}</span>
                       <span>
-                        <strong>{reais(p.valor)}</strong> <span className="text-[#8A909C]">(juro {reais(p.parte_juro)})</span>
+                        <strong>{reais(p.valor)}</strong> <span className="text-suave">(juro {reais(p.parte_juro)})</span>
                       </span>
                     </li>
                   ))}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Moldura from '../components/Moldura'
 import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
@@ -7,10 +7,10 @@ import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../li
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
 const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#EFE9FF]', escura: 'text-[#5B3BE0]' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#FFE9E8]', escura: 'text-[#D13438]' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#FF3B3B] anima-pulso', clara: 'bg-[#E4EEFF]', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FBB224] to-[#D97706] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-[#FFF3D1]', escura: 'text-[#C27C00]' },
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-critico/15', escura: 'text-critico' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-vencido/15', escura: 'text-vencido' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#FF3B3B] anima-pulso', clara: 'bg-hoje/15', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FBB224] to-[#D97706] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-amanha/15', escura: 'text-amanha' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
@@ -54,20 +54,20 @@ function mensagem(c: Cobranca, pix: string | null) {
   return pix ? `${texto} Pix: ${pix}` : texto
 }
 
-function CartaoValor({ rotulo, valor, icone, cor, rodape, barra }: { rotulo: string; valor: number; icone: NomeIcone; cor: string; rodape: string; barra?: number }) {
+function Mini({ rotulo, valor, icone, cor, rodape, barra }: { rotulo: string; valor: number; icone: NomeIcone; cor: string; rodape: string; barra?: number }) {
   return (
-    <div className="cartao flex min-w-0 flex-col gap-1.5 rounded-[20px] p-3 lg:gap-2.5 lg:rounded-[26px] lg:p-5">
-      <span className={`flex size-7.5 items-center justify-center rounded-[10px] lg:size-9.5 lg:rounded-xl ${cor}`}>
-        <Icone nome={icone} tamanho={16} />
+    <div className="flex min-w-0 flex-col gap-1.5 border-l border-superficie-2 pl-3 first:border-l-0 first:pl-0 lg:pl-4">
+      <span className={`flex size-7.5 items-center justify-center rounded-[10px] ${cor}`}>
+        <Icone nome={icone} tamanho={15} />
       </span>
-      <span className="truncate text-[11px] text-suave lg:text-[13px]">{rotulo}</span>
-      <span className="truncate font-display text-[17px] font-bold lg:text-[28px]">{semCentavos(valor)}</span>
+      <span className="truncate text-[11px] text-suave lg:text-xs">{rotulo}</span>
+      <span className="truncate font-display text-[16px] font-extrabold lg:text-[19px] xl:text-[22px]">{semCentavos(valor)}</span>
       {barra !== undefined && (
         <div className="h-1 overflow-hidden rounded-full bg-superficie-2 lg:h-1.5">
           <div className="h-full rounded-full bg-linear-90 from-marca-clara to-marca" style={{ width: `${barra}%` }} />
         </div>
       )}
-      <span className="truncate text-[10px] text-[#8A909C] lg:text-xs">{rodape}</span>
+      <span className="truncate text-[10px] text-suave lg:text-xs">{rodape}</span>
     </div>
   )
 }
@@ -77,12 +77,20 @@ export default function Inicio() {
   const [erro, setErro] = useState('')
   const [filtro, setFiltro] = useState<Situacao | null>(null)
   const [verTodos, setVerTodos] = useState(false)
+  const { hash } = useLocation()
 
   useEffect(() => {
     carregarPainel()
       .then(setPainel)
       .catch((e: Error) => setErro(e.message))
   }, [])
+
+  // Aba "Resumo" da barra do celular: desce até os números do mês
+  useEffect(() => {
+    if (!painel) return
+    if (hash === '#resumo') document.getElementById('resumo')?.scrollIntoView({ behavior: 'smooth' })
+    else window.scrollTo({ top: 0 })
+  }, [hash, painel])
 
   if (erro) {
     return (
@@ -96,9 +104,9 @@ export default function Inicio() {
     return (
       <Moldura>
         <div className="mx-auto flex max-w-md flex-col gap-3 px-4 pt-6 lg:max-w-none lg:px-0 lg:pt-1" aria-label="Carregando">
-          <div className="h-12 w-48 animate-pulse rounded-xl bg-black/5" />
-          <div className="h-32 animate-pulse rounded-3xl bg-black/5" />
-          <div className="h-24 animate-pulse rounded-3xl bg-black/5" />
+          <div className="h-12 w-48 animate-pulse rounded-xl bg-superficie-2" />
+          <div className="h-32 animate-pulse rounded-3xl bg-superficie-2" />
+          <div className="h-24 animate-pulse rounded-3xl bg-superficie-2" />
         </div>
       </Moldura>
     )
@@ -119,75 +127,74 @@ export default function Inicio() {
   const lista = filtro ? p.cobrancas.filter((c) => c.situacao === filtro) : p.cobrancas
   const visiveis = verTodos ? lista : lista.slice(0, 5)
   const nome = empresa.nome_empresa.split(' ')[0]
+  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' })
 
   return (
     <Moldura>
-      <main className="mx-auto flex max-w-md flex-col gap-3.5 px-4 pt-5 lg:max-w-none lg:gap-4 lg:px-0 lg:pt-1">
-        <div className="flex items-center justify-between lg:hidden">
-          <span className="flex items-center gap-2">
-            <span className="verde flex size-7.5 items-center justify-center rounded-[10px] font-display text-sm font-extrabold">G</span>
-            <span className="font-display text-[15px] font-bold tracking-wider">GIRON</span>
-          </span>
-          <span className="flex size-10 items-center justify-center rounded-[13px] bg-tinta font-display text-[13px] font-bold text-white">{iniciais(empresa.nome_empresa)}</span>
-        </div>
-
-        <header className="flex items-center gap-3">
+      <main className="mx-auto flex max-w-md flex-col gap-3.5 px-4 pt-4 lg:grid lg:max-w-none lg:grid-cols-12 lg:gap-4 lg:px-0 lg:pt-0">
+        <header className="hidden items-center gap-3 lg:col-span-12 lg:flex">
           <div className="min-w-0 flex-1">
             <p className="text-[13px] text-suave">{hojeEscrito()}</p>
-            <h1 className="truncate text-2xl font-bold tracking-tight lg:text-[28px]">
+            <h1 className="truncate text-[26px] font-extrabold tracking-tight">
               {saudacao()}, {nome}
             </h1>
           </div>
-          <Link to="/calculadora" className="cartao flex h-11 items-center gap-2 rounded-2xl px-3.5 text-sm font-semibold hover:text-marca lg:px-4">
+          <Link to="/calculadora" className="cartao flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold hover:text-marca">
             <Icone nome="calculadora" tamanho={18} />
-            <span className="hidden lg:inline">Calculadora</span>
+            Calculadora
           </Link>
-          <Link to="/clientes" className="cartao hidden h-11 items-center rounded-2xl px-4 text-sm font-semibold hover:text-marca lg:flex">
+          <Link to="/clientes" className="verde flex h-11 items-center rounded-xl px-4 text-sm font-extrabold">
             Ver clientes
           </Link>
         </header>
 
         {statusAcesso[empresa.status_acesso] && (
-          <p className="rounded-2xl bg-[#FFF3D1] px-4 py-3 text-sm font-semibold text-sobre-amanha">{statusAcesso[empresa.status_acesso]}</p>
+          <p className="rounded-2xl bg-amanha/15 px-4 py-3 text-sm font-semibold text-amanha lg:col-span-12">{statusAcesso[empresa.status_acesso]}</p>
         )}
 
-        <section aria-label="Resumo do mês" className="grid gap-2.5 lg:grid-cols-[1.35fr_1fr_1fr_1fr] lg:gap-3.5">
-          <div className="relative flex flex-col gap-2.5 overflow-hidden rounded-[26px] bg-linear-135 from-[#0E4D36] from-0% to-tinta to-62% px-5 py-4.5 text-white shadow-xl shadow-[#0E4D36]/30 lg:p-5.5">
-            <div className="pointer-events-none absolute -top-15 -right-12.5 size-50 rounded-full bg-[radial-gradient(circle,rgb(34_209_132/0.55),transparent_70%)]" />
-            <svg width="150" height="54" viewBox="0 0 150 54" fill="none" aria-hidden="true" className="pointer-events-none absolute right-4 bottom-4">
-              <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#5BE3A4" strokeWidth="2.5" strokeLinecap="round" />
-              <circle cx="148" cy="6" r="4" fill="#5BE3A4" />
-            </svg>
-            <span className="relative flex items-center gap-1.5 text-xs text-[#B7F0D3] lg:text-[13px]">
-              <span className="size-1.5 rounded-full bg-marca-brilho" />
-              Capital em trânsito
-            </span>
-            <span className="relative font-display text-[38px] leading-none font-extrabold tracking-tight lg:text-[40px]">{semCentavos(p.capitalTransito)}</span>
-            <span className="relative text-xs text-[#A1A7B3]">
-              {p.contratosAtivos} {p.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'} na rua
-            </span>
-          </div>
-          <div className="grid grid-cols-3 gap-2 lg:contents">
-            <CartaoValor
+        <section
+          aria-label="Capital em trânsito"
+          className="relative flex flex-col gap-2 overflow-hidden rounded-[18px] border border-[#1F4A38] bg-[radial-gradient(circle_at_88%_15%,rgb(124_255_178/0.28),transparent_55%),linear-gradient(135deg,#0E3A2A,#121A2C_65%)] px-5 py-4.5 lg:col-span-6 lg:p-5.5"
+        >
+          <svg width="150" height="54" viewBox="0 0 150 54" fill="none" aria-hidden="true" className="pointer-events-none absolute right-4 bottom-4 hidden sm:block">
+            <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#7CFFB2" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="148" cy="6" r="4" fill="#7CFFB2" />
+          </svg>
+          <span className="relative flex items-center gap-1.5 text-xs text-[#B7F0D3] lg:text-[13px]">
+            <span className="size-1.5 rounded-full bg-marca" />
+            <span className="lg:hidden">{saudacao()}, {nome} ·</span>
+            Capital em trânsito
+          </span>
+          <span className="relative font-display text-[34px] leading-none font-extrabold tracking-tight lg:text-[40px]">{semCentavos(p.capitalTransito)}</span>
+          <span className="relative text-xs text-suave">
+            {p.contratosAtivos} {p.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'} na rua
+            <span className="lg:hidden"> · juros do mês {percentual}%</span>
+          </span>
+        </section>
+
+        <section id="resumo" aria-label="Resumo do mês" className="cartao scroll-mt-4 rounded-[18px] p-4 max-lg:order-1 lg:col-span-6 lg:p-5">
+          <h2 className="mb-3 text-sm font-bold first-letter:uppercase">{mes} até agora</h2>
+          <div className="grid grid-cols-3">
+            <Mini
               rotulo="Juros recebidos"
               valor={p.jurosRecebidos}
               icone="moeda"
-              cor="bg-[#DDF7EA] text-marca"
+              cor="bg-marca/15 text-marca"
               barra={percentual}
               rodape={`${percentual}% · faltam ${semCentavos(p.jurosPendentes)}`}
             />
-            <CartaoValor rotulo="Capital recebido" valor={p.capitalRecebido} icone="entrando" cor="bg-[#E3EDFF] text-hoje" rodape="voltou pro caixa" />
-            <CartaoValor
-              rotulo="Emprestado no mês"
+            <Mini rotulo="Capital recebido" valor={p.capitalRecebido} icone="entrando" cor="bg-hoje/15 text-hoje" rodape="voltou pro caixa" />
+            <Mini
+              rotulo="Emprestado"
               valor={p.emprestado}
               icone="saindo"
-              cor="bg-[#FFF1D1] text-[#C27C00]"
+              cor="bg-amanha/15 text-amanha"
               rodape={`${p.contratosNovos} ${p.contratosNovos === 1 ? 'contrato novo' : 'contratos novos'}`}
             />
           </div>
         </section>
 
-        <section aria-label="Situação dos clientes" className="grid grid-cols-4 gap-2 lg:gap-3.5">
+        <section aria-label="Situação dos clientes" className="grid grid-cols-4 gap-2 lg:col-span-12 lg:gap-3.5">
           {ordemSituacoes.map((s) => {
             const info = situacoes[s]
             const doGrupo = p.cobrancas.filter((c) => c.situacao === s)
@@ -207,7 +214,7 @@ export default function Inicio() {
                 key={s}
                 onClick={() => setFiltro(ativo ? null : s)}
                 aria-pressed={ativo}
-                className={`flex flex-col items-center gap-0.5 rounded-[18px] px-1.5 pt-2.5 pb-2 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-2 lg:rounded-[22px] lg:px-4 lg:py-3.5 ${info.cartao} ${ativo ? 'ring-4 ring-tinta/80 ring-offset-2 ring-offset-fundo' : ''}`}
+                className={`flex flex-col items-center gap-0.5 rounded-[18px] px-1.5 pt-2.5 pb-2 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-2 lg:rounded-[16px] lg:px-4 lg:py-3.5 ${info.cartao} ${ativo ? 'ring-4 ring-white/80 ring-offset-2 ring-offset-fundo' : ''}`}
               >
                 <span className="flex items-center gap-2 lg:justify-between">
                   <span className="flex items-center gap-2 text-sm font-semibold">
@@ -234,8 +241,7 @@ export default function Inicio() {
           })}
         </section>
 
-        <div className="grid gap-3.5 lg:grid-cols-[1.7fr_1fr]">
-          <section aria-label="Cobrar agora" className="flex flex-col gap-2 lg:cartao lg:gap-1 lg:rounded-[26px] lg:px-5 lg:py-4.5">
+        <section aria-label="Cobrar agora" className="cartao flex flex-col gap-1 rounded-[18px] px-4 py-3.5 lg:col-span-8 lg:px-5 lg:py-4.5">
             <div className="flex items-baseline justify-between lg:pb-1.5">
               <h2 className="text-[15px] font-bold lg:text-base">{filtro ? situacoes[filtro].titulo : 'Cobrar agora'}</h2>
               {lista.length > 5 && (
@@ -244,13 +250,13 @@ export default function Inicio() {
                 </button>
               )}
             </div>
-            {visiveis.length === 0 && <p className="cartao rounded-[20px] px-4 py-5 text-sm text-suave lg:bg-transparent lg:px-0 lg:shadow-none">Ninguém pra cobrar agora.</p>}
+            {visiveis.length === 0 && <p className="py-4 text-sm text-suave">Ninguém pra cobrar agora.</p>}
             {visiveis.map((c) => {
               const info = situacoes[c.situacao]
               return (
                 <div
                   key={c.parcelaId}
-                  className="cartao flex items-center gap-2.5 rounded-[20px] py-2.25 pr-2.25 pl-2.5 lg:rounded-none lg:border-b lg:border-superficie-2 lg:bg-transparent lg:px-0 lg:py-1.5 lg:shadow-none"
+                  className="flex items-center gap-2.5 border-b border-superficie-2 py-2 last:border-b-0"
                 >
                   <span className={`flex size-10 shrink-0 items-center justify-center rounded-[13px] text-[13px] font-extrabold ${info.clara} ${info.escura}`}>{iniciais(c.cliente)}</span>
                   <Link to={`/contratos/${c.contratoId}`} className="flex min-w-0 flex-1 flex-col">
@@ -266,7 +272,7 @@ export default function Inicio() {
                       target="_blank"
                       rel="noreferrer"
                       aria-label={`Cobrar ${c.cliente} no WhatsApp`}
-                      className="verde flex size-11 shrink-0 items-center justify-center rounded-[14px] shadow-md shadow-marca/30 lg:h-9 lg:w-auto lg:gap-2 lg:rounded-xl lg:px-4 lg:text-[13px] lg:font-bold"
+                      className="verde flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
                     >
                       <Icone nome="whatsapp" />
                       <span className="hidden lg:inline">Cobrar</span>
@@ -275,16 +281,16 @@ export default function Inicio() {
                 </div>
               )
             })}
-          </section>
+        </section>
 
-          <section aria-label="Clientes do mês" className="cartao flex items-center gap-5 rounded-[26px] p-5">
+        <section aria-label="Clientes do mês" className="cartao flex items-center gap-5 rounded-[18px] p-5 max-lg:order-1 lg:col-span-4">
             <div
               className="flex size-30 shrink-0 items-center justify-center rounded-full"
-              style={{ background: `conic-gradient(#12B76A 0 ${percentual}%, #EEF0F3 ${percentual}% 100%)` }}
+              style={{ background: `conic-gradient(#7CFFB2 0 ${percentual}%, #1A2338 ${percentual}% 100%)` }}
             >
-              <div className="flex size-23 flex-col items-center justify-center rounded-full bg-white">
+              <div className="flex size-23 flex-col items-center justify-center rounded-full bg-superficie">
                 <span className="font-display text-[26px] font-extrabold">{percentual}%</span>
-                <span className="text-[11px] text-[#8A909C]">dos juros</span>
+                <span className="text-[11px] text-suave">dos juros</span>
               </div>
             </div>
             <div className="flex min-w-0 flex-col gap-2 text-[13px] text-suave">
@@ -296,11 +302,10 @@ export default function Inicio() {
                 <strong className="font-extrabold text-texto">{p.clientesMes - p.clientesPagaram}</strong> ainda vão pagar
               </span>
               <span>
-                {p.clientesMes} com parcela em {new Date().toLocaleDateString('pt-BR', { month: 'long' })}
+                {p.clientesMes} com parcela em {mes}
               </span>
             </div>
-          </section>
-        </div>
+        </section>
       </main>
     </Moldura>
   )

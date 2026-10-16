@@ -1,41 +1,40 @@
 ---
 name: giron-frontend
-description: Regras do visual do GIRON (tema "Pulso Claro"). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
----
+description: Regras do visual do GIRON (tema escuro com verde). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
+--# GIRON — visual escuro com verde
 
-# GIRON — tema Pulso Claro
-
-O dono (Tom) aprovou o tema **Pulso Claro** em 01/10/2026. Ele não quer nada com cara de SaaS genérico e **não quer parecido com o CredPlus** (o CredPlus é escuro, azul-marinho, com bordas de vidro, dourado e letra pesada: evite tudo isso).
-Fonte visual: canvas no Claude Design https://claude.ai/artifact/D39ZyGM9XKzJuzwFjpc4RA
-(artboards "4 · Pulso CLARO — celular" e "4 · Pulso CLARO — computador"). As outras propostas do canvas foram RECUSADAS, inclusive o Pulso escuro.
+O dono (Tom) aprovou em 14/10/2026 o visual **escuro com verde neon**: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo"). Substitui o Pulso Claro (01/10), que NÃO vale mais.
+Modelo: https://claude.ai/artifact/NqxuhdY8gcq1PwyeYbsSC7 . Aplicado no sistema em 16/10/2026.
+Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui é preto-azulado + verde neon, sem dourado, sem vidro.
 
 ## Princípios
 
-1. **Celular primeiro.** O Fomentado usa o GIRON andando, no celular. Toda tela tem que funcionar bem com 390 px de largura, com botões de pelo menos 44 px. O computador é a versão ampliada.
-2. **Informação primordial no topo.** No painel: capital em trânsito (cartão verde-escuro → preto, o maior), depois juros recebidos, capital recebido e emprestado no mês (cartões brancos menores); logo abaixo, as 4 situações.
-3. **Claro e leve, com pontos fortes de cor.** Fundo cinza bem claro com brilho suave de verde e lilás no alto, cartões brancos com sombra leve (sem borda), menus em preto (`tinta`).
-4. **Situações em cor CHEIA, com degradê da mesma cor.** Os cartões de críticos/vencidos/hoje/amanhã são pintados inteiros (pedido do dono: "uma cor só, não deixa branco"), num degradê de 135° do tom claro pro forte da MESMA cor (valores no objeto `situacoes` de `pages/Inicio.tsx`). Todas as letras BRANCAS, nos 4 cartões (pedido do dono: "letras de uma cor só"); por isso o amarelo é um degradê mais forte (#FBB224 → #D97706). Cartões compactos.
-5. **Português simples na tela.** "Cobrar", "vence hoje", "voltou pro caixa". Sem termos técnicos e sem emoji na interface.
+1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
+2. **Informação primordial no topo.** Painel: capital em trânsito (cartão verde-escuro com brilho verde, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
+3. **Escuro e calmo, com o verde só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Verde neon = botão principal, link, item ativo do menu, WhatsApp.
+4. **Situações em cor CHEIA, com degradê da mesma cor** e letras brancas (objeto `situacoes` de `pages/Inicio.tsx`). Bolinha do "vence hoje" vermelha piscando (`anima-pulso`).
+5. **Português simples na tela.** Sem termos técnicos e sem emoji na interface.
 
 ## Tokens (definidos em `frontend/src/index.css`, bloco `@theme`)
 
 | Token (classe Tailwind) | Valor | Uso |
 |---|---|---|
-| `fundo` | #F5F6F8 | fundo da página |
-| `superficie` / `superficie-2` | #FFFFFF / #F0F1F4 | cartões / trilhos, divisórias, hover |
-| `borda` | #E6E8EC | linhas finas quando precisar |
-| `texto` / `suave` | #111318 / #6B7280 | texto principal / secundário |
-| `tinta` | #111318 | menu lateral, barra de baixo, avatar |
-| `marca` / `marca-clara` / `marca-brilho` | #0B8A55 / #22D184 / #5BE3A4 | verde: texto-link / começo do degradê / destaque sobre fundo escuro |
-| `critico` | #7C5CFA (roxa) | crítico: atraso a partir de `dias_para_critico` |
-| `vencido` | #E5484D (vermelha) | venceu (1 dia até virar crítico) |
-| `hoje` | #2F6FED (azul) | vence hoje (bolinha VERMELHA piscando: `anima-pulso`, pedido do dono) |
-| `amanha` / `sobre-amanha` | #F5A800 / #3D2800 | vence amanhã / texto em cima do amarelo |
+| `fundo` | #0B0F1A | fundo da página |
+| `superficie` / `superficie-2` | #121A2C / #1A2338 | cartões / campos, linhas, hover |
+| `borda` | #1E2840 | bordas finas |
+| `texto` / `suave` | #E8ECF5 / #8B93A7 | texto principal / secundário |
+| `tinta` | #0F1524 | menu lateral e barra de baixo |
+| `marca` / `marca-brilho` | #7CFFB2 | verde neon: link, ativo, destaque |
+| `marca-clara` | #2EE6A6 | começo de degradê verde (barrinhas) |
+| `sobre-verde` | #06110C | letra em cima do verde |
+| `critico` / `vencido` / `hoje` / `amanha` | #A48CFF / #FF7A7A / #6AA6FF / #FBB224 | cores das situações (texto ou fundo `/15`) |
+| `sobre-amanha` | #2A1A00 | letra em cima do amarelo cheio |
 
-Fonte: **uma só no sistema todo, Plus Jakarta Sans** (`font-sans` e `font-display` apontam pra ela). O dono achou feia a mistura Sora + Manrope ("feia e não uniforme"): NÃO misture fontes. Números de dinheiro: peso 700 (bold), com `tabular-nums`; textos 500–600. Carregada no `index.html`.
+Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros (#FFE9E8 etc.): somem ou ofuscam no escuro.
+Fonte: **uma só, Plus Jakarta Sans** (não misturar). Números com `tabular-nums`, dinheiro em 700–800.
+Utilitários: `cartao` e `verde` (fundo #7CFFB2, letra escura). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
 
-Utilitários: `cartao` (branco + sombra suave) e `verde` (degradê #22D184 → #0B8A55 com texto branco: botão principal, "+", WhatsApp).
-Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em botões.
+.
 
 ## Campos de digitar (regras do dono, 01/10/2026)
 
@@ -47,20 +46,18 @@ Cantos: 20 px no celular, 26 px nos cartões grandes do computador, 14 px em bot
 
 ## Peças prontas — reutilize, não recrie
 
-- `components/Moldura.tsx`: menu lateral preto (computador) + barra preta flutuante embaixo (celular). Toda tela interna fica dentro dela.
-- `components/Tela.tsx`: Moldura + "← Voltar" + título/subtítulo + `acoes` (botões à direita) + `largo` (ocupa a largura toda no computador).
-- `components/estilo.ts`: classes prontas (`campo`, `rotulo`, `botaoVerde`, `botaoClaro`, `botaoEscuro`, `tituloSecao`, `erroCaixa`), selos de cadastro e de contrato, `iniciais()`. Use estas em vez de reinventar.
-- `components/Icone.tsx`: ícones de traço. Precisa de um novo? Acrescente o desenho lá (24x24, traço 1.8).
-- `lib/formatos.ts`: `reais()`, `dataBr()`, `linkWhatsApp()`, `nomeModalidade`.
-- `lib/painel.ts`: números do painel e classificação das situações.
-- `pages/Inicio.tsx`: referência de como aplicar o tema (cores das situações no objeto `situacoes`).
+- `components/Moldura.tsx`: computador = menu lateral fixo (opção A); celular = barra do topo (logo + iniciais que abrem conta/plano/Sair) e barra de baixo Início · Clientes · + · Calcular · Resumo (opção B). Toda tela interna fica dentro dela.
+- `components/Tela.tsx`: Moldura + "← Voltar" + título/subtítulo + `acoes` + `largo`.
+- `components/estilo.ts`: `campo`, `rotulo`, `botaoVerde`, `botaoClaro`, `botaoEscuro`, `tituloSecao`, `erroCaixa`, selos, `iniciais()`.
+- `components/Icone.tsx`: ícones de traço (24x24, traço 1.8).
+- `lib/formatos.ts`, `lib/painel.ts`; `pages/Inicio.tsx` é a referência do tema.
 
-## Telas antigas
+## Telas
 
-Já no tema: painel, lista/ficha/novo cliente, novo empréstimo e contrato. Login e link de cadastro ainda usam as classes padrão do Tailwind (`bg-white`, `text-slate-600`, `bg-slate-900`...). Elas combinam razoavelmente com o tema claro, mas ainda não têm a cara do Pulso. Ao mexer numa delas, aproveite e troque pelas classes do tema (`cartao`, `verde`, `text-suave`, cores das situações).
+No visual novo (16/10/2026): painel, clientes (lista, ficha, novo), novo empréstimo, contrato, calculadora e login. **Ainda no visual antigo claro:** link de cadastro (`LinkCadastro.tsx`, a tela que o CLIENTE do Fomentado abre) e `Status.tsx` — o dono ainda não decidiu se a tela do cliente final fica escura.
 
 ## Antes de entregar
 
-- Teste em 390 px e em 1280 px: nada cortado, nada saindo pro lado.
+- Teste em 390 px e em 1280 px: nada cortado, nada saindo pro lado (valores em R$ grandes não podem virar "R$ 21.5…").
 - Rode `npm run build` dentro de `frontend/` e confira se não há erro.
 - Publique no teste com `./scripts/publicar-teste.sh` e registre no `06-ESPECIFICACAO/HISTORICO-DE-IMPLEMENTACAO.md` do cofre GIRON-CEREBRO.

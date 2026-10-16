@@ -1,47 +1,53 @@
 @import "tailwindcss";
 
-/* Tema "Pulso Claro" do GIRON (aprovado pelo dono em 01/10/2026).
+/* Tema "Escuro com verde" do GIRON (aprovado pelo dono em 14/10/2026; substitui o Pulso Claro).
+   Modelo: https://claude.ai/artifact/NqxuhdY8gcq1PwyeYbsSC7 (A no computador, B no celular)
    Regras completas: .claude/skills/giron-frontend/SKILL.md */
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   /* Tokens do tema: use ESTES nas telas novas */
-  --color-fundo: #F5F6F8;
-  --color-superficie: #FFFFFF;
-  --color-superficie-2: #F0F1F4;
-  --color-borda: #E6E8EC;
-  --color-texto: #111318;
-  --color-suave: #6B7280;
-  --color-tinta: #111318;
-  --color-marca: #0B8A55;
-  --color-marca-clara: #22D184;
-  --color-marca-brilho: #5BE3A4;
-  --color-critico: #7C5CFA;
-  --color-vencido: #E5484D;
-  --color-hoje: #2F6FED;
-  --color-amanha: #F5A800;
-  --color-sobre-amanha: #3D2800;
+  --color-fundo: #0B0F1A;
+  --color-superficie: #121A2C;
+  --color-superficie-2: #1A2338;
+  --color-borda: #1E2840;
+  --color-texto: #E8ECF5;
+  --color-suave: #8B93A7;
+  --color-tinta: #0F1524;
+  --color-marca: #7CFFB2;
+  --color-marca-clara: #2EE6A6;
+  --color-marca-brilho: #7CFFB2;
+  --color-sobre-verde: #06110C;
+  --color-critico: #A48CFF;
+  --color-vencido: #FF7A7A;
+  --color-hoje: #6AA6FF;
+  --color-amanha: #FBB224;
+  --color-sobre-amanha: #2A1A00;
 }
 
-/* Cartão branco com sombra suave */
+/* Cartão escuro com borda fina */
 @utility cartao {
-  background-color: #FFFFFF;
-  box-shadow: 0 6px 18px rgb(16 24 40 / 0.06);
+  background-color: #121A2C;
+  border: 1px solid #1E2840;
 }
 
-/* Botão/realce verde da marca */
+/* Botão/realce verde da marca: verde neon com letra escura */
 @utility verde {
-  background-image: linear-gradient(135deg, #22D184, #0B8A55);
-  color: #FFFFFF;
+  background-color: #7CFFB2;
+  color: #06110C;
 }
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
   body {
     background-color: var(--color-fundo);
     color: var(--color-texto);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
   }
   h1,
   h2,

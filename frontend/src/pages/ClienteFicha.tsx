@@ -107,7 +107,7 @@ export default function ClienteFicha() {
     setRecarregar((n) => n + 1)
   }
 
-  if (carregando) return <Tela voltar="/clientes"><div className="mt-4 h-40 animate-pulse rounded-[26px] bg-black/5" /></Tela>
+  if (carregando) return <Tela voltar="/clientes"><div className="mt-4 h-40 animate-pulse rounded-[26px] bg-superficie-2" /></Tela>
   if (!cliente) return <Tela voltar="/clientes"><p className="mt-6 text-suave">Cliente não encontrado.</p></Tela>
 
   const selfie = cliente.cliente_arquivos.find((a) => a.tipo === 'selfie')
@@ -170,7 +170,7 @@ export default function ClienteFicha() {
             <p className="text-sm text-white/85">Confira os dados e as fotos abaixo antes de decidir.</p>
           </div>
           <div className="grid grid-cols-2 gap-2 lg:flex">
-            <button onClick={() => mudarStatus('aprovado')} disabled={salvandoStatus} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 font-bold text-marca disabled:opacity-60">
+            <button onClick={() => mudarStatus('aprovado')} disabled={salvandoStatus} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-sobre-verde px-5 font-bold text-marca disabled:opacity-60">
               <Icone nome="certo" tamanho={18} />
               Aprovar
             </button>
@@ -204,11 +204,11 @@ export default function ClienteFicha() {
                 <div className="py-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-suave">CPF</span>
-                    <span className="rounded-full bg-[#FFF3D1] px-2.5 py-1 text-[11px] font-bold text-[#8A5A00]">Sem CPF</span>
+                    <span className="rounded-full bg-amanha/15 px-2.5 py-1 text-[11px] font-bold text-amanha">Sem CPF</span>
                   </div>
                   <div className="mt-2 flex gap-2">
                     <input inputMode="numeric" value={novoCpf} onChange={(e) => setNovoCpf(mascaraCpf(e.target.value))} placeholder="Completar CPF" aria-label="Completar CPF" className={`${campo} mt-0`} />
-                    <button onClick={salvarCpf} className="shrink-0 rounded-2xl bg-tinta px-4 font-semibold text-white">Salvar</button>
+                    <button onClick={salvarCpf} className="shrink-0 rounded-2xl border border-borda bg-superficie-2 px-4 font-semibold">Salvar</button>
                   </div>
                   {erroCpf && <p role="alert" className="mt-2 text-sm font-semibold text-vencido">{erroCpf}</p>}
                 </div>
@@ -250,7 +250,7 @@ export default function ClienteFicha() {
                 return (
                   <li key={k.id}>
                     <Link to={`/contratos/${k.id}`} className="flex items-center gap-3 rounded-2xl bg-superficie-2/70 p-3 transition hover:bg-superficie-2">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-extrabold">{String(k.numero).padStart(2, '0')}</span>
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-superficie text-sm font-extrabold">{String(k.numero).padStart(2, '0')}</span>
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="text-sm font-bold">
                           {reais(k.capital)} <span className="font-normal text-suave">· {nomeModalidade[k.modalidade] ?? k.modalidade}</span>
@@ -277,7 +277,7 @@ export default function ClienteFicha() {
                     {l.foto_arquivo && urls[l.foto_arquivo] ? (
                       <img src={urls[l.foto_arquivo]} alt={l.nome} className="size-12 shrink-0 rounded-xl object-cover" />
                     ) : (
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white text-hoje">
+                      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-superficie text-hoje">
                         <Icone nome="pin" />
                       </span>
                     )}
@@ -290,7 +290,7 @@ export default function ClienteFicha() {
                     </div>
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2">
-                    <a href={mapa(l)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-tinta text-sm font-semibold text-white">
+                    <a href={mapa(l)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-borda bg-superficie-2 text-sm font-semibold">
                       <Icone nome="pin" tamanho={16} />
                       Abrir no mapa
                     </a>

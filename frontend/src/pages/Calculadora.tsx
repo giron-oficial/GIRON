@@ -52,7 +52,7 @@ function CaixaTexto({ titulo, texto, telefone }: { titulo: string; texto: string
   return (
     <section className="cartao mt-3 flex flex-col gap-3 rounded-[22px] p-4 lg:p-5">
       <p className={tituloSecao}>{titulo}</p>
-      <pre className="overflow-x-auto rounded-2xl bg-tinta p-4 font-mono text-[13px] leading-relaxed whitespace-pre-wrap text-[#E8ECF5] select-all">{texto}</pre>
+      <pre className="overflow-x-auto rounded-2xl border border-borda bg-fundo p-4 font-mono text-[13px] leading-relaxed whitespace-pre-wrap text-texto select-all">{texto}</pre>
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={copiar} className={botaoClaro}>
           <Icone nome="copiar" tamanho={18} />
@@ -234,7 +234,7 @@ export default function Calculadora() {
             {qtds.map((n) => (
               <span key={n} className="flex h-9 items-center gap-1 rounded-xl bg-superficie-2 pr-1 pl-3 text-sm font-bold tabular-nums">
                 {n}x
-                <button type="button" onClick={() => tirarQtd(n)} aria-label={`Tirar ${n}x`} className="flex size-7 items-center justify-center rounded-lg text-suave hover:bg-white hover:text-texto">
+                <button type="button" onClick={() => tirarQtd(n)} aria-label={`Tirar ${n}x`} className="flex size-7 items-center justify-center rounded-lg text-suave hover:bg-borda hover:text-texto">
                   <Icone nome="xis" tamanho={14} />
                 </button>
               </span>

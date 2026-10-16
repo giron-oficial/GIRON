@@ -22,13 +22,13 @@ const diasEntre = (de: string, ate: string) => Math.round((Date.parse(ate + 'T12
 
 // Selo de cada parcela, com as cores das situações do painel
 function seloParcela(p: Parcela) {
-  if (p.status === 'paga') return { texto: 'Paga', classe: 'bg-[#DDF7EA] text-marca', bolinha: 'bg-marca-clara' }
+  if (p.status === 'paga') return { texto: 'Paga', classe: 'bg-marca/15 text-marca', bolinha: 'bg-marca-clara' }
   const atraso = diasEntre(p.vencimento, hoje())
   const parcial = p.status === 'parcial' ? 'Parcial · ' : ''
-  if (atraso > 0) return { texto: `${parcial}${atraso === 1 ? 'Venceu ontem' : `${atraso} dias de atraso`}`, classe: 'bg-[#FFE9E8] text-[#B42318]', bolinha: 'bg-vencido' }
-  if (atraso === 0) return { texto: `${parcial}Vence hoje`, classe: 'bg-[#E4EEFF] text-hoje', bolinha: 'bg-hoje' }
-  if (atraso === -1) return { texto: `${parcial}Vence amanhã`, classe: 'bg-[#FFF3D1] text-[#8A5A00]', bolinha: 'bg-amanha' }
-  return { texto: p.status === 'parcial' ? 'Parcial' : 'Em aberto', classe: 'bg-superficie-2 text-suave', bolinha: 'bg-[#C9CED6]' }
+  if (atraso > 0) return { texto: `${parcial}${atraso === 1 ? 'Venceu ontem' : `${atraso} dias de atraso`}`, classe: 'bg-vencido/15 text-vencido', bolinha: 'bg-vencido' }
+  if (atraso === 0) return { texto: `${parcial}Vence hoje`, classe: 'bg-hoje/15 text-hoje', bolinha: 'bg-hoje' }
+  if (atraso === -1) return { texto: `${parcial}Vence amanhã`, classe: 'bg-amanha/15 text-amanha', bolinha: 'bg-amanha' }
+  return { texto: p.status === 'parcial' ? 'Parcial' : 'Em aberto', classe: 'bg-superficie-2 text-suave', bolinha: 'bg-suave/50' }
 }
 
 function CampoReais({ id, ...resto }: { id: string } & InputHTMLAttributes<HTMLInputElement>) {
@@ -108,7 +108,7 @@ export default function Contrato() {
     carregar()
   }
 
-  if (carregando) return <Tela voltar="/clientes"><div className="mt-4 h-48 animate-pulse rounded-[26px] bg-black/5" /></Tela>
+  if (carregando) return <Tela voltar="/clientes"><div className="mt-4 h-48 animate-pulse rounded-[26px] bg-superficie-2" /></Tela>
   if (!c) return <Tela voltar="/clientes"><p className="mt-6 text-suave">Empréstimo não encontrado.</p></Tela>
 
   const recorrente = c.modalidade === 'recorrente'
@@ -123,7 +123,7 @@ export default function Contrato() {
     <Tela titulo={`Contrato ${String(c.numero).padStart(2, '0')}`} subtitulo={c.clientes?.nome_completo} voltar={`/clientes/${c.cliente_id}`} largo>
       <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1.4fr] lg:items-start">
         <div className="flex flex-col gap-3">
-          <section className="relative overflow-hidden rounded-[26px] bg-linear-135 from-[#0E4D36] to-tinta to-65% p-5 text-white shadow-xl shadow-[#0E4D36]/25">
+          <section className="relative overflow-hidden rounded-[26px] bg-linear-135 border border-[#1F4A38] from-[#0E3A2A] to-superficie to-65% p-5 text-white">
             <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(34_209_132/0.5),transparent_70%)]" />
             <div className="relative flex items-center justify-between">
               <span className="text-xs text-[#B7F0D3]">Falta voltar do capital</span>
@@ -134,7 +134,7 @@ export default function Contrato() {
               <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
                 <div className="h-full rounded-full bg-marca-brilho" style={{ width: `${recuperado}%` }} />
               </div>
-              <span className="text-xs text-[#A1A7B3]">
+              <span className="text-xs text-suave">
                 {recuperado}% do capital já voltou{!recorrente && ` · ${pagas} de ${c.parcelas.length} parcelas pagas`}
               </span>
             </div>
@@ -173,7 +173,7 @@ export default function Contrato() {
                     disabled={p.status === 'paga'}
                     className="flex w-full items-center gap-3 p-3 text-left disabled:cursor-default"
                   >
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-sm font-extrabold">{p.numero}ª</span>
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-superficie text-sm font-extrabold">{p.numero}ª</span>
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="text-sm font-bold">{dataBr(p.vencimento)}</span>
                       <span className={`flex w-fit items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${selo.classe}`}>
@@ -224,7 +224,7 @@ export default function Contrato() {
                           <Icone nome="certo" tamanho={18} />
                           {salvandoPag ? 'Salvando…' : 'Confirmar pagamento'}
                         </button>
-                        <button type="button" onClick={() => setPagando(null)} className="h-12 rounded-2xl bg-white px-4 font-semibold text-suave">
+                        <button type="button" onClick={() => setPagando(null)} className="h-12 rounded-2xl border border-borda bg-superficie px-4 font-semibold text-suave">
                           Cancelar
                         </button>
                       </div>
@@ -247,9 +247,9 @@ export default function Contrato() {
             const ultimo = pg.id === ultimoValido?.id
             const abrir = estornando === pg.id
             return (
-              <li key={pg.id} className={`rounded-2xl p-3 ${pg.estornado_em ? 'bg-superficie-2/40' : abrir ? 'bg-[#FFF5F5] ring-2 ring-vencido/40' : 'bg-superficie-2/60'}`}>
+              <li key={pg.id} className={`rounded-2xl p-3 ${pg.estornado_em ? 'bg-superficie-2/40' : abrir ? 'bg-vencido/10 ring-2 ring-vencido/40' : 'bg-superficie-2/60'}`}>
                 <div className="flex items-center gap-3">
-                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${pg.estornado_em ? 'bg-[#FFE9E8] text-[#B42318]' : 'bg-[#DDF7EA] text-marca'}`}>
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${pg.estornado_em ? 'bg-vencido/15 text-vencido' : 'bg-marca/15 text-marca'}`}>
                     <Icone nome={pg.estornado_em ? 'xis' : 'certo'} tamanho={18} />
                   </span>
                   <div className="flex min-w-0 flex-1 flex-col">
@@ -262,7 +262,7 @@ export default function Contrato() {
                     </span>
                     {pg.observacao && !pg.estornado_em && <span className="text-xs text-suave">"{pg.observacao}"</span>}
                     {pg.estornado_em && (
-                      <span className="text-xs font-semibold text-[#B42318]">
+                      <span className="text-xs font-semibold text-vencido">
                         Estornado em {new Date(pg.estornado_em).toLocaleDateString('pt-BR')}: {pg.motivo_estorno}
                       </span>
                     )}
@@ -271,7 +271,7 @@ export default function Contrato() {
                     <button
                       type="button"
                       onClick={() => { setEstornando(pg.id); setMotivo(''); setErroEst('') }}
-                      className="h-9 shrink-0 rounded-xl bg-white px-3 text-xs font-bold text-[#B42318] shadow-sm"
+                      className="h-9 shrink-0 rounded-xl bg-superficie px-3 text-xs font-bold text-vencido"
                     >
                       Estornar
                     </button>
@@ -298,7 +298,7 @@ export default function Contrato() {
                         <Icone nome="xis" tamanho={18} />
                         {salvandoEst ? 'Estornando…' : 'Confirmar estorno'}
                       </button>
-                      <button type="button" onClick={() => setEstornando(null)} className="h-12 rounded-2xl bg-white px-4 font-semibold text-suave">
+                      <button type="button" onClick={() => setEstornando(null)} className="h-12 rounded-2xl border border-borda bg-superficie px-4 font-semibold text-suave">
                         Cancelar
                       </button>
                     </div>
