@@ -103,14 +103,18 @@ export default function Configuracoes() {
           {/* linha do tempo: em dia → vencido → crítico */}
           <div className="px-4 py-4 lg:px-5">
             <div className="flex h-2.5 gap-1 overflow-hidden rounded-full">
-              <span className="flex-[3] rounded-full bg-gradient-to-r from-marca-clara to-marca" />
-              <span className="rounded-full bg-gradient-to-r from-vencido to-vencido/70" style={{ flex: Math.min(diasVencido, 10) + 1 }} />
-              <span className="flex-[5] rounded-full bg-gradient-to-r from-critico to-critico/70" />
+              <span className="flex-[2.5] rounded-full bg-gradient-to-r from-marca-clara to-marca" />
+              <span className="flex-[2.2] rounded-full bg-gradient-to-r from-amanha to-amanha/70" />
+              <span className="flex-[2] rounded-full bg-gradient-to-r from-hoje to-hoje/70" />
+              <span className="rounded-full bg-gradient-to-r from-vencido to-vencido/70" style={{ flex: Math.min(diasVencido, 8) + 1.5 }} />
+              <span className="flex-[4] rounded-full bg-gradient-to-r from-critico to-critico/70" />
             </div>
-            <div className="mt-2 flex text-[11px] leading-tight font-semibold">
-              <span className="flex-[3] text-marca">Em dia</span>
-              <span className="text-vencido" style={{ flex: Math.min(diasVencido, 10) + 1 }}>Vencido<br /><span className="font-medium text-suave">{diasVencido === 1 ? '1 dia' : `1 a ${diasVencido} dias`}</span></span>
-              <span className="flex-[5] text-critico">Crítico<br /><span className="font-medium text-suave">a partir do {v.dias}º dia{cobra ? ' · multa e juro' : ''}</span></span>
+            <div className="mt-2 flex gap-1 text-[11px] leading-tight font-semibold">
+              <span className="flex-[2.5] text-marca">Em dia</span>
+              <span className="flex-[2.2] text-amanha">Amanhã<br /><span className="font-medium text-suave">vence</span></span>
+              <span className="flex-[2] text-hoje">Hoje<br /><span className="font-medium text-suave">vence</span></span>
+              <span className="text-vencido" style={{ flex: Math.min(diasVencido, 8) + 1.5 }}>Vencido<br /><span className="font-medium text-suave">{diasVencido === 1 ? '1 dia' : `1 a ${diasVencido} dias`}</span></span>
+              <span className="flex-[4] text-critico">Crítico<br /><span className="font-medium text-suave">{v.dias}º dia{cobra ? ' · multa e juro' : ''}</span></span>
             </div>
           </div>
 
