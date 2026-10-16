@@ -10,11 +10,11 @@ const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
   { to: '/clientes', rotulo: 'Clientes', icone: 'clientes' },
   { to: '/contratos', rotulo: 'Contratos', icone: 'contratos' },
   { to: '/calculadora', rotulo: 'Calculadora', icone: 'calculadora' },
+  { to: '/relatorios', rotulo: 'Relatórios', icone: 'relatorios' },
   { to: '/configuracoes', rotulo: 'Configurações', icone: 'ajustes' },
 ]
 
 const emBreve: { rotulo: string; icone: NomeIcone }[] = [
-  { rotulo: 'Relatórios', icone: 'relatorios' },
 ]
 
 const TESTE_DIAS = 30
@@ -128,7 +128,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
               {contadores[i.to]}
             </NavLink>
           ))}
-          <span className="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-suave/70 uppercase">Em breve</span>
+          {emBreve.length > 0 && <span className="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-suave/70 uppercase">Em breve</span>}
           {emBreve.map((i) => (
             <span key={i.rotulo} aria-disabled="true" className="flex h-10 cursor-default items-center gap-3 rounded-xl px-3 text-sm text-suave/60">
               <Icone nome={i.icone} />
@@ -170,6 +170,10 @@ export default function Moldura({ children }: { children: ReactNode }) {
               {resumo && <span className="truncate text-sm font-bold">{resumo.nome}</span>}
               <span className="truncate text-xs text-suave">{session?.user.email}</span>
               {resumo && <Plano r={resumo} />}
+              <Link to="/relatorios" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-superficie-2 text-sm font-semibold">
+                <Icone nome="relatorios" tamanho={18} />
+                Relatórios
+              </Link>
               <Link to="/contratos" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-superficie-2 text-sm font-semibold">
                 <Icone nome="contratos" tamanho={18} />
                 Contratos

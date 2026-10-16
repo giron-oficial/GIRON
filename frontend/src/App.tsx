@@ -13,6 +13,7 @@ import EmprestimoNovo from './pages/EmprestimoNovo'
 import Inicio from './pages/Inicio'
 import LinkCadastro from './pages/LinkCadastro'
 import Login from './pages/Login'
+import Relatorios from './pages/Relatorios'
 import Status from './pages/Status'
 
 function Protegida({ children }: { children: ReactNode }) {
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/clientes/:id" element={<Protegida><ClienteFicha /></Protegida>} />
           <Route path="/clientes/:id/emprestimo" element={<Protegida><EmprestimoNovo /></Protegida>} />
           <Route path="/calculadora" element={<Protegida><Calculadora /></Protegida>} />
+          <Route path="/relatorios" element={<Protegida><Relatorios /></Protegida>} />
           <Route path="/configuracoes" element={<Protegida><Configuracoes /></Protegida>} />
           <Route path="/contratos" element={<Protegida><Contratos /></Protegida>} />
           <Route path="/contratos/:id" element={<Protegida><Contrato /></Protegida>} />
