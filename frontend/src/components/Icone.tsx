@@ -60,6 +60,35 @@ const caminhos = {
     </>
   ),
   sair: <path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" />,
+  porcento: (
+    <>
+      <path d="M19 5 5 19" />
+      <circle cx="7.5" cy="7.5" r="2.5" />
+      <circle cx="16.5" cy="16.5" r="2.5" />
+    </>
+  ),
+  relogio: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  recibo: <path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21zM9 8h6M9 12h6M9 16h4" />,
+  cadeado: (
+    <>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  menos: <path d="M5 12h14" />,
+  direita: <path d="m9 6 6 6-6 6" />,
+  lixeira: <path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6" />,
+  pix: (
+    <>
+      <path d="M12 2.5 21.5 12 12 21.5 2.5 12z" />
+      <path d="M8.5 12 12 8.5l3.5 3.5L12 15.5z" />
+    </>
+  ),
   subindo: <path d="M4 17l5-5 4 4 7-8M15 8h5v5" />,
   moeda: (
     <>

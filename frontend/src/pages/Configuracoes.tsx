@@ -1,30 +1,34 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import Icone from '../components/Icone'
-import Tela from '../components/Tela'
+import { CampoMini, Grupo, Linha, Passos, Segmentos } from '../components/Ajustes'
 import ChavesPix from '../components/ChavesPix'
-import { botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
+import Icone from '../components/Icone'
+import Interruptor from '../components/Interruptor'
+import Tela from '../components/Tela'
+import { erroCaixa } from '../components/estilo'
 import { encargosAtraso } from '../lib/atraso'
+import { useAuth } from '../lib/auth'
 import { mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { supabase } from '../lib/supabase'
 
-// Configurações do Fomentado (fomentado_configuracoes): juro padrão, regras de atraso (5.5) e chaves Pix (5.9).
+// Configurações do Fomentado (fomentado_configuracoes), no estilo "ajustes do celular":
+// juro padrão, regras de atraso (5.5), o que o cliente vê no extrato (5.7), chaves Pix (5.9) e conta.
+// Só aparece "Salvar" quando algo mudou; as chaves Pix gravam sozinhas.
 
 type Desde = 'vencimento' | 'critico'
+type Valores = { juroPadrao: string; dias: number; multa: string; juroDia: string; desde: Desde; juroExtrato: boolean; totalExtrato: boolean }
+const inicial: Valores = { juroPadrao: '', dias: 2, multa: '', juroDia: '', desde: 'vencimento', juroExtrato: false, totalExtrato: false }
 
 export default function Configuracoes() {
+  const { session } = useAuth()
   const [tenant, setTenant] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
-  const [juroPadrao, setJuroPadrao] = useState('')
-  const [diasCritico, setDiasCritico] = useState('2')
-  const [multa, setMulta] = useState('')
-  const [juroDia, setJuroDia] = useState('')
-  const [desde, setDesde] = useState<Desde>('vencimento')
-  const [juroExtrato, setJuroExtrato] = useState(false)
-  const [totalExtrato, setTotalExtrato] = useState(false)
+  const [v, setV] = useState<Valores>(inicial)
+  const [salvoNoBanco, setSalvoNoBanco] = useState<Valores>(inicial)
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
+  const muda = <K extends keyof Valores>(k: K, x: Valores[K]) => { setV((a) => ({ ...a, [k]: x })); setSalvo(false) }
 
   useEffect(() => {
     Promise.all([
@@ -33,133 +37,143 @@ export default function Configuracoes() {
     ]).then(([{ data: f }, { data: c }]) => {
       setTenant(f?.id ?? null)
       if (c) {
-        if (c.juro_padrao_percentual != null) setJuroPadrao(percentualCompleto(Number(c.juro_padrao_percentual)))
-        setDiasCritico(String(c.dias_para_critico ?? 2))
-        if (Number(c.multa_atraso_valor)) setMulta(reaisCampo(Number(c.multa_atraso_valor)))
-        if (Number(c.juro_diario_atraso_valor)) setJuroDia(reaisCampo(Number(c.juro_diario_atraso_valor)))
-        setDesde(c.juro_atraso_desde === 'critico' ? 'critico' : 'vencimento')
-        setJuroExtrato(!!c.mostrar_juro_no_extrato)
-        setTotalExtrato(!!c.mostrar_total_no_extrato)
+        const lido: Valores = {
+          juroPadrao: c.juro_padrao_percentual != null ? percentualCompleto(Number(c.juro_padrao_percentual)) : '',
+          dias: c.dias_para_critico ?? 2,
+          multa: Number(c.multa_atraso_valor) ? reaisCampo(Number(c.multa_atraso_valor)) : '',
+          juroDia: Number(c.juro_diario_atraso_valor) ? reaisCampo(Number(c.juro_diario_atraso_valor)) : '',
+          desde: c.juro_atraso_desde === 'critico' ? 'critico' : 'vencimento',
+          juroExtrato: !!c.mostrar_juro_no_extrato,
+          totalExtrato: !!c.mostrar_total_no_extrato,
+        }
+        setV(lido); setSalvoNoBanco(lido)
       }
       setCarregando(false)
     })
   }, [])
 
-  const dias = Number(diasCritico) || 0
-  const regra = { multa: multa ? numeroBr(multa) : 0, juroDia: juroDia ? numeroBr(juroDia) : 0, diasCritico: dias, desde }
-  const exemploDias = Math.max(dias + 5, 10)
+  const regra = useMemo(() => ({ multa: v.multa ? numeroBr(v.multa) : 0, juroDia: v.juroDia ? numeroBr(v.juroDia) : 0, diasCritico: v.dias, desde: v.desde }), [v])
+  const cobra = regra.multa > 0 || regra.juroDia > 0
+  const exemploDias = Math.max(v.dias + 5, 10)
   const exemplo = encargosAtraso(exemploDias, regra)
+  const mudou = JSON.stringify(v) !== JSON.stringify(salvoNoBanco)
 
   async function salvar() {
     setErro(''); setSalvo(false)
     if (!tenant) return setErro('Sua conta ainda não está ligada a uma empresa.')
-    if (dias < 2) return setErro('O Crítico precisa começar com pelo menos 2 dias de atraso.')
     setSalvando(true)
     const { error } = await supabase.from('fomentado_configuracoes').upsert({
       tenant_id: tenant,
-      juro_padrao_percentual: juroPadrao ? numeroBr(juroPadrao) : null,
-      dias_para_critico: dias,
+      juro_padrao_percentual: v.juroPadrao ? numeroBr(v.juroPadrao) : null,
+      dias_para_critico: v.dias,
       multa_atraso_valor: regra.multa,
       juro_diario_atraso_valor: regra.juroDia,
-      juro_atraso_desde: desde,
-      mostrar_juro_no_extrato: juroExtrato,
-      mostrar_total_no_extrato: totalExtrato,
+      juro_atraso_desde: v.desde,
+      mostrar_juro_no_extrato: v.juroExtrato,
+      mostrar_total_no_extrato: v.totalExtrato,
     })
     setSalvando(false)
     if (error) return setErro('Não foi possível salvar. Confira os valores e tente de novo.')
-    setSalvo(true)
+    setSalvoNoBanco(v); setSalvo(true)
   }
 
-  if (carregando) return <Tela titulo="Configurações"><div className="mt-4 h-60 animate-pulse rounded-[22px] bg-superficie-2" /></Tela>
+  if (carregando) {
+    return (
+      <Tela titulo="Configurações">
+        <div className="mt-4 flex flex-col gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 animate-pulse rounded-[18px] bg-superficie-2" />)}</div>
+      </Tela>
+    )
+  }
 
+  const diasVencido = v.dias - 1
   return (
-    <Tela titulo="Configurações" subtitulo="Valores que o sistema usa nos seus empréstimos">
-      <section className="cartao mt-4 flex flex-col gap-4 rounded-[22px] p-5 lg:p-6">
-        <h2 className={tituloSecao}>Empréstimo</h2>
-        <div>
-          <label className={rotulo} htmlFor="jp">Juro padrão ao mês <span className="font-normal text-suave">(já vem preenchido no empréstimo novo)</span></label>
-          <div className="relative">
-            <input id="jp" inputMode="decimal" value={juroPadrao} onChange={(e) => setJuroPadrao(mascaraPercentual(e.target.value))} placeholder="10" className={`${campo} pr-10 tabular-nums`} />
-            <span className="pointer-events-none absolute top-1/2 right-4 mt-[3px] -translate-y-1/2 text-sm font-semibold text-suave">%</span>
-          </div>
-        </div>
-      </section>
+    <Tela titulo="Configurações" subtitulo="Regras que o sistema usa nos seus empréstimos">
+      <div className="mt-4 flex flex-col gap-3 lg:mt-5">
+        <Grupo icone="porcento" titulo="Juros" descricao="Já vem preenchido quando você faz um empréstimo novo">
+          <Linha titulo="Juro padrão ao mês" htmlFor="jp">
+            <CampoMini id="jp" valor={v.juroPadrao} onChange={(x) => muda('juroPadrao', mascaraPercentual(x))} sufixo="%" placeholder="10" inputMode="decimal" largura="w-28" />
+          </Linha>
+        </Grupo>
 
-      <section className="cartao mt-3 flex flex-col gap-4 rounded-[22px] p-5 lg:p-6">
-        <div>
-          <h2 className={tituloSecao}>Atraso: multa e juros</h2>
-          <p className="mt-1 text-xs text-suave">Deixe em zero pra não cobrar. Na hora do pagamento você sempre pode mudar ou tirar (negociação).</p>
-        </div>
-        <div>
-          <label className={rotulo} htmlFor="dc">Vira Crítico com quantos dias de atraso</label>
-          <input id="dc" inputMode="numeric" value={diasCritico} onChange={(e) => setDiasCritico(e.target.value.replace(/\D/g, '').slice(0, 2))} className={`${campo} tabular-nums`} />
-          <p className="mt-1 text-xs text-suave">
-            {dias >= 2 ? `Vencido de 1 a ${dias - 1} ${dias - 1 === 1 ? 'dia' : 'dias'}; Crítico a partir do ${dias}º dia. Multa e juros começam no Crítico.` : 'Mínimo 2 dias.'}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={rotulo} htmlFor="mu">Multa</label>
-            <div className="relative">
-              <input id="mu" inputMode="numeric" value={multa} onChange={(e) => setMulta(mascaraReais(e.target.value))} placeholder="0,00" className={`${campo} pl-11 tabular-nums`} />
-              <span className="pointer-events-none absolute top-1/2 left-4 mt-[3px] -translate-y-1/2 text-sm font-semibold text-suave">R$</span>
+        <Grupo icone="relogio" titulo="Atraso" descricao="Deixe multa e juro em zero pra não cobrar. Na hora de receber você sempre pode negociar." cor="text-vencido bg-vencido/15">
+          <Linha titulo="Vira Crítico com" dica="Antes disso a parcela fica só como Vencida">
+            <Passos valor={v.dias} onChange={(x) => muda('dias', x)} min={2} max={60} sufixo={v.dias === 1 ? 'dia' : 'dias'} />
+          </Linha>
+
+          {/* linha do tempo: em dia → vencido → crítico */}
+          <div className="px-4 py-4 lg:px-5">
+            <div className="flex h-2.5 gap-1 overflow-hidden rounded-full">
+              <span className="flex-[3] rounded-full bg-gradient-to-r from-marca-clara to-marca" />
+              <span className="rounded-full bg-gradient-to-r from-vencido to-vencido/70" style={{ flex: Math.min(diasVencido, 10) + 1 }} />
+              <span className="flex-[5] rounded-full bg-gradient-to-r from-critico to-critico/70" />
+            </div>
+            <div className="mt-2 flex text-[11px] leading-tight font-semibold">
+              <span className="flex-[3] text-marca">Em dia</span>
+              <span className="text-vencido" style={{ flex: Math.min(diasVencido, 10) + 1 }}>Vencido<br /><span className="font-medium text-suave">{diasVencido === 1 ? '1 dia' : `1 a ${diasVencido} dias`}</span></span>
+              <span className="flex-[5] text-critico">Crítico<br /><span className="font-medium text-suave">a partir do {v.dias}º dia{cobra ? ' · multa e juro' : ''}</span></span>
             </div>
           </div>
-          <div>
-            <label className={rotulo} htmlFor="jd">Juro por dia</label>
-            <div className="relative">
-              <input id="jd" inputMode="numeric" value={juroDia} onChange={(e) => setJuroDia(mascaraReais(e.target.value))} placeholder="0,00" className={`${campo} pl-11 tabular-nums`} />
-              <span className="pointer-events-none absolute top-1/2 left-4 mt-[3px] -translate-y-1/2 text-sm font-semibold text-suave">R$</span>
+
+          <Linha titulo="Multa" dica="Valor único, cobrado uma vez quando vira Crítico" htmlFor="mu">
+            <CampoMini id="mu" valor={v.multa} onChange={(x) => muda('multa', mascaraReais(x))} prefixo="R$" placeholder="0,00" />
+          </Linha>
+          <Linha titulo="Juro por dia de atraso" dica="Soma todo dia enquanto não paga" htmlFor="jd">
+            <CampoMini id="jd" valor={v.juroDia} onChange={(x) => muda('juroDia', mascaraReais(x))} prefixo="R$" placeholder="0,00" />
+          </Linha>
+          {regra.juroDia > 0 && (
+            <Linha titulo="O juro por dia começa a contar" empilha>
+              <Segmentos valor={v.desde} onChange={(x) => muda('desde', x)} opcoes={[['vencimento', 'Desde o vencimento'], ['critico', 'Só a partir do Crítico']]} />
+            </Linha>
+          )}
+          {cobra && (
+            <div className="flex items-center gap-3 bg-superficie-2/40 px-4 py-3.5 lg:px-5">
+              <div className="min-w-0 flex-1 text-sm text-suave">
+                Exemplo: <strong className="text-texto">{exemploDias} dias</strong> de atraso = {reais(exemplo.multa)} de multa + {reais(exemplo.juro)} de juro ({exemplo.dias} {exemplo.dias === 1 ? 'dia' : 'dias'})
+              </div>
+              <span className="shrink-0 text-lg font-extrabold tabular-nums text-vencido">+{reais(exemplo.total)}</span>
             </div>
-          </div>
-        </div>
-        <div>
-          <span className={rotulo}>O juro por dia conta</span>
-          <div className="mt-1.5 grid grid-cols-2 gap-1 rounded-2xl bg-superficie-2 p-1">
-            {([['vencimento', 'Desde o vencimento'], ['critico', 'Só a partir do Crítico']] as [Desde, string][]).map(([v, t]) => (
-              <button key={v} type="button" onClick={() => setDesde(v)} aria-pressed={desde === v}
-                className={`h-11 rounded-xl text-[13px] font-semibold transition ${desde === v ? 'bg-superficie text-marca' : 'text-suave'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-        {dias >= 2 && (regra.multa > 0 || regra.juroDia > 0) && (
-          <p className="rounded-2xl bg-superficie-2 p-3 text-sm text-suave">
-            Exemplo: parcela com <strong className="text-texto">{exemploDias} dias</strong> de atraso paga{' '}
-            <strong className="text-texto">{reais(exemplo.multa)}</strong> de multa + <strong className="text-texto">{reais(exemplo.juro)}</strong> de juros
-            ({exemplo.dias} {exemplo.dias === 1 ? 'dia' : 'dias'}) = <strong className="text-marca">{reais(exemplo.total)}</strong> a mais.
+          )}
+        </Grupo>
+
+        <Grupo icone="recibo" titulo="Extrato do cliente" descricao="O extrato interno (só seu) sempre mostra tudo" cor="text-amanha bg-amanha/15">
+          <Linha titulo="Mostrar o % de juro ao mês">
+            <Interruptor ligado={v.juroExtrato} onChange={(x) => muda('juroExtrato', x)} rotulo="Mostrar o % de juro ao mês no extrato do cliente" />
+          </Linha>
+          <Linha titulo="Mostrar o total a pagar" dica="Soma de todas as parcelas">
+            <Interruptor ligado={v.totalExtrato} onChange={(x) => muda('totalExtrato', x)} rotulo="Mostrar o total a pagar no extrato do cliente" />
+          </Linha>
+        </Grupo>
+
+        <ChavesPix tenant={tenant} />
+
+        <Grupo icone="cadeado" titulo="Conta" cor="text-suave bg-superficie-2">
+          <Linha titulo="E-mail de acesso" dica={session?.user.email} />
+          <Link to="/nova-senha" className="flex items-center justify-between gap-3 px-4 py-3.5 text-[15px] font-semibold transition hover:bg-superficie-2/40 lg:px-5">
+            Trocar minha senha
+            <Icone nome="direita" tamanho={18} className="text-suave" />
+          </Link>
+        </Grupo>
+
+        {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
+      </div>
+
+      {/* barra de salvar: só aparece quando algo mudou; fica grudada embaixo enquanto rola */}
+      <div className={`sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] z-10 mt-4 transition-all lg:bottom-4 ${mudou || salvo ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'}`}>
+        {salvo && !mudou ? (
+          <p className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-marca/40 bg-tinta px-4 text-sm font-bold text-marca shadow-xl shadow-black/40">
+            <Icone nome="certo" tamanho={18} />
+            Salvo. Já vale pros próximos cálculos.
           </p>
+        ) : (
+          <div className="flex h-14 items-center justify-between gap-3 rounded-2xl border border-borda bg-tinta py-1.5 pr-1.5 pl-4 shadow-xl shadow-black/40">
+            <span className="text-sm font-semibold text-suave">Alterações não salvas</span>
+            <button onClick={salvar} disabled={salvando} className="verde inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-extrabold disabled:opacity-60">
+              <Icone nome="certo" tamanho={18} />
+              {salvando ? 'Salvando…' : 'Salvar'}
+            </button>
+          </div>
         )}
-      </section>
-
-      <section className="cartao mt-3 flex flex-col gap-3 rounded-[22px] p-5 lg:p-6">
-        <div>
-          <h2 className={tituloSecao}>Extrato que vai pro cliente</h2>
-          <p className="mt-1 text-xs text-suave">O extrato interno (só seu) sempre mostra tudo. Aqui você escolhe o que o cliente vê.</p>
-        </div>
-        {([[juroExtrato, setJuroExtrato, 'Mostrar o % de juro ao mês'], [totalExtrato, setTotalExtrato, 'Mostrar o valor total a pagar']] as [boolean, (v: boolean) => void, string][]).map(([v, set, t]) => (
-          <label key={t} className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-superficie-2 px-4 py-3 text-sm font-semibold">
-            {t}
-            <input type="checkbox" checked={v} onChange={(e) => set(e.target.checked)} className="size-5 accent-marca" />
-          </label>
-        ))}
-      </section>
-
-      <Link to="/nova-senha" className="cartao mt-3 flex items-center justify-between rounded-[22px] p-5 text-sm font-bold lg:p-6">
-        Trocar minha senha
-        <span className="text-suave">›</span>
-      </Link>
-
-      {erro && <p role="alert" className={`${erroCaixa} mt-4`}>{erro}</p>}
-      {salvo && <p className="mt-4 rounded-2xl bg-marca/15 px-4 py-3 text-sm font-semibold text-marca">Salvo. Já vale pros próximos cálculos.</p>}
-
-      <button onClick={salvar} disabled={salvando} className={`${botaoVerde} mt-4 w-full`}>
-        <Icone nome="certo" tamanho={18} />
-        {salvando ? 'Salvando…' : 'Salvar configurações'}
-      </button>
-
-      <ChavesPix tenant={tenant} />
+      </div>
     </Tela>
   )
 }

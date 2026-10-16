@@ -1,111 +1,112 @@
 import { useEffect, useState } from 'react'
+import { Grupo } from './Ajustes'
 import Icone from './Icone'
-import { botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from './estilo'
+import { erroCaixa } from './estilo'
 import { supabase } from '../lib/supabase'
 
 // Chaves Pix do Fomentado (regra 5.9): até 5, numeradas Pix 1 a Pix 5, uma é a padrão.
-// A padrão sai nas mensagens de cobrança e no extrato; as outras o dono escolhe na hora ("cobra no Pix 2").
+// A padrão sai nas cobranças e no extrato; as outras o dono escolhe na hora ("cobra no Pix 2").
+// Cada ação (adicionar, tirar, tornar padrão) já grava no banco na hora.
 
 type Tipo = 'cpf' | 'cnpj' | 'telefone' | 'email' | 'aleatoria'
-type Slot = { numero: number; tipo: Tipo; chave: string; existe: boolean }
-const tipos: [Tipo, string][] = [['cpf', 'CPF'], ['cnpj', 'CNPJ'], ['telefone', 'Telefone'], ['email', 'E-mail'], ['aleatoria', 'Chave aleatória']]
-const vazio = (n: number): Slot => ({ numero: n, tipo: 'cpf', chave: '', existe: false })
+type Chave = { numero: number; tipo: Tipo; chave: string; padrao: boolean }
+const tipos: [Tipo, string][] = [['cpf', 'CPF'], ['cnpj', 'CNPJ'], ['telefone', 'Telefone'], ['email', 'E-mail'], ['aleatoria', 'Aleatória']]
+const nomeTipo = Object.fromEntries(tipos) as Record<Tipo, string>
 
 export default function ChavesPix({ tenant }: { tenant: string | null }) {
-  const [slots, setSlots] = useState<Slot[]>([1, 2, 3, 4, 5].map(vazio))
-  const [padrao, setPadrao] = useState(1)
+  const [lista, setLista] = useState<Chave[]>([])
   const [carregando, setCarregando] = useState(true)
-  const [salvando, setSalvando] = useState(false)
-  const [salvo, setSalvo] = useState(false)
+  const [abrindo, setAbrindo] = useState(false)
+  const [tipo, setTipo] = useState<Tipo>('cpf')
+  const [chave, setChave] = useState('')
   const [erro, setErro] = useState('')
+  const [ocupado, setOcupado] = useState(false)
 
-  useEffect(() => {
-    supabase.from('chaves_pix').select('numero, tipo, chave, padrao').order('numero').then(({ data }) => {
-      const lista = (data ?? []) as { numero: number; tipo: Tipo; chave: string; padrao: boolean }[]
-      setSlots([1, 2, 3, 4, 5].map((n) => {
-        const c = lista.find((x) => x.numero === n)
-        return c ? { numero: n, tipo: c.tipo, chave: c.chave, existe: true } : vazio(n)
-      }))
-      const p = lista.find((x) => x.padrao)
-      if (p) setPadrao(p.numero)
-      setCarregando(false)
-    })
-  }, [])
-
-  const muda = (n: number, k: 'tipo' | 'chave', v: string) => setSlots((xs) => xs.map((s) => (s.numero === n ? { ...s, [k]: v } : s)))
-  const preenchidos = slots.filter((s) => s.chave.trim())
-
-  async function salvar() {
-    setErro(''); setSalvo(false)
-    if (!tenant) return setErro('Sua conta ainda não está ligada a uma empresa.')
-    if (preenchidos.length > 0 && !preenchidos.some((s) => s.numero === padrao)) return setErro('Marque qual chave é a padrão (uma que esteja preenchida).')
-    setSalvando(true)
-    try {
-      // 1) apaga as que ficaram vazias; 2) grava todas sem "padrão"; 3) marca a padrão (o banco só aceita uma)
-      const apagar = slots.filter((s) => s.existe && !s.chave.trim()).map((s) => s.numero)
-      if (apagar.length) {
-        const { error } = await supabase.from('chaves_pix').delete().in('numero', apagar).eq('tenant_id', tenant)
-        if (error) throw error
-      }
-      if (preenchidos.length) {
-        const { error } = await supabase.from('chaves_pix').upsert(
-          preenchidos.map((s) => ({ tenant_id: tenant, numero: s.numero, tipo: s.tipo, chave: s.chave.trim(), padrao: false })),
-          { onConflict: 'tenant_id,numero' },
-        )
-        if (error) throw error
-        const { error: e2 } = await supabase.from('chaves_pix').update({ padrao: true }).eq('tenant_id', tenant).eq('numero', padrao)
-        if (e2) throw e2
-      }
-      setSlots((xs) => xs.map((s) => ({ ...s, chave: s.chave.trim(), existe: !!s.chave.trim() })))
-      setSalvo(true)
-    } catch {
-      setErro('Não foi possível salvar as chaves. Tente de novo.')
-    } finally {
-      setSalvando(false)
-    }
+  async function recarregar() {
+    const { data } = await supabase.from('chaves_pix').select('numero, tipo, chave, padrao').order('numero')
+    setLista((data ?? []) as Chave[])
+    setCarregando(false)
   }
+  useEffect(() => { recarregar() }, [])
+
+  async function roda(acao: () => Promise<unknown>) {
+    if (!tenant) return setErro('Sua conta ainda não está ligada a uma empresa.')
+    setErro(''); setOcupado(true)
+    try { await acao(); await recarregar() } catch { setErro('Não foi possível salvar. Tente de novo.') } finally { setOcupado(false) }
+  }
+  const falhou = (r: { error: unknown }) => { if (r.error) throw r.error }
+
+  const adicionar = () => roda(async () => {
+    const texto = chave.trim()
+    if (!texto) throw new Error('vazia')
+    const numero = [1, 2, 3, 4, 5].find((n) => !lista.some((c) => c.numero === n))!
+    falhou(await supabase.from('chaves_pix').insert({ tenant_id: tenant, numero, tipo, chave: texto, padrao: lista.length === 0 }))
+    setChave(''); setAbrindo(false)
+  })
+  const tirar = (c: Chave) => roda(async () => {
+    falhou(await supabase.from('chaves_pix').delete().eq('tenant_id', tenant!).eq('numero', c.numero))
+    const resto = lista.filter((x) => x.numero !== c.numero)
+    if (c.padrao && resto.length) falhou(await supabase.from('chaves_pix').update({ padrao: true }).eq('tenant_id', tenant!).eq('numero', resto[0].numero))
+  })
+  const tornarPadrao = (c: Chave) => roda(async () => {
+    falhou(await supabase.from('chaves_pix').update({ padrao: false }).eq('tenant_id', tenant!).eq('padrao', true))
+    falhou(await supabase.from('chaves_pix').update({ padrao: true }).eq('tenant_id', tenant!).eq('numero', c.numero))
+  })
 
   return (
-    <section className="cartao mt-3 flex flex-col gap-4 rounded-[22px] p-5 lg:p-6">
-      <div>
-        <h2 className={tituloSecao}>Chaves Pix</h2>
-        <p className="mt-1 text-xs text-suave">Até 5 chaves. A <strong className="text-texto">padrão</strong> sai nas cobranças e no extrato. As outras você escolhe na hora de cobrar ("manda o Pix 2").</p>
-      </div>
+    <Grupo icone="pix" titulo="Chaves Pix" descricao="A padrão sai nas cobranças e no extrato. Até 5." cor="text-hoje bg-hoje/15">
       {carregando ? (
-        <div className="h-40 animate-pulse rounded-2xl bg-superficie-2" />
+        <div className="m-4 h-14 animate-pulse rounded-xl bg-superficie-2" />
+      ) : lista.length === 0 && !abrindo ? (
+        <p className="px-4 py-4 text-sm text-suave lg:px-5">Nenhuma chave ainda. Sem chave, o extrato sai sem Pix.</p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {slots.map((s) => (
-            <div key={s.numero} className={`rounded-2xl p-3 ${s.chave ? 'bg-superficie-2' : 'bg-superficie-2/40'}`}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold">Pix {s.numero}</span>
-                <label className={`flex cursor-pointer items-center gap-1.5 text-xs font-semibold ${padrao === s.numero && s.chave ? 'text-marca' : 'text-suave'}`}>
-                  <input type="radio" name="pix-padrao" checked={padrao === s.numero} onChange={() => setPadrao(s.numero)} disabled={!s.chave.trim()} className="accent-marca" />
-                  padrão
-                </label>
-              </div>
-              <div className="mt-2 grid grid-cols-[120px_1fr] gap-2">
-                <div>
-                  <label className={`${rotulo} sr-only`} htmlFor={`pt${s.numero}`}>Tipo</label>
-                  <select id={`pt${s.numero}`} value={s.tipo} onChange={(e) => muda(s.numero, 'tipo', e.target.value)} className={`${campo} mt-0`}>
-                    {tipos.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={`${rotulo} sr-only`} htmlFor={`pc${s.numero}`}>Chave</label>
-                  <input id={`pc${s.numero}`} value={s.chave} onChange={(e) => muda(s.numero, 'chave', e.target.value)} placeholder={s.numero === 1 ? 'Sua chave Pix' : 'Vazio = não usa'} className={`${campo} mt-0`} />
-                </div>
-              </div>
+        lista.map((c) => (
+          <div key={c.numero} className="flex items-center gap-3 px-4 py-3 lg:px-5">
+            <span className="w-11 shrink-0 text-center text-[11px] font-extrabold tracking-wide text-suave">PIX {c.numero}</span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[15px] font-bold">{c.chave}</p>
+              <p className="text-xs text-suave">{nomeTipo[c.tipo]}{c.padrao && <span className="ml-2 rounded-md bg-marca/15 px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-marca uppercase">Padrão</span>}</p>
             </div>
-          ))}
-        </div>
+            {!c.padrao && (
+              <button type="button" disabled={ocupado} onClick={() => tornarPadrao(c)} className="h-9 shrink-0 rounded-lg bg-superficie-2 px-3 text-xs font-bold text-texto disabled:opacity-50">
+                Tornar padrão
+              </button>
+            )}
+            <button type="button" aria-label={`Tirar Pix ${c.numero}`} disabled={ocupado} onClick={() => tirar(c)} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-suave hover:bg-vencido/15 hover:text-vencido disabled:opacity-50">
+              <Icone nome="lixeira" tamanho={17} />
+            </button>
+          </div>
+        ))
       )}
-      {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
-      {salvo && <p className="rounded-2xl bg-marca/15 px-4 py-3 text-sm font-semibold text-marca">Chaves salvas.</p>}
-      <button type="button" onClick={salvar} disabled={salvando || carregando} className={`${botaoVerde} w-full`}>
-        <Icone nome="certo" tamanho={18} />
-        {salvando ? 'Salvando…' : 'Salvar chaves Pix'}
-      </button>
-    </section>
+
+      {abrindo ? (
+        <div className="flex flex-col gap-3 bg-superficie-2/40 px-4 py-4 lg:px-5">
+          <div className="flex flex-wrap gap-1.5">
+            {tipos.map(([v, t]) => (
+              <button key={v} type="button" onClick={() => setTipo(v)} aria-pressed={tipo === v}
+                className={`h-9 rounded-full px-3.5 text-xs font-bold transition ${tipo === v ? 'verde' : 'bg-superficie-2 text-suave'}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+          <input
+            autoFocus value={chave} onChange={(e) => setChave(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && adicionar()}
+            inputMode={tipo === 'email' || tipo === 'aleatoria' ? 'text' : 'numeric'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            placeholder={{ cpf: '000.000.000-00', cnpj: '00.000.000/0000-00', telefone: '63 99999-9999', email: 'nome@email.com', aleatoria: 'cole a chave aleatória' }[tipo]}
+            className="h-12 w-full rounded-xl border border-borda bg-superficie px-4 text-base font-semibold outline-none placeholder:font-normal placeholder:text-suave/60 focus:border-marca focus:ring-4 focus:ring-marca/15"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => { setAbrindo(false); setChave(''); setErro('') }} className="h-11 rounded-xl bg-superficie-2 text-sm font-semibold text-suave">Cancelar</button>
+            <button type="button" disabled={ocupado || !chave.trim()} onClick={adicionar} className="verde h-11 rounded-xl text-sm font-extrabold disabled:opacity-60">Adicionar</button>
+          </div>
+        </div>
+      ) : lista.length < 5 && !carregando ? (
+        <button type="button" onClick={() => setAbrindo(true)} className="flex h-12 w-full items-center gap-2 px-4 text-sm font-bold text-marca lg:px-5">
+          <Icone nome="mais" tamanho={18} />
+          Adicionar chave
+        </button>
+      ) : null}
+      {erro && <p role="alert" className={`${erroCaixa} m-4 rounded-xl`}>{erro}</p>}
+    </Grupo>
   )
 }
