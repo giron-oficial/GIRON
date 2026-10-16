@@ -54,7 +54,7 @@ Utilitários: `cartao` e `verde` (fundo #7CFFB2, letra escura). Cantos: 18 px no
 
 ## Telas
 
-No visual novo (16/10/2026): painel, clientes (lista, ficha, novo), novo empréstimo, contrato, calculadora e login. **Ainda no visual antigo claro:** link de cadastro (`LinkCadastro.tsx`, a tela que o CLIENTE do Fomentado abre) e `Status.tsx` — o dono ainda não decidiu se a tela do cliente final fica escura.
+No visual novo (16/10/2026): painel, clientes (lista, ficha, novo), novo empréstimo (e o modo "Transformar em parcelado"), contrato, calculadora, configurações e login. Multa e juro de atraso: sempre pela `lib/atraso.ts` (não refazer a conta na tela). **Ainda no visual antigo claro:** link de cadastro (`LinkCadastro.tsx`, a tela que o CLIENTE do Fomentado abre) e `Status.tsx` — o dono ainda não decidiu se a tela do cliente final fica escura.
 
 ## Antes de entregar
 
