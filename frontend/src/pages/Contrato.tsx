@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = {
-  id: string; parcela_id: string | null; valor_pago: number; desconto: number; acrescimo: number; parte_juro: number; parte_capital: number
+  id: string; parcela_id: string | null; tipo: string; valor_pago: number; desconto: number; acrescimo: number; parte_juro: number; parte_capital: number
   pago_em: string; observacao: string | null; estornado_em: string | null; motivo_estorno: string | null; ordem: number
 }
 type ContratoT = {
@@ -55,13 +55,18 @@ export default function Contrato() {
   const [motivo, setMotivo] = useState('')
   const [erroEst, setErroEst] = useState('')
   const [salvandoEst, setSalvandoEst] = useState(false)
+  const [amortizando, setAmortizando] = useState(false)
+  const [valorAmort, setValorAmort] = useState('')
+  const [obsAmort, setObsAmort] = useState('')
+  const [erroAmort, setErroAmort] = useState('')
+  const [salvandoAmort, setSalvandoAmort] = useState(false)
 
   const carregar = useCallback(() => {
     return supabase
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
                status, capital_em_aberto, cliente_id, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
-               pagamentos(id, parcela_id, valor_pago, desconto, acrescimo, parte_juro, parte_capital, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
+               pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
       .maybeSingle()
@@ -98,6 +103,20 @@ export default function Contrato() {
     carregar()
   }
 
+  // Recorrente: abate capital; o juro dos meses que ainda não venceram é recalculado no banco
+  async function amortizar() {
+    if (!c) return
+    const v = valorAmort ? numeroBr(valorAmort) : 0
+    if (!v || v <= 0) return setErroAmort('Informe o valor da amortização.')
+    if (v > Number(c.capital_em_aberto)) return setErroAmort(`O valor é maior que o capital em aberto (${reais(c.capital_em_aberto)}).`)
+    setErroAmort(''); setSalvandoAmort(true)
+    const { error } = await supabase.rpc('amortizacao_registrar', { p_contrato_id: c.id, p_valor: v, p_observacao: obsAmort || null })
+    setSalvandoAmort(false)
+    if (error) return setErroAmort(error.message)
+    setAmortizando(false); setValorAmort(''); setObsAmort('')
+    carregar()
+  }
+
   async function estornar(pagamentoId: string) {
     if (motivo.trim().length < 3) return setErroEst('Escreva o motivo do estorno.')
     setErroEst(''); setSalvandoEst(true)
@@ -117,6 +136,9 @@ export default function Contrato() {
   const total = c.parcelas.reduce((s, p) => s + Number(p.valor), 0)
   const pagas = c.parcelas.filter((p) => p.status === 'paga').length
   const sc = seloContrato[c.status] ?? seloContrato.ativo
+  const juroDoMes = Math.round(Number(c.capital_em_aberto) * Number(c.juro_percentual)) / 100
+  const vAmort = valorAmort ? numeroBr(valorAmort) : 0
+  const capitalDepois = Math.max(0, Number(c.capital_em_aberto) - vAmort)
   const recuperado = Number(c.capital) > 0 ? Math.round(((Number(c.capital) - Number(c.capital_em_aberto)) / Number(c.capital)) * 100) : 0
 
   return (
@@ -138,7 +160,56 @@ export default function Contrato() {
                 {recuperado}% do capital já voltou{!recorrente && ` · ${pagas} de ${c.parcelas.length} parcelas pagas`}
               </span>
             </div>
+            {recorrente && c.status === 'ativo' && !amortizando && (
+              <button
+                type="button"
+                onClick={() => { setAmortizando(true); setValorAmort(''); setObsAmort(''); setErroAmort('') }}
+                className="verde relative mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold"
+              >
+                <Icone nome="entrando" tamanho={18} />
+                Amortizar capital
+              </button>
+            )}
           </section>
+
+          {amortizando && (
+            <section className="cartao flex flex-col gap-3 rounded-[22px] p-4 ring-2 ring-marca-clara lg:p-5">
+              <div>
+                <h2 className="text-base font-bold">Amortizar capital</h2>
+                <p className="mt-0.5 text-xs text-suave">O cliente abate parte do que pegou. O juro dos próximos meses diminui; os meses que já venceram não mudam.</p>
+              </div>
+              <div>
+                <label className={rotulo} htmlFor="va">Valor que o cliente está abatendo</label>
+                <CampoReais id="va" autoFocus value={valorAmort} onChange={(e) => setValorAmort(mascaraReais(e.target.value))} placeholder="0,00" />
+              </div>
+              {vAmort > 0 && vAmort <= Number(c.capital_em_aberto) && (
+                <div className="flex flex-col gap-1 rounded-2xl bg-superficie-2 p-3 text-sm">
+                  <div className="flex justify-between gap-3"><span className="text-suave">Capital passa a ser</span><strong className="tabular-nums">{reais(capitalDepois)}</strong></div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-suave">Juro por mês passa a ser</span>
+                    <strong className="text-marca tabular-nums">{reais(Math.round(capitalDepois * Number(c.juro_percentual)) / 100)}</strong>
+                  </div>
+                  {capitalDepois === 0 && <span className="text-xs text-suave">Abateu tudo: pagando os juros que estiverem vencidos, o contrato fica quitado.</span>}
+                </div>
+              )}
+              <div>
+                <label className={rotulo} htmlFor="oa">
+                  Observação <span className="font-normal text-suave">(opcional)</span>
+                </label>
+                <input id="oa" value={obsAmort} onChange={(e) => setObsAmort(e.target.value)} placeholder="Ex.: pagou no Pix" className={campo} />
+              </div>
+              {erroAmort && <p role="alert" className={erroCaixa}>{erroAmort}</p>}
+              <div className="flex gap-2">
+                <button type="button" onClick={amortizar} disabled={salvandoAmort} className={`${botaoVerde} flex-1`}>
+                  <Icone nome="certo" tamanho={18} />
+                  {salvandoAmort ? 'Salvando…' : 'Confirmar'}
+                </button>
+                <button type="button" onClick={() => setAmortizando(false)} className="h-12 rounded-2xl border border-borda bg-superficie px-4 font-semibold text-suave">
+                  Cancelar
+                </button>
+              </div>
+            </section>
+          )}
 
           <section className="cartao rounded-[22px] p-4 lg:p-5">
             <h2 className={tituloSecao}>Resumo</h2>
@@ -149,7 +220,7 @@ export default function Contrato() {
                 <div className="flex justify-between gap-3 py-2.5"><span className="text-suave">Cálculo</span><strong>{nomeSistema[c.sistema_calculo]}</strong></div>
               )}
               <div className="flex justify-between gap-3 py-2.5"><span className="text-suave">Juro ao mês</span><strong className="text-right tabular-nums break-all">{percentualCompleto(Number(c.juro_percentual))}%</strong></div>
-              <div className="flex justify-between gap-3 py-2.5"><span className="text-suave">{recorrente ? 'Juro por mês' : 'Juro total'}</span><strong className="tabular-nums">{reais(c.juro_valor)}</strong></div>
+              <div className="flex justify-between gap-3 py-2.5"><span className="text-suave">{recorrente ? 'Juro por mês' : 'Juro total'}</span><strong className="tabular-nums">{reais(recorrente ? juroDoMes : c.juro_valor)}</strong></div>
               {!recorrente && (
                 <div className="flex justify-between gap-3 py-2.5"><span className="text-suave">Total a receber</span><strong className="tabular-nums">{reais(total)}</strong></div>
               )}
@@ -188,7 +259,7 @@ export default function Contrato() {
                   </button>
 
                   {aberta && (
-                    <div className="flex flex-col gap-3 border-t border-white px-3 pt-3 pb-3">
+                    <div className="flex flex-col gap-3 border-t border-borda px-3 pt-3 pb-3">
                       <div>
                         <label className={rotulo} htmlFor="vp">Valor pago</label>
                         <CampoReais
@@ -256,6 +327,7 @@ export default function Contrato() {
                     <span className={`text-sm font-bold tabular-nums ${pg.estornado_em ? 'text-suave line-through' : ''}`}>
                       {reais(Number(pg.parte_juro) + Number(pg.parte_capital))}
                       {parcela && <span className="font-normal text-suave"> · {parcela.numero}ª parcela</span>}
+                      {pg.tipo === 'amortizacao' && <span className="font-normal text-suave"> · amortização</span>}
                     </span>
                     <span className="text-xs text-suave">
                       {dataBr(pg.pago_em)} · juro {reais(pg.parte_juro)} · capital {reais(pg.parte_capital)}
