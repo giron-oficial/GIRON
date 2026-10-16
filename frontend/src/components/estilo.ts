@@ -30,6 +30,7 @@ export const seloContrato: Record<string, { texto: string; classe: string }> = {
   ativo: { texto: 'Ativo', classe: 'bg-hoje/15 text-hoje' },
   quitado: { texto: 'Quitado', classe: 'bg-marca/15 text-marca' },
   cancelado: { texto: 'Cancelado', classe: 'bg-superficie-2 text-suave' },
+  convertido: { texto: 'Convertido', classe: 'bg-hoje/15 text-hoje' },
 }
 
 export function iniciais(nome: string) {

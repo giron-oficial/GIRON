@@ -63,7 +63,7 @@ export async function carregarPainel(): Promise<Painel> {
   const [empresa, config, contratos, pagamentos, pendentes, parcelasMes, pix] = await Promise.all([
     supabase.from('fomentados').select('nome_empresa, status_acesso, teste_gratis_ate').maybeSingle(),
     supabase.from('fomentado_configuracoes').select('dias_para_critico').maybeSingle(),
-    supabase.from('contratos').select('capital, capital_em_aberto, data_contrato, status'),
+    supabase.from('contratos').select('capital, capital_em_aberto, data_contrato, status, convertido_de'),
     supabase.from('pagamentos').select('parte_juro, parte_capital').is('estornado_em', null).gte('pago_em', inicioMes).lte('pago_em', fimMes),
     supabase
       .from('parcelas')
@@ -76,15 +76,15 @@ export async function carregarPainel(): Promise<Painel> {
       .select('status, contratos!inner(cliente_id, status)')
       .gte('vencimento', inicioMes)
       .lte('vencimento', fimMes)
-      .neq('contratos.status', 'cancelado'),
+      .not('contratos.status', 'in', '(cancelado,convertido)'),
     supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
   ])
   const erro = [empresa, config, contratos, pagamentos, pendentes, parcelasMes].find((r) => r.error)?.error
   if (erro) throw new Error('Não foi possível carregar o painel. Confira sua internet e tente de novo.')
 
-  const listaContratos = (contratos.data ?? []) as { capital: number; capital_em_aberto: number; data_contrato: string; status: string }[]
+  const listaContratos = (contratos.data ?? []) as { capital: number; capital_em_aberto: number; data_contrato: string; status: string; convertido_de: string | null }[]
   const ativos = listaContratos.filter((c) => c.status === 'ativo')
-  const novos = listaContratos.filter((c) => c.data_contrato >= inicioMes && c.data_contrato <= fimMes && c.status !== 'cancelado')
+  const novos = listaContratos.filter((c) => c.data_contrato >= inicioMes && c.data_contrato <= fimMes && c.status !== 'cancelado' && !c.convertido_de) // conversão não é dinheiro novo
   const pagos = (pagamentos.data ?? []) as { parte_juro: number; parte_capital: number }[]
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
 

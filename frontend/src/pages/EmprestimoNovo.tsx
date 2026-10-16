@@ -1,5 +1,5 @@
 import { useEffect, useState, type InputHTMLAttributes } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
@@ -8,11 +8,14 @@ import { supabase } from '../lib/supabase'
 
 // Novo emprestimo (RN-50 a RN-58). Ja vem preenchido com o que o cliente pediu no cadastro.
 // As contas sao feitas no banco (emprestimo_simular) - a tela so mostra e deixa escolher.
+// Com ?converter=<contrato> vira "Transformar em parcelado": capital = o que falta do Recorrente
+// + a parte dos juros vencidos que o dono escolher (contrato_converter).
 
 type Parcela = { numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number }
 type Calculo = { meses_equivalentes: number; juro_total: number; total: number; parcelas: Parcela[] }
 type Modalidade = 'diario' | 'semanal' | 'mensal' | 'recorrente'
 type Sistema = 'empresa' | 'price' | 'sac'
+type Previa = { numero: number; capital: number; juros_vencidos: number; meses_vencidos: number; juro_percentual: number }
 
 const hoje = () => new Date().toLocaleDateString('sv-SE') // AAAA-MM-DD no fuso do celular
 
@@ -59,21 +62,44 @@ export default function EmprestimoNovo() {
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [verParcelas, setVerParcelas] = useState(false)
+  const [busca] = useSearchParams()
+  const converter = busca.get('converter')
+  const [previa, setPrevia] = useState<Previa | null>(null)
+  const [jurosIncl, setJurosIncl] = useState('')
 
   useEffect(() => {
     Promise.all([
       supabase.from('clientes').select('nome_completo, status_cadastro, valor_pretendido, modalidade_preferida, dia_vencimento_preferido').eq('id', id!).maybeSingle(),
       supabase.from('fomentado_configuracoes').select('juro_padrao_percentual').maybeSingle(),
-    ]).then(([{ data: c }, { data: cfg }]) => {
+      converter ? supabase.rpc('conversao_previa', { p_contrato_id: converter }) : Promise.resolve({ data: null, error: null }),
+    ]).then(([{ data: c }, { data: cfg }, { data: pv, error: erroPv }]) => {
       if (!c) return
       setCliente(c)
+      if (converter) {
+        if (erroPv || !pv) return setErro(erroPv?.message ?? 'Contrato não encontrado.')
+        const prv = pv as Previa
+        setPrevia(prv)
+        setJurosIncl(reaisCampo(Number(prv.juros_vencidos))) // começa com todos os juros vencidos; o dono ajusta
+        setJuroPct(percentualCompleto(Number(prv.juro_percentual)))
+        setModalidade('mensal')
+        setPrimeiro(primeiroVencimentoPadrao('mensal', hoje(), c.dia_vencimento_preferido))
+        return
+      }
       if (c.valor_pretendido) setCapital(reaisCampo(Number(c.valor_pretendido)))
       const mod = (c.modalidade_preferida ?? 'mensal') as Modalidade
       setModalidade(mod)
       if (cfg?.juro_padrao_percentual != null) setJuroPct(percentualCompleto(Number(cfg.juro_padrao_percentual)))
       setPrimeiro(primeiroVencimentoPadrao(mod, hoje(), c.dia_vencimento_preferido))
     })
-  }, [id])
+  }, [id, converter])
+
+  // Conversão: valor a parcelar = capital que falta + juros vencidos escolhidos
+  const incl = jurosIncl ? numeroBr(jurosIncl) : 0
+  useEffect(() => {
+    if (!previa) return
+    const t = setTimeout(() => setCapital(reaisCampo(Math.round((Number(previa.capital) + incl) * 100) / 100)), 0)
+    return () => clearTimeout(t)
+  }, [previa, incl])
 
   function trocarModalidade(m: Modalidade) {
     setModalidade(m)
@@ -140,8 +166,14 @@ export default function EmprestimoNovo() {
   async function fazer() {
     setErro('')
     if (!escolhido) return setErro('Preencha valor, juro e parcelas.')
+    if (previa && incl > Number(previa.juros_vencidos)) return setErro(`Os juros vencidos são ${reais(previa.juros_vencidos)}; não dá pra incluir mais que isso.`)
     setSalvando(true)
-    const { data, error } = await supabase.rpc('contrato_criar', {
+    const { data, error } = previa
+      ? await supabase.rpc('contrato_converter', {
+          p_contrato_id: converter, p_juros_incluidos: incl, p_modalidade: modalidade, p_sistema: sistema,
+          p_juro_mensal_percentual: taxa, p_quantidade: n, p_primeiro_vencimento: primeiro,
+        })
+      : await supabase.rpc('contrato_criar', {
       p_cliente_id: id, p_modalidade: modalidade, p_sistema: recorrente ? null : sistema, p_capital: cap,
       p_juro_mensal_percentual: taxa, p_quantidade: recorrente ? null : n, p_data_contrato: inicio, p_primeiro_vencimento: primeiro,
     })
@@ -150,7 +182,9 @@ export default function EmprestimoNovo() {
     navegar(`/contratos/${data}`, { replace: true })
   }
 
-  if (!cliente) return <Tela voltar={`/clientes/${id}`}><div className="mt-4 h-60 animate-pulse rounded-[26px] bg-superficie-2" /></Tela>
+  const voltar = converter ? `/contratos/${converter}` : `/clientes/${id}`
+  if (converter && erro && !previa) return <Tela voltar={voltar}><p className={`${erroCaixa} mt-4`}>{erro}</p></Tela>
+  if (!cliente || (converter && !previa)) return <Tela voltar={voltar}><div className="mt-4 h-60 animate-pulse rounded-[26px] bg-superficie-2" /></Tela>
   if (cliente.status_cadastro !== 'aprovado') return (
     <Tela voltar={`/clientes/${id}`}><p className="cartao mt-4 rounded-[22px] p-6 text-suave">Aprove o cadastro do cliente antes de fazer o empréstimo.</p></Tela>
   )
@@ -158,17 +192,46 @@ export default function EmprestimoNovo() {
   const unidade = modalidade === 'diario' ? 'dias' : modalidade === 'semanal' ? 'semanas' : 'meses'
 
   return (
-    <Tela titulo="Novo empréstimo" subtitulo={cliente.nome_completo} voltar={`/clientes/${id}`}>
+    <Tela titulo={previa ? 'Transformar em parcelado' : 'Novo empréstimo'} subtitulo={cliente.nome_completo} voltar={voltar}>
+      {previa && (
+        <section className="cartao mt-4 flex flex-col gap-3 rounded-[26px] p-5 ring-2 ring-marca-clara lg:p-6">
+          <p className="text-sm text-suave">
+            O Recorrente (contrato {String(previa.numero).padStart(2, '0')}) vira um empréstimo parcelado. Ele para de cobrar juro todo mês e fica marcado como "convertido".
+          </p>
+          <div className="flex flex-col gap-1 rounded-2xl bg-superficie-2 p-3 text-sm">
+            <div className="flex justify-between gap-3"><span className="text-suave">Capital que falta</span><strong className="tabular-nums">{reais(previa.capital)}</strong></div>
+            <div className="flex justify-between gap-3">
+              <span className="text-suave">Juros vencidos sem pagar{previa.meses_vencidos > 0 && ` (${previa.meses_vencidos} ${previa.meses_vencidos === 1 ? 'mês' : 'meses'})`}</span>
+              <strong className="tabular-nums">{reais(previa.juros_vencidos)}</strong>
+            </div>
+          </div>
+          {Number(previa.juros_vencidos) > 0 && (
+            <div>
+              <label className={rotulo} htmlFor="ji">Quanto desses juros entra no parcelado</label>
+              <CampoComSinal id="ji" sinal="R$" lado="antes" inputMode="numeric" value={jurosIncl} onChange={(e) => setJurosIncl(mascaraReais(e.target.value))} placeholder="0,00" />
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={() => setJurosIncl(reaisCampo(Number(previa.juros_vencidos)))} className="h-9 rounded-xl bg-superficie-2 px-3 text-xs font-bold">Tudo</button>
+                <button type="button" onClick={() => setJurosIncl(reaisCampo(Math.round(Number(previa.juros_vencidos) * 50) / 100))} className="h-9 rounded-xl bg-superficie-2 px-3 text-xs font-bold">Metade</button>
+                <button type="button" onClick={() => setJurosIncl('')} className="h-9 rounded-xl bg-superficie-2 px-3 text-xs font-bold">Nada (desconto)</button>
+              </div>
+              {incl < Number(previa.juros_vencidos) && (
+                <p className="mt-1.5 text-xs text-suave">Desconto nos juros: {reais(Math.round((Number(previa.juros_vencidos) - incl) * 100) / 100)}</p>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
       <section className="cartao mt-4 flex flex-col gap-4 rounded-[26px] p-5 lg:p-6">
         <div>
-          <label className={rotulo} htmlFor="cap">Valor emprestado</label>
-          <CampoComSinal id="cap" sinal="R$" lado="antes" inputMode="numeric" value={capital} onChange={(e) => setCapital(mascaraReais(e.target.value))} placeholder="1.000,00" />
+          <label className={rotulo} htmlFor="cap">{previa ? 'Valor a parcelar' : 'Valor emprestado'}</label>
+          <CampoComSinal id="cap" sinal="R$" lado="antes" inputMode="numeric" value={capital} readOnly={!!previa} onChange={(e) => setCapital(mascaraReais(e.target.value))} placeholder="1.000,00" />
         </div>
 
         <div>
           <span className={rotulo}>Modalidade</span>
-          <div className="mt-1.5 grid grid-cols-4 gap-1 rounded-2xl bg-superficie-2 p-1">
-            {(['diario', 'semanal', 'mensal', 'recorrente'] as Modalidade[]).map((m) => (
+          <div className={`mt-1.5 grid gap-1 rounded-2xl bg-superficie-2 p-1 ${previa ? 'grid-cols-3' : 'grid-cols-4'}`}>
+            {((previa ? ['diario', 'semanal', 'mensal'] : ['diario', 'semanal', 'mensal', 'recorrente']) as Modalidade[]).map((m) => (
               <button
                 key={m}
                 type="button"
@@ -285,7 +348,7 @@ export default function EmprestimoNovo() {
 
       <button onClick={fazer} disabled={!escolhido || salvando} className={`${botaoVerde} mt-5 h-14 w-full text-lg`}>
         <Icone nome="moeda" />
-        {salvando ? 'Salvando…' : `Fazer empréstimo${!recorrente ? ` (${nomeSistema[sistema]})` : ''}`}
+        {salvando ? 'Salvando…' : previa ? 'Transformar em parcelado' : `Fazer empréstimo${!recorrente ? ` (${nomeSistema[sistema]})` : ''}`}
       </button>
     </Tela>
   )

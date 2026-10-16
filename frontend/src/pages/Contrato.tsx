@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
@@ -14,7 +14,7 @@ type Pagamento = {
 type ContratoT = {
   id: string; numero: number; modalidade: string; sistema_calculo: string | null; capital: number; juro_percentual: number
   juro_valor: number; quantidade_parcelas: number | null; data_contrato: string; status: string; capital_em_aberto: number
-  cliente_id: string; clientes: { nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
+  cliente_id: string; convertido_de: string | null; convertido_para: string | null; clientes: { nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
 }
 
 const hoje = () => new Date().toLocaleDateString('sv-SE')
@@ -65,7 +65,7 @@ export default function Contrato() {
     return supabase
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
-               status, capital_em_aberto, cliente_id, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
+               status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
                pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
@@ -143,6 +143,18 @@ export default function Contrato() {
 
   return (
     <Tela titulo={`Contrato ${String(c.numero).padStart(2, '0')}`} subtitulo={c.clientes?.nome_completo} voltar={`/clientes/${c.cliente_id}`} largo>
+      {c.convertido_para && (
+        <Link to={`/contratos/${c.convertido_para}`} className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-hoje/15 px-4 py-3 text-sm font-semibold text-hoje">
+          Este Recorrente foi transformado em parcelado. Não cobra mais juro todo mês.
+          <span className="shrink-0 font-bold">Ver o contrato novo →</span>
+        </Link>
+      )}
+      {c.convertido_de && (
+        <Link to={`/contratos/${c.convertido_de}`} className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-superficie-2 px-4 py-3 text-sm font-semibold text-suave">
+          Veio de um Recorrente transformado em parcelado.
+          <span className="shrink-0 font-bold text-marca">Ver o antigo →</span>
+        </Link>
+      )}
       <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1.4fr] lg:items-start">
         <div className="flex flex-col gap-3">
           <section className="relative overflow-hidden rounded-[26px] bg-linear-135 border border-[#1F4A38] from-[#0E3A2A] to-superficie to-65% p-5 text-white">
@@ -161,14 +173,23 @@ export default function Contrato() {
               </span>
             </div>
             {recorrente && c.status === 'ativo' && !amortizando && (
-              <button
-                type="button"
-                onClick={() => { setAmortizando(true); setValorAmort(''); setObsAmort(''); setErroAmort('') }}
-                className="verde relative mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold"
-              >
-                <Icone nome="entrando" tamanho={18} />
-                Amortizar capital
-              </button>
+              <div className="relative mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setAmortizando(true); setValorAmort(''); setObsAmort(''); setErroAmort('') }}
+                  className="verde inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold"
+                >
+                  <Icone nome="entrando" tamanho={18} />
+                  Amortizar capital
+                </button>
+                <Link
+                  to={`/clientes/${c.cliente_id}/emprestimo?converter=${c.id}`}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-borda bg-superficie-2 px-4 text-sm font-bold"
+                >
+                  <Icone nome="contratos" tamanho={18} />
+                  Transformar em parcelado
+                </Link>
+              </div>
             )}
           </section>
 
@@ -240,8 +261,8 @@ export default function Contrato() {
                 <li key={p.id} className={`rounded-2xl transition ${aberta ? 'bg-superficie-2 ring-2 ring-marca-clara' : 'bg-superficie-2/60'}`}>
                   <button
                     type="button"
-                    onClick={() => p.status !== 'paga' && abrirPagamento(p)}
-                    disabled={p.status === 'paga'}
+                    onClick={() => p.status !== 'paga' && c.status === 'ativo' && abrirPagamento(p)}
+                    disabled={p.status === 'paga' || c.status !== 'ativo'}
                     className="flex w-full items-center gap-3 p-3 text-left disabled:cursor-default"
                   >
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-superficie text-sm font-extrabold">{p.numero}ª</span>
