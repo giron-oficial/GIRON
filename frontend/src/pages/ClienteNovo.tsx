@@ -4,6 +4,7 @@ import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { cpfValido, mascaraCpf, mascaraTelefone, soDigitos } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 export default function ClienteNovo() {
@@ -25,6 +26,7 @@ export default function ClienteNovo() {
     const { data, error } = await supabase.rpc('cliente_criar', { p_nome_completo: nome, p_cpf: cpf, p_telefone: tel })
     setSalvando(false)
     if (error) return setErro(error.message.startsWith('Já existe') || error.message.includes('inválido') || error.message.startsWith('Sem permissão') ? error.message : 'Não foi possível salvar. Tente de novo.')
+    rastrear('cliente_criado')
     navegar(`/clientes/${data}`, { replace: true })
   }
 

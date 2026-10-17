@@ -7,6 +7,7 @@ import { recuperacao } from '../lib/recuperacao'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
 import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
@@ -128,6 +129,7 @@ export default function Contrato() {
     })
     setSalvandoPag(false)
     if (error) return setErroPag(error.message)
+    rastrear('pagamento_registrado')
     setPagando(null)
     carregar()
   }
@@ -142,6 +144,7 @@ export default function Contrato() {
     const { error } = await supabase.rpc('amortizacao_registrar', { p_contrato_id: c.id, p_valor: v, p_observacao: obsAmort || null })
     setSalvandoAmort(false)
     if (error) return setErroAmort(error.message)
+    rastrear('amortizacao_registrada')
     setAmortizando(false); setValorAmort(''); setObsAmort('')
     carregar()
   }
@@ -152,6 +155,7 @@ export default function Contrato() {
     const { error } = await supabase.rpc('estorno_registrar', { p_pagamento_id: pagamentoId, p_motivo: motivo.trim() })
     setSalvandoEst(false)
     if (error) return setErroEst(error.message)
+    rastrear('estorno_registrado')
     setEstornando(null); setMotivo('')
     carregar()
   }

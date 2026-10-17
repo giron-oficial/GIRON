@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { erroEmPortugues, useAuth } from '../lib/auth'
 import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
@@ -20,7 +21,8 @@ export default function Login() {
     setEnviando(true)
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha.trim() })
     setEnviando(false)
-    if (error) setErro(erroEmPortugues(error.message))
+    if (error) return setErro(erroEmPortugues(error.message))
+    rastrear('login_ok')
   }
 
   return (

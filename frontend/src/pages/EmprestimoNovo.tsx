@@ -4,6 +4,7 @@ import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
 import { dataBr, mascaraPercentual, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Novo emprestimo (RN-50 a RN-58). Ja vem preenchido com o que o cliente pediu no cadastro.
@@ -179,6 +180,7 @@ export default function EmprestimoNovo() {
     })
     setSalvando(false)
     if (error) return setErro(error.message)
+    rastrear(previa ? 'contrato_convertido' : 'contrato_criado', { modalidade, sistema: recorrente ? 'recorrente' : sistema })
     navegar(`/contratos/${data}`, { replace: true })
   }
 
