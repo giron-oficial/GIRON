@@ -6,6 +6,20 @@
 // - Nunca sai nome, CPF, telefone, e-mail, valor de empréstimo, parcela, Pix, senha ou token.
 // - Endereços de página saem sem identificadores (/clientes/:id em vez de /clientes/uuid) e sem parâmetros.
 // - O usuário é identificado só pelo id interno do login (um código), nunca por e-mail.
+//
+// Eventos marcados à mão (todos só com categorias fechadas, nunca texto livre):
+// - login_ok
+// - cliente_criado
+// - contrato_criado        { modalidade, sistema, origem: 'novo_emprestimo' | 'calculadora' }
+// - contrato_convertido    { modalidade, sistema, origem: 'novo_emprestimo' }
+// - pagamento_registrado, amortizacao_registrada, estorno_registrado
+// - simulacao_enviada      { canal: 'copiar' | 'whatsapp' }
+// - cobranca_enviada       { canal: 'whatsapp_inicio', situacao: 'vence_hoje' | 'vence_amanha' | 'atrasado' }
+//                          { canal: 'extrato_imagem' | 'extrato_texto', modo: 'cliente' | 'empresa' }
+// - link_cadastro_gerado   { origem: 'clientes' | 'calculadora' }
+// - cadastro_avaliado      { resultado: 'aprovado' | 'reprovado' }
+// - localizacao_solicitada
+// - configuracoes_salvas
 import posthog from 'posthog-js'
 import { barreiraFinal, limparPropriedades } from './privacidade'
 

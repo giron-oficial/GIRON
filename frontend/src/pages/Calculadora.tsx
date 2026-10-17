@@ -5,6 +5,7 @@ import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
 import { textoExtrato, textoSimulacao, textoTarjeta, valorTexto, forma, type ParcelaCalc } from '../lib/calculadora'
 import { linkWhatsApp, mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Calculadora GIRON (cofre: 06-ESPECIFICACAO/CALCULADORA.md): mensal na Forma da Empresa.
@@ -36,13 +37,14 @@ function CampoComSinal({ id, sinal, lado, ...resto }: { id: string; sinal: strin
   )
 }
 
-// Caixa com o texto pronto + Copiar + WhatsApp
-function CaixaTexto({ titulo, texto, telefone }: { titulo: string; texto: string; telefone?: string }) {
+// Caixa com o texto pronto + Copiar + WhatsApp. aoEnviar avisa qual botão foi usado (pro analytics; nunca manda o texto).
+function CaixaTexto({ titulo, texto, telefone, aoEnviar }: { titulo: string; texto: string; telefone?: string; aoEnviar?: (canal: 'copiar' | 'whatsapp') => void }) {
   const [aviso, setAviso] = useState('')
   async function copiar() {
     try {
       await navigator.clipboard.writeText(texto)
       setAviso('Copiado!')
+      aoEnviar?.('copiar')
     } catch {
       setAviso('Não deu pra copiar sozinho. Segure o dedo no texto e copie.')
     }
@@ -58,7 +60,7 @@ function CaixaTexto({ titulo, texto, telefone }: { titulo: string; texto: string
           <Icone nome="copiar" tamanho={18} />
           Copiar
         </button>
-        <a href={zap} target="_blank" rel="noreferrer" className={botaoVerde}>
+        <a href={zap} target="_blank" rel="noreferrer" onClick={() => aoEnviar?.('whatsapp')} className={botaoVerde}>
           <Icone nome="whatsapp" tamanho={18} />
           WhatsApp
         </a>
@@ -166,6 +168,7 @@ export default function Calculadora() {
     })
     setSalvando(false)
     if (error) return setErro(error.message)
+    rastrear('contrato_criado', { modalidade: 'mensal', sistema: 'empresa', origem: 'calculadora' })
     navegar(`/contratos/${data}`)
   }
 
@@ -173,8 +176,11 @@ export default function Calculadora() {
     setErro('')
     const { data, error } = await supabase.rpc('link_cadastro_criar')
     if (error) return setErro('Não foi possível gerar o link de cadastro.')
+    rastrear('link_cadastro_gerado', { origem: 'calculadora' })
     setLinkCadastro(`${window.location.origin}/c/${data}`)
   }
+
+  const simulacaoEnviada = (canal: 'copiar' | 'whatsapp') => rastrear('simulacao_enviada', { canal })
 
   const opcoes = qtds.filter((n) => calc[n]).map((n) => calc[n].parcelas)
   const atual = escolhida ? calc[escolhida] : undefined
@@ -290,14 +296,14 @@ export default function Calculadora() {
             </div>
           </section>
 
-          <CaixaTexto titulo="1. Simulação (todas as opções)" texto={textoSimulacao(cap, opcoes)} telefone={cliente?.telefone} />
+          <CaixaTexto titulo="1. Simulação (todas as opções)" texto={textoSimulacao(cap, opcoes)} telefone={cliente?.telefone} aoEnviar={simulacaoEnviada} />
         </>
       )}
 
       {atual && escolhida && (
         <>
-          <CaixaTexto titulo={`2. Tarjeta (só ${escolhida}x)`} texto={textoTarjeta(nome, cap, atual.parcelas)} telefone={cliente?.telefone} />
-          <CaixaTexto titulo="3. Extrato completo (depois de aprovado)" texto={textoExtrato(nome, cap, inicio, atual.parcelas)} telefone={cliente?.telefone} />
+          <CaixaTexto titulo={`2. Tarjeta (só ${escolhida}x)`} texto={textoTarjeta(nome, cap, atual.parcelas)} telefone={cliente?.telefone} aoEnviar={simulacaoEnviada} />
+          <CaixaTexto titulo="3. Extrato completo (depois de aprovado)" texto={textoExtrato(nome, cap, inicio, atual.parcelas)} telefone={cliente?.telefone} aoEnviar={simulacaoEnviada} />
 
           <section className="mt-4 mb-6">
             {cliente?.status_cadastro === 'aprovado' && (

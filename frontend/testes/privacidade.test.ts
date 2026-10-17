@@ -50,3 +50,26 @@ test('barreira final não confunde número de relógio ($time) com telefone', ()
   // mas texto com telefone aninhado continua derrubando
   assert.equal(barreiraFinal({ properties: { $set: { obs: '(63) 99999-0000' } } }), null)
 })
+
+// Os eventos novos do app (2026-10-17) só levam categorias fechadas: todas têm que passar inteiras pelo filtro
+test('propriedades dos eventos marcados à mão passam inteiras pelo filtro', () => {
+  const eventos: Record<string, Record<string, unknown>> = {
+    contrato_criado: { modalidade: 'mensal', sistema: 'empresa', origem: 'calculadora' },
+    contrato_convertido: { modalidade: 'mensal', sistema: 'recorrente', origem: 'novo_emprestimo' },
+    simulacao_enviada: { canal: 'whatsapp' },
+    cobranca_enviada_inicio: { canal: 'whatsapp_inicio', situacao: 'vence_amanha' },
+    cobranca_enviada_extrato: { canal: 'extrato_imagem', modo: 'cliente' },
+    link_cadastro_gerado: { origem: 'clientes' },
+    cadastro_avaliado: { resultado: 'reprovado' },
+  }
+  for (const [nome, props] of Object.entries(eventos)) {
+    assert.deepEqual(limparPropriedades(props), props, nome)
+    assert.deepEqual(barreiraFinal({ event: nome, properties: props }), { event: nome, properties: props }, nome)
+  }
+})
+
+// Se alguém um dia mandar dado de cliente junto com esses eventos, o filtro tem que tirar
+test('dado de cliente colado num evento marcado à mão é removido', () => {
+  const r = limparPropriedades({ canal: 'whatsapp_inicio', situacao: 'atrasado', nome: 'Maria', telefone: '63999990000', valor: 1500, mensagem: 'Maria, sua parcela de R$ 100 venceu' })
+  assert.deepEqual(r, { canal: 'whatsapp_inicio', situacao: 'atrasado' })
+})

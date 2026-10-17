@@ -2,7 +2,7 @@
 // Garante que nome, CPF, telefone, e-mail, valores e identificadores nunca saiam do app.
 
 // Nomes de propriedade que nunca podem sair do app (em qualquer nível)
-const PROIBIDAS = /cpf|rg|telefone|phone|celular|whats|nome|name|email|e-mail|valor|capital|juro|parcela|pix|chave|senha|password|token|endere|address|cep|latitude|longitude|gps/i
+const PROIBIDAS = /cpf|rg|telefone|phone|celular|whats|nome|name|email|e-mail|valor|capital|juro|parcela|pix|chave|senha|password|token|endere|address|cep|latitude|longitude|gps|mensagem|message|texto/i
 // Chaves técnicas do próprio PostHog que precisam passar inteiras, senão o servidor rejeita o evento
 // (token = chave pública do projeto; distinct_id = id interno do usuário)
 const SISTEMA = /^(token|distinct_id|\$lib_rate_limit_remaining_tokens)$/

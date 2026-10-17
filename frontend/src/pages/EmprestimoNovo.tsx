@@ -180,7 +180,7 @@ export default function EmprestimoNovo() {
     })
     setSalvando(false)
     if (error) return setErro(error.message)
-    rastrear(previa ? 'contrato_convertido' : 'contrato_criado', { modalidade, sistema: recorrente ? 'recorrente' : sistema })
+    rastrear(previa ? 'contrato_convertido' : 'contrato_criado', { modalidade, sistema: recorrente ? 'recorrente' : sistema, origem: 'novo_emprestimo' })
     navegar(`/contratos/${data}`, { replace: true })
   }
 

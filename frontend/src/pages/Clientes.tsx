@@ -4,6 +4,7 @@ import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, iniciais, seloCadastro } from '../components/estilo'
 import { cpfEscondido, idCliente, lerId, mascaraTelefone, reais } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 type Cliente = {
@@ -38,6 +39,7 @@ export default function Clientes() {
     setCopiado(false)
     const { data, error } = await supabase.rpc('link_cadastro_criar')
     if (error) return setErroLink('Não foi possível gerar o link.')
+    rastrear('link_cadastro_gerado', { origem: 'clientes' })
     setLink(`${window.location.origin}/c/${data}`)
   }
 

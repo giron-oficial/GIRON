@@ -6,6 +6,7 @@ import { botaoClaro, botaoVerde, tituloSecao } from '../components/estilo'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, linkWhatsApp, nomeModalidade, percentualCompleto, reais } from '../lib/formatos'
 import { compartilharImagem, reciboImagem, reciboTexto, type LinhaRecibo } from '../lib/recibo'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Extrato do contrato (regra 5.7), com cara de recibo de impressora térmica, em imagem pro WhatsApp.
@@ -160,12 +161,19 @@ export default function Extrato() {
       const nome = `extrato-${idCliente(d.contrato.clientes?.numero ?? 0).slice(1)}-${idContrato(d.contrato.numero)}.png`
       const r = await compartilharImagem(blob, nome, 'Extrato')
       if (r === 'baixado') setAviso('Imagem baixada. Anexe no WhatsApp (neste aparelho não dá pra compartilhar direto).')
+      rastrear('cobranca_enviada', { canal: 'extrato_imagem', modo })
     } catch {
       /* usuário cancelou o compartilhar */
     }
   }
   async function copiar() {
-    try { await navigator.clipboard.writeText(texto); setAviso('Texto copiado!') } catch { setAviso('Não deu pra copiar sozinho. Segure o dedo no texto e copie.') }
+    try {
+      await navigator.clipboard.writeText(texto)
+      setAviso('Texto copiado!')
+      rastrear('cobranca_enviada', { canal: 'extrato_texto', modo })
+    } catch {
+      setAviso('Não deu pra copiar sozinho. Segure o dedo no texto e copie.')
+    }
     setTimeout(() => setAviso(''), 3000)
   }
 
@@ -213,7 +221,7 @@ export default function Extrato() {
             </button>
             <p className="text-center text-[11px] text-suave">No celular abre o "compartilhar" e você escolhe o WhatsApp e a conversa.</p>
             <div className="grid grid-cols-2 gap-2">
-              <a href={zapTexto} target="_blank" rel="noreferrer" className={botaoClaro}>
+              <a href={zapTexto} target="_blank" rel="noreferrer" onClick={() => rastrear('cobranca_enviada', { canal: 'extrato_texto', modo })} className={botaoClaro}>
                 <Icone nome="whatsapp" tamanho={18} />
                 Só o texto
               </a>

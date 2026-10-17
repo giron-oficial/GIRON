@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Moldura from '../components/Moldura'
 import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
@@ -34,6 +35,13 @@ function hojeEscrito() {
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/)
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase()
+}
+
+// Situação da cobrança pro analytics (categoria fechada, sem nome nem valor)
+function situacaoEvento(s: Situacao): 'vence_hoje' | 'vence_amanha' | 'atrasado' {
+  if (s === 'hoje') return 'vence_hoje'
+  if (s === 'amanha') return 'vence_amanha'
+  return 'atrasado'
 }
 
 function detalhe(c: Cobranca) {
@@ -274,6 +282,7 @@ export default function Inicio() {
                       href={linkWhatsApp(c.telefone, mensagem(c, p.chavePix))}
                       target="_blank"
                       rel="noreferrer"
+                      onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_inicio', situacao: situacaoEvento(c.situacao) })}
                       aria-label={`Cobrar ${c.cliente} no WhatsApp`}
                       className="verde flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
                     >

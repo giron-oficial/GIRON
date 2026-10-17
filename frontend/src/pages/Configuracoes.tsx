@@ -9,6 +9,7 @@ import { erroCaixa } from '../components/estilo'
 import { encargosAtraso } from '../lib/atraso'
 import { useAuth } from '../lib/auth'
 import { mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Configurações do Fomentado (fomentado_configuracoes), no estilo "ajustes do celular":
@@ -74,6 +75,7 @@ export default function Configuracoes() {
     })
     setSalvando(false)
     if (error) return setErro('Não foi possível salvar. Confira os valores e tente de novo.')
+    rastrear('configuracoes_salvas')
     setSalvoNoBanco(v); setSalvo(true)
   }
 

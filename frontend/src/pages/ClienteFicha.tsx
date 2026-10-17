@@ -6,6 +6,7 @@ import BarraRecuperacao from '../components/BarraRecuperacao'
 import { recuperacao } from '../lib/recuperacao'
 import { botaoClaro, botaoVerde, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
 import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
+import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 type Arquivo = { id: string; tipo: string; caminho_arquivo: string }
@@ -107,6 +108,7 @@ export default function ClienteFicha() {
     const { error } = await supabase.from('clientes').update({ status_cadastro: novo }).eq('id', id!)
     setSalvandoStatus(false)
     if (error) return setErroStatus('Não foi possível salvar. Confira se a mensalidade está em dia.')
+    rastrear('cadastro_avaliado', { resultado: novo })
     // aprovou: ja vai direto pro emprestimo, preenchido com o que o cliente pediu (RN-35)
     if (novo === 'aprovado') return navegar(`/clientes/${id}/emprestimo`)
     setRecarregar((n) => n + 1)
@@ -138,6 +140,7 @@ export default function ClienteFicha() {
     setErroLocal(''); setCopiadoLocal(false)
     const { data, error } = await supabase.rpc('link_localizacao_criar', { p_cliente_id: cliente!.id })
     if (error) return setErroLocal('Não foi possível gerar o link.')
+    rastrear('localizacao_solicitada')
     setLinkLocal(`${window.location.origin}/c/${data}`)
   }
   async function copiarLocal() {
