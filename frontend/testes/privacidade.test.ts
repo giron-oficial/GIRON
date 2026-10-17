@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { barreiraFinal, limparEndereco, limparPropriedades } from '../src/lib/privacidade.ts'
+import { barreiraFinal, bloquearPaginaPublica, ehPaginaPublicaDoCliente, limparEndereco, limparPropriedades } from '../src/lib/privacidade.ts'
 
 // simula o navegador só pro new URL() ter uma origem
 ;(globalThis as { window?: unknown }).window = { location: { origin: 'https://teste.gironga.com.br' } }
@@ -72,4 +72,28 @@ test('propriedades dos eventos marcados à mão passam inteiras pelo filtro', ()
 test('dado de cliente colado num evento marcado à mão é removido', () => {
   const r = limparPropriedades({ canal: 'whatsapp_inicio', situacao: 'atrasado', nome: 'Maria', telefone: '63999990000', valor: 1500, mensagem: 'Maria, sua parcela de R$ 100 venceu' })
   assert.deepEqual(r, { canal: 'whatsapp_inicio', situacao: 'atrasado' })
+})
+
+// Páginas públicas do cliente (/c/:codigo): nenhum evento pode sair delas, nem $pageview
+test('reconhece as páginas públicas do cliente e só elas', () => {
+  for (const c of ['/c/ABC123', '/c/ABC123/', '/c/:codigo', '/c']) assert.equal(ehPaginaPublicaDoCliente(c), true, c)
+  for (const c of ['/', '/login', '/clientes', '/clientes/novo', '/contratos/1', '/calculadora', '/configuracoes', '/status', '/cobrancas']) assert.equal(ehPaginaPublicaDoCliente(c), false, c)
+})
+
+test('evento é derrubado quando o app está numa página pública (cliente ou dono logado)', () => {
+  const ev = { event: '$pageview', properties: { $pathname: '/c/:codigo', $current_url: 'https://teste.gironga.com.br/c/:codigo' } }
+  assert.equal(bloquearPaginaPublica(ev, '/c/ABC123'), null)
+  // mesmo um evento "neutro" disparado enquanto a página pública está aberta
+  assert.equal(bloquearPaginaPublica({ event: 'login_ok', properties: {} }, '/c/ABC123'), null)
+})
+
+test('evento que aponta pra página pública é derrubado mesmo se o app já saiu dela', () => {
+  assert.equal(bloquearPaginaPublica({ event: '$pageview', properties: { $pathname: '/c/:codigo' } }, '/clientes'), null)
+  assert.equal(bloquearPaginaPublica({ event: '$pageview', properties: { $current_url: 'https://teste.gironga.com.br/c/:codigo' } }, '/clientes'), null)
+})
+
+test('fora das páginas públicas os eventos passam normalmente', () => {
+  const ev = { event: '$pageview', properties: { $pathname: '/clientes/:id', $current_url: 'https://teste.gironga.com.br/clientes/:id' } }
+  assert.deepEqual(bloquearPaginaPublica(ev, '/clientes/abc'), ev)
+  assert.equal(bloquearPaginaPublica(null, '/clientes'), null)
 })

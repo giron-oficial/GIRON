@@ -6,6 +6,8 @@
 // - Nunca sai nome, CPF, telefone, e-mail, valor de empréstimo, parcela, Pix, senha ou token.
 // - Endereços de página saem sem identificadores (/clientes/:id em vez de /clientes/uuid) e sem parâmetros.
 // - O usuário é identificado só pelo id interno do login (um código), nunca por e-mail.
+// - Nas páginas públicas do cliente (/c/:codigo) o PostHog nem é iniciado, e qualquer evento que
+//   aponte pra elas é derrubado antes de sair (vale também pro dono logado que abre o link).
 //
 // Eventos marcados à mão (todos só com categorias fechadas, nunca texto livre):
 // - login_ok
@@ -21,7 +23,7 @@
 // - localizacao_solicitada
 // - configuracoes_salvas
 import posthog from 'posthog-js'
-import { barreiraFinal, limparPropriedades } from './privacidade'
+import { barreiraFinal, bloquearPaginaPublica, ehPaginaPublicaDoCliente, limparPropriedades } from './privacidade'
 
 const chave = import.meta.env.VITE_POSTHOG_KEY as string | undefined
 const host = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) || 'https://us.i.posthog.com'
@@ -30,6 +32,7 @@ let ativo = false
 
 export function iniciarAnalytics() {
   if (ativo || !chave) return
+  if (ehPaginaPublicaDoCliente(window.location.pathname)) return // página do cliente: não liga
   posthog.init(chave, {
     api_host: host,
     // o que sai sozinho: só a troca de tela (nome da rota, sem ids)
@@ -52,7 +55,7 @@ export function iniciarAnalytics() {
     person_profiles: 'identified_only',
     persistence: 'localStorage+cookie',
     sanitize_properties: (props) => limparPropriedades(props),
-    before_send: (evento) => barreiraFinal(evento),
+    before_send: (evento) => bloquearPaginaPublica(barreiraFinal(evento), window.location.pathname),
   })
   ativo = true
 }

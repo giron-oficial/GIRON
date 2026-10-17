@@ -16,6 +16,30 @@ const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
 const NUMERO_NO_CAMINHO = /\/\d+(?=\/|$)/g
 const LINK_CADASTRO = /^\/c\/[^/]+/
 
+// Páginas públicas do cliente (link de cadastro e link de localização, /c/:codigo).
+// Quem abre é o cliente, no celular dele: NADA de analytics aqui, nem troca de tela.
+const PAGINA_PUBLICA = /^\/c(\/|$)/
+export function ehPaginaPublicaDoCliente(caminho: string): boolean {
+  return PAGINA_PUBLICA.test(caminho)
+}
+
+function caminhoDe(valor: string): string {
+  try { return new URL(valor, 'http://x').pathname } catch { return valor }
+}
+
+// Barreira das páginas públicas: derruba o evento se o app está numa página pública
+// ou se o próprio evento aponta pra uma (ex.: $pageview de /c/:codigo)
+export function bloquearPaginaPublica<T extends { properties?: Record<string, unknown> } | null>(evento: T, caminhoAtual: string): T | null {
+  if (!evento) return evento
+  if (ehPaginaPublicaDoCliente(caminhoAtual)) return null
+  const p = evento.properties ?? {}
+  for (const k of ['$pathname', '$current_url']) {
+    const v = p[k]
+    if (typeof v === 'string' && ehPaginaPublicaDoCliente(caminhoDe(v))) return null
+  }
+  return evento
+}
+
 // Tira identificadores e parâmetros de um endereço de página
 export function limparEndereco(valor: unknown): unknown {
   if (typeof valor !== 'string') return valor
