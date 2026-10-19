@@ -4,6 +4,7 @@ import { erroEmPortugues, useAuth } from '../lib/auth'
 import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
+import { Logo } from '../components/Logo'
 
 export default function Login() {
   const { session } = useAuth()
@@ -29,7 +30,7 @@ export default function Login() {
     <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(124_255_178/0.12),transparent_70%)] px-4">
       <form onSubmit={entrar} className="cartao w-full max-w-sm rounded-[18px] p-6">
         <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-wider">
-          <span className="verde flex size-9 items-center justify-center rounded-xl text-base">G</span>
+          <Logo tamanho={36} />
           GIRON
         </h1>
         <p className="mt-2 text-suave">Entre na sua conta</p>

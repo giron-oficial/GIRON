@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { botaoVerde, campo, erroCaixa, rotulo } from '../components/estilo'
 import { erroEmPortugues } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { Logo } from '../components/Logo'
 
 // "Esqueci minha senha": o dono digita o e-mail e recebe um link. O link volta pro site já logado e
 // o AuthProvider manda pra /nova-senha. Sempre mostramos a mesma mensagem (com conta ou sem), pra ninguém
@@ -28,7 +29,7 @@ export default function EsqueciSenha() {
     <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(124_255_178/0.12),transparent_70%)] px-4">
       <form onSubmit={enviar} className="cartao w-full max-w-sm rounded-[18px] p-6">
         <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-wider">
-          <span className="verde flex size-9 items-center justify-center rounded-xl text-base">G</span>
+          <Logo tamanho={36} />
           GIRON
         </h1>
         {enviado ? (

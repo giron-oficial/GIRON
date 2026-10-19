@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { botaoVerde, erroCaixa, rotulo } from '../components/estilo'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { Logo } from '../components/Logo'
 
 // Criar senha nova. Chega aqui pelo link do e-mail (já logado por esse link) ou pelo menu, logado normal.
 // Sem login depois de 4 segundos = link velho ou já usado.
@@ -48,7 +49,7 @@ export default function NovaSenha() {
     <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(124_255_178/0.12),transparent_70%)] px-4">
       <form onSubmit={salvar} className="cartao w-full max-w-sm rounded-[18px] p-6">
         <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-wider">
-          <span className="verde flex size-9 items-center justify-center rounded-xl text-base">G</span>
+          <Logo tamanho={36} />
           GIRON
         </h1>
         {pronto ? (

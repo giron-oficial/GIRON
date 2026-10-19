@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth'
 import { carregarBarra, resumoGuardado, type ResumoBarra } from '../lib/barra'
 import { supabase } from '../lib/supabase'
 import Icone, { type NomeIcone } from './Icone'
+import { Logo } from './Logo'
 
 const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
   { to: '/', rotulo: 'Início', icone: 'inicio' },
@@ -96,7 +97,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
     <div className="min-h-dvh lg:flex">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-borda bg-tinta px-3.5 py-5 lg:flex">
         <div className="flex items-center gap-2.5 px-2">
-          <span className="verde flex size-8 items-center justify-center rounded-[10px] font-display text-sm font-extrabold">G</span>
+          <Logo tamanho={32} />
           <span className="font-display text-lg font-extrabold tracking-wider">GIRON</span>
         </div>
 
@@ -159,7 +160,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
       <div className="min-w-0 flex-1 pb-28 lg:px-7 lg:py-6 lg:pb-8">
         <div className="flex items-center justify-between px-4 pt-4 lg:hidden">
           <Link to="/" className="flex items-center gap-2">
-            <span className="verde flex size-7.5 items-center justify-center rounded-[10px] font-display text-sm font-extrabold">G</span>
+            <Logo tamanho={30} />
             <span className="font-display text-[15px] font-extrabold tracking-wider">GIRON</span>
           </Link>
           <details className="relative">
