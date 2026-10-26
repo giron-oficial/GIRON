@@ -8,10 +8,10 @@ import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../li
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
 const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A48CFF] to-[#6A42F0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-critico/15', escura: 'text-critico' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#FF8A7A] to-[#D92D3A] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-vencido/15', escura: 'text-vencido' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#6AA6FF] to-[#2255D4] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#FF3B3B] anima-pulso', clara: 'bg-hoje/15', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#FBB224] to-[#D97706] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-amanha/15', escura: 'text-amanha' },
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A37BFF] to-[#6B3FE0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-critico/15', escura: 'text-critico' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#F0525C] to-[#C8252F] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-vencido/15', escura: 'text-vencido' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#3FA9FF] to-[#0B6FD6] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#F0525C] anima-pulso', clara: 'bg-hoje/15', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#F5C02E] to-[#D99A00] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-amanha/15', escura: 'text-amanha' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
@@ -164,13 +164,13 @@ export default function Inicio() {
 
         <section
           aria-label="Capital em trânsito"
-          className="relative flex flex-col gap-2 overflow-hidden rounded-[18px] border border-[#1F4A38] bg-[radial-gradient(circle_at_88%_15%,rgb(124_255_178/0.28),transparent_55%),linear-gradient(135deg,#0E3A2A,#121A2C_65%)] px-5 py-4.5 lg:col-span-6 lg:p-5.5"
+          className="relative flex flex-col gap-2 overflow-hidden rounded-[18px] border border-[#1D3D75] bg-[radial-gradient(circle_at_88%_15%,rgb(47_128_255/0.28),transparent_55%),linear-gradient(135deg,#0C2550,#0A1426_65%)] px-5 py-4.5 lg:col-span-6 lg:p-5.5"
         >
           <svg width="150" height="54" viewBox="0 0 150 54" fill="none" aria-hidden="true" className="pointer-events-none absolute right-4 bottom-4 hidden sm:block">
-            <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#7CFFB2" strokeWidth="2.5" strokeLinecap="round" />
-            <circle cx="148" cy="6" r="4" fill="#7CFFB2" />
+            <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#4CC2FF" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="148" cy="6" r="4" fill="#4CC2FF" />
           </svg>
-          <span className="relative flex items-center gap-1.5 text-xs text-[#B7F0D3] lg:text-[13px]">
+          <span className="relative flex items-center gap-1.5 text-xs text-[#BFD8FF] lg:text-[13px]">
             <span className="size-1.5 rounded-full bg-marca" />
             <span className="lg:hidden">{saudacao()}, {nome} ·</span>
             Capital em trânsito
@@ -298,7 +298,7 @@ export default function Inicio() {
         <section aria-label="Clientes do mês" className="cartao flex items-center gap-5 rounded-[18px] p-5 max-lg:order-1 lg:col-span-4">
             <div
               className="flex size-30 shrink-0 items-center justify-center rounded-full"
-              style={{ background: `conic-gradient(#7CFFB2 0 ${percentual}%, #1A2338 ${percentual}% 100%)` }}
+              style={{ background: `conic-gradient(#2F80FF 0 ${percentual}%, #0F1D36 ${percentual}% 100%)` }}
             >
               <div className="flex size-23 flex-col items-center justify-center rounded-full bg-superficie">
                 <span className="font-display text-[26px] font-extrabold">{percentual}%</span>

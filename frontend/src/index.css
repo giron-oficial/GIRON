@@ -1,41 +1,43 @@
 @import "tailwindcss";
 
-/* Tema "Escuro com verde" do GIRON (aprovado pelo dono em 14/10/2026; substitui o Pulso Claro).
-   Modelo: https://claude.ai/artifact/NqxuhdY8gcq1PwyeYbsSC7 (A no computador, B no celular)
-   Regras completas: .claude/skills/giron-frontend/SKILL.md */
+/* Tema "Azul Espacial" do GIRON (escolhido pelo dono em 26/10/2026; substitui o "Escuro com verde").
+   Design system: https://claude.ai/artifact/KjvviGQ4z2ErdmHb6xobkj
+   Regras completas: .claude/skills/giron-frontend/SKILL.md
+   Os nomes antigos (marca, sobre-verde, utility "verde") continuam, agora com os valores azuis. */
 @theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Exo 2", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* Tokens do tema: use ESTES nas telas novas */
-  --color-fundo: #0B0F1A;
-  --color-superficie: #121A2C;
-  --color-superficie-2: #1A2338;
-  --color-borda: #1E2840;
-  --color-texto: #E8ECF5;
-  --color-suave: #8B93A7;
-  --color-tinta: #0F1524;
-  --color-marca: #7CFFB2;
-  --color-marca-clara: #2EE6A6;
-  --color-marca-brilho: #7CFFB2;
-  --color-sobre-verde: #06110C;
-  --color-critico: #A48CFF;
-  --color-vencido: #FF7A7A;
-  --color-hoje: #6AA6FF;
-  --color-amanha: #FBB224;
+  --color-fundo: #050A16;
+  --color-superficie: #0A1426;
+  --color-superficie-2: #0F1D36;
+  --color-borda: #1B2D4F;
+  --color-texto: #EEF4FF;
+  --color-suave: #8EA3C4;
+  --color-tinta: #07101F;
+  --color-marca: #2F80FF;
+  --color-marca-clara: #4CC2FF;
+  --color-marca-brilho: #4CC2FF;
+  --color-sobre-verde: #FFFFFF;
+  --color-sucesso: #34D17A;
+  --color-critico: #A37BFF;
+  --color-vencido: #F0525C;
+  --color-hoje: #3FA9FF;
+  --color-amanha: #F5C02E;
   --color-sobre-amanha: #2A1A00;
 }
 
-/* Cartão escuro com borda fina */
+/* Cartão azul-marinho com borda fina */
 @utility cartao {
-  background-color: #121A2C;
-  border: 1px solid #1E2840;
+  background-color: #0A1426;
+  border: 1px solid #1B2D4F;
 }
 
-/* Botão/realce verde da marca: verde neon com letra escura */
+/* Botão/realce da marca: azul com letra branca (nome "verde" mantido pra não mexer em todas as telas) */
 @utility verde {
-  background-color: #7CFFB2;
-  color: #06110C;
+  background-color: #2F80FF;
+  color: #FFFFFF;
 }
 
 @layer base {
@@ -58,9 +60,9 @@
 
 /* Bolinha "vence hoje" piscando em vermelho (dentro do cartão azul) */
 @keyframes pulso {
-  0% { box-shadow: 0 0 0 0 rgb(255 59 59 / 0.85); }
-  70% { box-shadow: 0 0 0 10px rgb(255 59 59 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(255 59 59 / 0); }
+  0% { box-shadow: 0 0 0 0 rgb(240 82 92 / 0.85); }
+  70% { box-shadow: 0 0 0 10px rgb(240 82 92 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(240 82 92 / 0); }
 }
 .anima-pulso {
   animation: pulso 2s infinite;

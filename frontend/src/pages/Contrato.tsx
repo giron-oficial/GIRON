@@ -198,10 +198,10 @@ export default function Contrato() {
       )}
       <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1.4fr] lg:items-start">
         <div className="flex flex-col gap-3">
-          <section className="relative overflow-hidden rounded-[26px] bg-linear-135 border border-[#1F4A38] from-[#0E3A2A] to-superficie to-65% p-5 text-white">
-            <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(34_209_132/0.5),transparent_70%)]" />
+          <section className="relative overflow-hidden rounded-[26px] bg-linear-135 border border-[#1D3D75] from-[#0C2550] to-superficie to-65% p-5 text-white">
+            <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(76_194_255/0.5),transparent_70%)]" />
             <div className="relative flex items-center justify-between">
-              <span className="text-xs text-[#B7F0D3]">Falta voltar do capital</span>
+              <span className="text-xs text-[#BFD8FF]">Falta voltar do capital</span>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${sc.classe}`}>{sc.texto}</span>
             </div>
             <p className="relative mt-2 text-[34px] leading-none font-extrabold tabular-nums">{reais(c.capital_em_aberto)}</p>
@@ -455,7 +455,7 @@ export default function Contrato() {
                         type="button"
                         onClick={() => estornar(pg.id)}
                         disabled={salvandoEst}
-                        className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-135 from-[#FF8A7A] to-[#D92D3A] font-bold text-white shadow-lg shadow-vencido/30 disabled:opacity-60"
+                        className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-linear-135 from-[#F0525C] to-[#C8252F] font-bold text-white shadow-lg shadow-vencido/30 disabled:opacity-60"
                       >
                         <Icone nome="xis" tamanho={18} />
                         {salvandoEst ? 'Estornando…' : 'Confirmar estorno'}

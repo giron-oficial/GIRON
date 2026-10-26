@@ -1,40 +1,45 @@
 ---
 name: giron-frontend
-description: Regras do visual do GIRON (tema escuro com verde). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
---# GIRON — visual escuro com verde
+description: Regras do visual do GIRON (tema Azul Espacial). Use SEMPRE que for criar, mudar ou revisar qualquer tela, componente, cor, fonte ou layout em frontend/ — painel, clientes, contratos, login, link de cadastro, menus, botões.
+---
 
-O dono (Tom) aprovou em 14/10/2026 o visual **escuro com verde neon**: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo"). Substitui o Pulso Claro (01/10), que NÃO vale mais.
-Modelo: https://claude.ai/artifact/NqxuhdY8gcq1PwyeYbsSC7 . Aplicado no sistema em 16/10/2026.
-Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui é preto-azulado + verde neon, sem dourado, sem vidro nos cartões. **Exceção pedida pelo dono (16/10/2026): o liga/desliga é em VIDRO (glass)** — `components/Interruptor.tsx`, use em TODO lugar que é "sim ou não" (nunca caixinha de marcar); nas páginas claras do cliente, passe `claro`.
+# GIRON — visual Azul Espacial
+
+O dono (Tom) escolheu em **26/10/2026** o tema **Azul Espacial**: fundo azul quase preto, cartões azul-marinho com borda fina, números grandes em branco, azul da marca nos botões e destaques e brilho azul-claro nos gráficos. Substitui o "Escuro com verde" (14/10), que NÃO vale mais. Pedido do dono: **onde era verde, agora é azul**.
+Design system: https://claude.ai/artifact/KjvviGQ4z2ErdmHb6xobkj . Aplicado no sistema em 26/10/2026.
+Layout continua o mesmo: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo").
+Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui não tem dourado nem vidro nos cartões. **Exceção pedida pelo dono (16/10/2026): o liga/desliga é em VIDRO (glass)** — `components/Interruptor.tsx`, use em TODO lugar que é "sim ou não" (nunca caixinha de marcar); nas páginas claras do cliente, passe `claro`.
 
 ## Princípios
 
 1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
-2. **Informação primordial no topo.** Painel: capital em trânsito (cartão verde-escuro com brilho verde, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
-3. **Escuro e calmo, com o verde só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Verde neon = botão principal, link, item ativo do menu, WhatsApp.
+2. **Informação primordial no topo.** Painel: capital em trânsito (cartão azul-escuro com brilho azul, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
+3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = botão principal, link, item ativo do menu, WhatsApp. Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
 4. **Situações em cor CHEIA, com degradê da mesma cor** e letras brancas (objeto `situacoes` de `pages/Inicio.tsx`). Bolinha do "vence hoje" vermelha piscando (`anima-pulso`).
 5. **Português simples na tela.** Sem termos técnicos e sem emoji na interface.
 
 ## Tokens (definidos em `frontend/src/index.css`, bloco `@theme`)
 
+Os nomes antigos foram mantidos pra não mexer em todas as telas: `marca`, `sobre-verde` e a utility `verde` agora são AZUIS.
+
 | Token (classe Tailwind) | Valor | Uso |
 |---|---|---|
-| `fundo` | #0B0F1A | fundo da página |
-| `superficie` / `superficie-2` | #121A2C / #1A2338 | cartões / campos, linhas, hover |
-| `borda` | #1E2840 | bordas finas |
-| `texto` / `suave` | #E8ECF5 / #8B93A7 | texto principal / secundário |
-| `tinta` | #0F1524 | menu lateral e barra de baixo |
-| `marca` / `marca-brilho` | #7CFFB2 | verde neon: link, ativo, destaque |
-| `marca-clara` | #2EE6A6 | começo de degradê verde (barrinhas) |
-| `sobre-verde` | #06110C | letra em cima do verde |
-| `critico` / `vencido` / `hoje` / `amanha` | #A48CFF / #FF7A7A / #6AA6FF / #FBB224 | cores das situações (texto ou fundo `/15`) |
+| `fundo` | #050A16 | fundo da página (azul quase preto) |
+| `superficie` / `superficie-2` | #0A1426 / #0F1D36 | cartões / campos, linhas, hover |
+| `borda` | #1B2D4F | bordas finas |
+| `texto` / `suave` | #EEF4FF / #8EA3C4 | texto principal / secundário |
+| `tinta` | #07101F | menu lateral e barra de baixo |
+| `marca` | #2F80FF | azul da marca: botão principal, link, ativo |
+| `marca-clara` / `marca-brilho` | #4CC2FF | brilho: começo de degradê, pontos dos gráficos |
+| `sobre-verde` | #FFFFFF | letra em cima do azul da marca (nome antigo) |
+| `sucesso` | #34D17A | em dia, alta (▲), pagamento recebido |
+| `critico` / `vencido` / `hoje` / `amanha` | #A37BFF / #F0525C / #3FA9FF / #F5C02E | cores das situações (texto ou fundo `/15`) — regra fixa |
 | `sobre-amanha` | #2A1A00 | letra em cima do amarelo cheio |
 
-Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros (#FFE9E8 etc.): somem ou ofuscam no escuro.
-Fonte: **uma só, Plus Jakarta Sans** (não misturar). Números com `tabular-nums`, dinheiro em 700–800.
-Utilitários: `cartao` e `verde` (fundo #7CFFB2, letra escura). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
-
-.
+Cartões de destaque (capital em trânsito, "Cliente vai pagar", contrato): degradê de #0C2550 pra `superficie`, borda #1D3D75, rótulo #BFD8FF.
+Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros: somem ou ofuscam no escuro.
+Fontes: **Exo 2** nos títulos e números grandes (`font-display`, h1–h3) e **Inter** no resto (`font-sans`), as duas do Google Fonts. Números com `tabular-nums`, dinheiro em 700–800.
+Utilitários: `cartao` e `verde` (fundo azul #2F80FF, letra branca). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
 
 ## Campos de digitar (regras do dono, 01/10/2026)
 

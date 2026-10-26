@@ -46,7 +46,7 @@ export default function NovaSenha() {
   const semLogin = !carregando && !session && esperou
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(124_255_178/0.12),transparent_70%)] px-4">
+    <main className="flex min-h-dvh items-center justify-center bg-[radial-gradient(600px_380px_at_50%_0%,rgb(47_128_255/0.12),transparent_70%)] px-4">
       <form onSubmit={salvar} className="cartao w-full max-w-sm rounded-[18px] p-6">
         <h1 className="flex items-center gap-2.5 font-display text-2xl font-extrabold tracking-wider">
           <Logo tamanho={36} />

@@ -197,7 +197,7 @@ export default function ClienteFicha() {
       </section>
 
       {cliente.status_cadastro !== 'aprovado' && (
-        <section className="mt-3 flex flex-col gap-3 rounded-[22px] bg-linear-135 from-[#FBB224] to-[#D97706] p-4 text-white shadow-lg shadow-amanha/30 lg:flex-row lg:items-center lg:p-5">
+        <section className="mt-3 flex flex-col gap-3 rounded-[22px] bg-linear-135 from-[#F5C02E] to-[#D99A00] p-4 text-white shadow-lg shadow-amanha/30 lg:flex-row lg:items-center lg:p-5">
           <div className="flex-1">
             <p className="font-bold">{cliente.status_cadastro === 'pendente' ? 'Cadastro esperando sua análise' : 'Cadastro reprovado'}</p>
             <p className="text-sm text-white/85">Confira os dados e as fotos abaixo antes de decidir.</p>

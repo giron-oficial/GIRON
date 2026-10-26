@@ -68,21 +68,21 @@ export default function Relatorios() {
 
       {r && (
         <>
-          <section className="relative mt-4 overflow-hidden rounded-[26px] border border-[#1F4A38] bg-linear-135 from-[#0E3A2A] to-superficie to-65% p-5">
-            <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(34_209_132/0.5),transparent_70%)]" />
+          <section className="relative mt-4 overflow-hidden rounded-[26px] border border-[#1D3D75] bg-linear-135 from-[#0C2550] to-superficie to-65% p-5">
+            <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(76_194_255/0.5),transparent_70%)]" />
             <div className="relative grid gap-4 sm:grid-cols-3">
               <div>
-                <span className="text-xs text-[#B7F0D3]">Entrou no mês</span>
+                <span className="text-xs text-[#BFD8FF]">Entrou no mês</span>
                 <p className="mt-1 font-display text-[30px] leading-none font-extrabold tabular-nums">{reais(r.totalRecebido)}</p>
                 <span className="mt-1 block text-xs text-suave">{r.pagamentos.length} {r.pagamentos.length === 1 ? 'pagamento' : 'pagamentos'}</span>
               </div>
               <div>
-                <span className="text-xs text-[#B7F0D3]">Saiu no mês (emprestado)</span>
+                <span className="text-xs text-[#BFD8FF]">Saiu no mês (emprestado)</span>
                 <p className="mt-1 font-display text-[30px] leading-none font-extrabold tabular-nums">{reais(r.emprestado)}</p>
                 <span className="mt-1 block text-xs text-suave">{r.contratosNovos} {r.contratosNovos === 1 ? 'contrato novo' : 'contratos novos'}</span>
               </div>
               <div>
-                <span className="text-xs text-[#B7F0D3]">Capital na rua hoje</span>
+                <span className="text-xs text-[#BFD8FF]">Capital na rua hoje</span>
                 <p className="mt-1 font-display text-[30px] leading-none font-extrabold tabular-nums">{reais(r.capitalTransito)}</p>
                 <span className="mt-1 block text-xs text-suave">{r.contratosAtivos} {r.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'}</span>
               </div>

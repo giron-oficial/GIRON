@@ -238,7 +238,7 @@ export default function LinkCadastro() {
 
       {erro && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{erro}</p>}
 
-      <button type="submit" disabled={!!etapa} className="mt-6 w-full rounded-xl bg-emerald-600 py-4 text-lg font-semibold text-white disabled:opacity-60">
+      <button type="submit" disabled={!!etapa} className="mt-6 w-full rounded-xl bg-[#1F6FEF] py-4 text-lg font-semibold text-white disabled:opacity-60">
         {etapa || 'Enviar cadastro'}
       </button>
     </form>,

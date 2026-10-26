@@ -316,9 +316,9 @@ export default function EmprestimoNovo() {
       )}
 
       {escolhido && (
-        <section className="mt-4 overflow-hidden rounded-[22px] bg-linear-135 border border-[#1F4A38] from-[#0E3A2A] to-superficie to-70% p-5 text-white">
+        <section className="mt-4 overflow-hidden rounded-[22px] bg-linear-135 border border-[#1D3D75] from-[#0C2550] to-superficie to-70% p-5 text-white">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-[#B7F0D3]">Cliente vai pagar</span>
+            <span className="text-sm text-[#BFD8FF]">Cliente vai pagar</span>
             <strong className="text-2xl tabular-nums">{recorrente ? `${reais(escolhido.juro_total)} /mês` : reais(escolhido.total)}</strong>
           </div>
           {!recorrente && (

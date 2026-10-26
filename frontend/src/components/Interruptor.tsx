@@ -2,12 +2,12 @@
 // Trilho translúcido com desfoque e brilho de borda; ligado = verde da marca com luz. `claro` = versão pras páginas claras do cliente.
 export default function Interruptor({ ligado, onChange, rotulo, claro, desabilitado }: { ligado: boolean; onChange: (v: boolean) => void; rotulo: string; claro?: boolean; desabilitado?: boolean }) {
   const trilho = ligado
-    ? 'border-marca/60 bg-marca/25 shadow-[0_0_18px_-2px_rgba(124,255,178,0.55),inset_0_1px_0_rgba(255,255,255,0.25)]'
+    ? 'border-marca/60 bg-marca/25 shadow-[0_0_18px_-2px_rgba(76,194,255,0.55),inset_0_1px_0_rgba(255,255,255,0.25)]'
     : claro
       ? 'border-slate-900/15 bg-slate-900/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)]'
       : 'border-white/15 bg-white/[0.07] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),inset_0_-1px_2px_rgba(0,0,0,0.35)]'
   const bolinha = ligado
-    ? 'left-[23px] bg-marca shadow-[0_0_10px_rgba(124,255,178,0.9),0_2px_4px_rgba(0,0,0,0.4)]'
+    ? 'left-[23px] bg-marca shadow-[0_0_10px_rgba(76,194,255,0.9),0_2px_4px_rgba(0,0,0,0.4)]'
     : claro
       ? 'left-[3px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.3)]'
       : 'left-[3px] bg-white/75 shadow-[0_1px_3px_rgba(0,0,0,0.5)]'
