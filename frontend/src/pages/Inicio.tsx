@@ -7,6 +7,7 @@ import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
+import { carregarBarra, resumoGuardado } from '../lib/barra'
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de VIDRO da cor (transparente, borda e brilho da mesma cor)
 const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; brilho: string; anel: string; sub: string; bolinha: string; clara: string; escura: string }> = {
@@ -84,6 +85,11 @@ function Mini({ rotulo, valor, icone, cor, rodape, barra }: { rotulo: string; va
 }
 
 export default function Inicio() {
+  // WhatsApp automático ligado? (aviso pequeno no "Cobrar agora")
+  const [envioAuto, setEnvioAuto] = useState<boolean | null>(resumoGuardado()?.whatsapp ?? null)
+  useEffect(() => {
+    carregarBarra().then((r) => setEnvioAuto(r?.whatsapp ?? false)).catch(() => {})
+  }, [])
   const [painel, setPainel] = useState<Painel | null>(null)
   const [erro, setErro] = useState('')
   const [filtro, setFiltro] = useState<Situacao | null>(null)
@@ -264,7 +270,15 @@ export default function Inicio() {
 
         <section aria-label="Cobrar agora" className="cartao flex flex-col gap-1 rounded-[18px] px-4 py-3.5 lg:col-span-8 lg:px-5 lg:py-4.5">
             <div className="flex items-baseline justify-between lg:pb-1.5">
-              <h2 className="text-[15px] font-bold lg:text-base">{filtro ? situacoes[filtro].titulo : 'Cobrar agora'}</h2>
+              <div className="flex min-w-0 flex-col">
+                <h2 className="text-[15px] font-bold lg:text-base">{filtro ? situacoes[filtro].titulo : 'Cobrar agora'}</h2>
+                {envioAuto !== null && (
+                  <Link to={{ pathname: '/configuracoes', hash: 'plano' }} className="flex items-center gap-1.5 text-[11px] text-suave hover:text-texto">
+                    <span className={`size-1.5 rounded-full ${envioAuto ? 'bg-sucesso' : 'bg-suave/60'}`} />
+                    {envioAuto ? 'Envio automático no WhatsApp ligado' : 'Envio automático desligado: cobre pelo botão Cobrar'}
+                  </Link>
+                )}
+              </div>
               {lista.length > 5 && (
                 <button onClick={() => setVerTodos(!verTodos)} className="text-[13px] font-bold text-marca">
                   {verTodos ? 'Ver menos' : `Ver todos (${lista.length})`}

@@ -18,3 +18,6 @@ export async function prepararLogo(arquivo: File): Promise<Blob> {
   tela.getContext('2d')!.drawImage(img, 0, 0, tela.width, tela.height)
   return new Promise((ok, falha) => tela.toBlob((b) => (b ? ok(b) : falha(new Error('imagem'))), 'image/png'))
 }
+
+// Único contato que aparece no sistema (regra do dono: nada pessoal dele na tela)
+export const EMAIL_SUPORTE = 'girongestao@gmail.com'

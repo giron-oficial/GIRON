@@ -98,6 +98,12 @@ const caminhos = {
   ),
   entrando: <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />,
   saindo: <path d="M12 20V8M7 13l5-5 5 5M5 4h14" />,
+  telegram: (
+    <>
+      <path d="M21 4 3 11.2l6.2 2.3L11.5 20l3.3-4.3 4.7 3.5z" />
+      <path d="m9.2 13.5 7.3-5.7" />
+    </>
+  ),
   whatsapp: (
     <>
       <path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z" />

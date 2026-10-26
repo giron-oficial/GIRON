@@ -4,6 +4,7 @@ import { CampoMini, Grupo, Linha, Passos } from '../components/Ajustes'
 import ChavesPix from '../components/ChavesPix'
 import Icone from '../components/Icone'
 import Interruptor from '../components/Interruptor'
+import MeuPlano from '../components/MeuPlano'
 import MinhaEmpresa from '../components/MinhaEmpresa'
 import Tela from '../components/Tela'
 import { erroCaixa } from '../components/estilo'
@@ -92,6 +93,8 @@ export default function Configuracoes() {
   return (
     <Tela titulo="Configurações" subtitulo="Regras que o sistema usa nos seus empréstimos">
       <div className="mt-4 flex flex-col gap-3 lg:mt-5">
+        <MeuPlano />
+
         <MinhaEmpresa />
 
         <Grupo icone="porcento" titulo="Juros" descricao="Já vem preenchido quando você faz um empréstimo novo">

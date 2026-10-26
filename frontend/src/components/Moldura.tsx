@@ -79,6 +79,27 @@ function Plano({ r }: { r: ResumoBarra }) {
   )
 }
 
+// Telegram e WhatsApp automático: bolinha verde = ligado; tocar abre o "Meu plano" nas Configurações
+function Recursos({ r }: { r: ResumoBarra }) {
+  const item = (nome: 'telegram' | 'whatsapp', rotulo: string, ligado: boolean) => (
+    <Link
+      to={{ pathname: '/configuracoes', hash: 'plano' }}
+      title={`${rotulo}: ${ligado ? 'ligado' : 'desligado'}`}
+      className="vidro-menu flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-xs font-semibold"
+    >
+      <Icone nome={nome} tamanho={16} className={ligado ? 'text-sucesso' : 'text-suave'} />
+      <span className={ligado ? '' : 'text-suave'}>{rotulo}</span>
+      <span className={`size-2 rounded-full ${ligado ? 'bg-sucesso shadow-[0_0_8px_rgba(52,209,122,0.9)]' : 'bg-suave/50'}`} />
+    </Link>
+  )
+  return (
+    <div className="flex gap-2">
+      {item('telegram', 'Telegram', r.robo)}
+      {item('whatsapp', 'WhatsApp', r.whatsapp)}
+    </div>
+  )
+}
+
 // Número pequeno ao lado do item do menu
 function Contador({ n, cor, titulo }: { n: number; cor: string; titulo: string }) {
   if (!n) return null
@@ -166,6 +187,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
             <Icone nome="mais" tamanho={18} />
             Novo cliente
           </Link>
+          {resumo && <Recursos r={resumo} />}
           {resumo && <Plano r={resumo} />}
           <div className="vidro-menu flex items-center gap-2 rounded-xl py-0.5 pr-0.5 pl-2.5">
             <span className="min-w-0 flex-1 truncate text-[11px] text-texto/80">{session?.user.email}</span>
@@ -200,6 +222,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
             <div className="cartao absolute top-12 right-0 z-20 flex w-64 flex-col gap-2.5 rounded-2xl p-3 shadow-2xl shadow-black/50">
               {resumo && <span className="truncate text-sm font-bold">{resumo.nome}</span>}
               <span className="truncate text-xs text-suave">{session?.user.email}</span>
+              {resumo && <Recursos r={resumo} />}
               {resumo && <Plano r={resumo} />}
               <Link to="/relatorios" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-superficie-2 text-sm font-semibold">
                 <Icone nome="relatorios" tamanho={18} />

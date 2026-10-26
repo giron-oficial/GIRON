@@ -7,14 +7,13 @@ import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, linkWhatsApp, nomeModalidade, percentualCompleto, reais } from '../lib/formatos'
 import { compartilharImagem, reciboImagem, reciboTexto, type LinhaRecibo } from '../lib/recibo'
 import { rastrear } from '../lib/analytics'
-import { urlLogo } from '../lib/marca'
+import { urlLogo, EMAIL_SUPORTE } from '../lib/marca'
 import { supabase } from '../lib/supabase'
 
 // Extrato do contrato (regra 5.7), com cara de recibo de impressora térmica, em imagem pro WhatsApp.
 //  * Pro cliente: empresa, Pix, contrato e parcelas. Mostrar % de juro e total só se o dono ligou em Configurações.
 //  * Da empresa (interno, nunca vai pro cliente): tudo, com juros ganhos e cada pagamento.
 
-const EMAIL_SUPORTE = 'girongestao@gmail.com'
 
 type Parcela = { numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = { pago_em: string; valor_pago: number; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number; estornado_em: string | null; tipo: string }
