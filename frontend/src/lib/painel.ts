@@ -33,7 +33,10 @@ export type Painel = {
   clientesPagaram: number
   cobrancas: Cobranca[]
   chavePix: string | null
+  historicoCapital: PontoCapital[] // capital na rua no fim de cada um dos últimos 5 meses + hoje
 }
+
+export type PontoCapital = { data: string; rotulo: string; valor: number }
 
 type LinhaPendente = {
   id: string
@@ -62,7 +65,9 @@ export async function carregarPainel(): Promise<Painel> {
   const fimMes = iso(new Date(ano, mes + 1, 0))
   const limite = amanha > fimMes ? amanha : fimMes
 
-  const [empresa, config, contratos, pagamentos, pendentes, parcelasMes, pix] = await Promise.all([
+  const inicioHistorico = iso(new Date(ano, mes - 5, 1))
+
+  const [empresa, config, contratos, pagamentos, pendentes, parcelasMes, pix, capitalVolta] = await Promise.all([
     supabase.from('fomentados').select('nome_empresa, status_acesso, teste_gratis_ate').maybeSingle(),
     supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
     supabase.from('contratos').select('capital, capital_em_aberto, data_contrato, status, convertido_de'),
@@ -80,8 +85,9 @@ export async function carregarPainel(): Promise<Painel> {
       .lte('vencimento', fimMes)
       .not('contratos.status', 'in', '(cancelado,convertido)'),
     supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
+    supabase.from('pagamentos').select('pago_em, parte_capital').is('estornado_em', null).gt('parte_capital', 0).gte('pago_em', inicioHistorico).range(0, 9999),
   ])
-  const erro = [empresa, config, contratos, pagamentos, pendentes, parcelasMes].find((r) => r.error)?.error
+  const erro = [empresa, config, contratos, pagamentos, pendentes, parcelasMes, capitalVolta].find((r) => r.error)?.error
   if (erro) throw new Error('Não foi possível carregar o painel. Confira sua internet e tente de novo.')
 
   const listaContratos = (contratos.data ?? []) as { capital: number; capital_em_aberto: number; data_contrato: string; status: string; convertido_de: string | null }[]
@@ -139,9 +145,23 @@ export async function carregarPainel(): Promise<Painel> {
     porCliente.set(id, (porCliente.get(id) ?? true) && p.status === 'paga')
   }
 
+  // Capital na rua no passado: parte do valor de hoje e volta no tempo
+  // (tira o que foi emprestado depois da data e devolve o capital que os clientes pagaram depois dela)
+  const capitalHoje = soma(ativos, (c) => Number(c.capital_em_aberto))
+  const emprestimos = listaContratos.filter((c) => c.status !== 'cancelado' && !c.convertido_de)
+  const devolvido = (capitalVolta.data ?? []) as { pago_em: string; parte_capital: number }[]
+  const historicoCapital: PontoCapital[] = [4, 3, 2, 1, 0].map((n) => {
+    const data = iso(new Date(ano, mes - n, 0)) // último dia do mês
+    const depois = soma(emprestimos.filter((c) => c.data_contrato > data), (c) => Number(c.capital))
+    const voltou = soma(devolvido.filter((p) => p.pago_em > data), (p) => Number(p.parte_capital))
+    const rotulo = new Date(ano, mes - n - 1, 15).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
+    return { data, rotulo, valor: Math.max(0, capitalHoje - depois + voltou) }
+  })
+  historicoCapital.push({ data: hoje, rotulo: 'hoje', valor: capitalHoje })
+
   return {
     empresa: empresa.data as Empresa | null,
-    capitalTransito: soma(ativos, (c) => Number(c.capital_em_aberto)),
+    capitalTransito: capitalHoje,
     contratosAtivos: ativos.length,
     // multa e juro de atraso também são ganho de juro
     jurosRecebidos: soma(pagos, (p) => Number(p.parte_juro) + Number(p.multa) + Number(p.juro_atraso)),
@@ -153,5 +173,6 @@ export async function carregarPainel(): Promise<Painel> {
     clientesPagaram: [...porCliente.values()].filter(Boolean).length,
     cobrancas,
     chavePix: (pix.data as { chave: string } | null)?.chave ?? null,
+    historicoCapital,
   }
 }

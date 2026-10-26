@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Moldura from '../components/Moldura'
+import LinhaCapital from '../components/LinhaCapital'
 import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
@@ -172,22 +173,23 @@ export default function Inicio() {
 
         <section
           aria-label="Capital em trânsito"
-          className="vidro relative flex flex-col gap-2 overflow-hidden rounded-[18px] px-5 py-4.5 lg:col-span-6 lg:p-5"
+          className="vidro relative flex flex-col gap-4 overflow-hidden rounded-[18px] px-5 py-4.5 sm:flex-row sm:items-end lg:col-span-6 lg:p-5"
         >
-          <svg width="150" height="54" viewBox="0 0 150 54" fill="none" aria-hidden="true" className="pointer-events-none absolute right-4 bottom-4 hidden sm:block">
-            <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#4CC2FF" strokeWidth="2.5" strokeLinecap="round" />
-            <circle cx="148" cy="6" r="4" fill="#4CC2FF" />
-          </svg>
-          <span className="relative flex items-center gap-1.5 text-xs text-suave lg:text-[13px]">
-            <span className="size-1.5 rounded-full bg-marca" />
-            <span className="lg:hidden">{saudacao()}, {nome} ·</span>
-            Capital em trânsito
-          </span>
-          <span className="relative font-display text-[38px] leading-none font-extrabold tracking-tight tabular-nums lg:text-[52px]">{reais(p.capitalTransito)}</span>
-          <span className="relative text-xs text-suave">
-            {p.contratosAtivos} {p.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'} na rua
-            <span className="lg:hidden"> · juros do mês {percentual}%</span>
-          </span>
+          <div className="flex shrink-0 flex-col gap-2">
+            <span className="relative flex items-center gap-1.5 text-xs text-suave lg:text-[13px]">
+              <span className="size-1.5 rounded-full bg-marca" />
+              <span className="lg:hidden">{saudacao()}, {nome} ·</span>
+              Capital em trânsito
+            </span>
+            <span className="relative font-display text-[38px] leading-none font-extrabold tracking-tight tabular-nums lg:text-[52px]">{reais(p.capitalTransito)}</span>
+            <span className="relative text-xs text-suave">
+              {p.contratosAtivos} {p.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'} na rua
+              <span className="lg:hidden"> · juros do mês {percentual}%</span>
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <LinhaCapital pontos={p.historicoCapital} />
+          </div>
         </section>
 
         <section id="resumo" aria-label="Resumo do mês" className="vidro scroll-mt-4 rounded-[18px] p-4 max-lg:order-1 lg:col-span-6 lg:p-5">
