@@ -7,11 +7,14 @@ import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, linkWhatsApp, nomeModalidade, percentualCompleto, reais } from '../lib/formatos'
 import { compartilharImagem, reciboImagem, reciboTexto, type LinhaRecibo } from '../lib/recibo'
 import { rastrear } from '../lib/analytics'
+import { urlLogo } from '../lib/marca'
 import { supabase } from '../lib/supabase'
 
 // Extrato do contrato (regra 5.7), com cara de recibo de impressora térmica, em imagem pro WhatsApp.
 //  * Pro cliente: empresa, Pix, contrato e parcelas. Mostrar % de juro e total só se o dono ligou em Configurações.
 //  * Da empresa (interno, nunca vai pro cliente): tudo, com juros ganhos e cada pagamento.
+
+const EMAIL_SUPORTE = 'girongestao@gmail.com'
 
 type Parcela = { numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = { pago_em: string; valor_pago: number; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number; estornado_em: string | null; tipo: string }
@@ -22,7 +25,7 @@ type Dados = {
     clientes: { numero: number; nome_completo: string; telefone: string } | null
     parcelas: Parcela[]; pagamentos: Pagamento[]
   }
-  empresa: { nome_empresa: string } | null
+  empresa: { nome_empresa: string; logo_arquivo: string | null } | null
   pix: { numero: number; tipo: string; chave: string; padrao: boolean }[]
   config: { mostrar_juro_no_extrato: boolean; mostrar_total_no_extrato: boolean } & Parameters<typeof regraDaConfig>[0]
 }
@@ -46,6 +49,9 @@ function montar(d: Dados, modo: Modo, pixEscolhido: number | null, regra: RegraA
   const total = c.parcelas.reduce((t, p) => t + Number(p.valor), 0)
   const L: LinhaRecibo[] = []
 
+  // Em cima: logo e nome da empresa do Fomentado (white-label)
+  const logo = urlLogo(d.empresa?.logo_arquivo)
+  if (logo) L.push({ t: 'imagem', src: logo, tamanho: 64 })
   L.push({ t: 'texto', v: (d.empresa?.nome_empresa ?? 'GIRON').toLocaleUpperCase('pt-BR'), negrito: true, centro: true })
   L.push({ t: 'texto', v: modo === 'empresa' ? 'EXTRATO INTERNO (NÃO ENVIAR)' : 'EXTRATO DO EMPRÉSTIMO', centro: true, pequeno: true })
   L.push({ t: 'texto', v: `emitido em ${dataBr(hoje())}`, centro: true, pequeno: true })
@@ -102,6 +108,9 @@ function montar(d: Dados, modo: Modo, pixEscolhido: number | null, regra: RegraA
     L.push({ t: 'linha' })
     L.push({ t: 'texto', v: 'Obrigado pela confiança!', centro: true, pequeno: true })
   }
+  // Embaixo, pequeno: assinatura do GIRON com o e-mail de suporte
+  L.push({ t: 'vazio' })
+  L.push({ t: 'rodape', logo: '/logo-giron.png', v: `GIRON · ${EMAIL_SUPORTE}` })
   return L
 }
 
@@ -125,7 +134,7 @@ export default function Extrato() {
         .eq('id', id!)
         .order('numero', { referencedTable: 'parcelas' })
         .maybeSingle(),
-      supabase.from('fomentados').select('nome_empresa').maybeSingle(),
+      supabase.from('fomentados').select('nome_empresa, logo_arquivo').maybeSingle(),
       supabase.from('chaves_pix').select('numero, tipo, chave, padrao').order('numero'),
       supabase.from('fomentado_configuracoes').select('mostrar_juro_no_extrato, mostrar_total_no_extrato, dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
     ]).then(([c, e, p, cfg]) => {
