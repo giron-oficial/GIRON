@@ -39,7 +39,7 @@ Os nomes antigos foram mantidos pra não mexer em todas as telas: `marca`, `sobr
 Cartões de destaque (capital em trânsito, "Cliente vai pagar", contrato): degradê de #0C2550 pra `superficie`, borda #1D3D75, rótulo #BFD8FF.
 Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros: somem ou ofuscam no escuro.
 Fontes: **Exo 2** nos títulos e números grandes (`font-display`, h1–h3) e **Inter** no resto (`font-sans`), as duas do Google Fonts. Números com `tabular-nums`, dinheiro em 700–800.
-Utilitários: `cartao`, `verde` (fundo azul #2F80FF, letra branca) e `zap` (**vidro verde** — TODO botão de WhatsApp: Cobrar, Mandar, Enviar; em `estilo.ts` é `botaoZap`). Cartões das 4 situações no painel são de **vidro da própria cor** (`pages/Inicio.tsx`). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
+Utilitários: `cartao`, `vidro` (painel de vidro azul-escuro: cartões de destaque do painel, todos iguais), `verde` (botão principal em **vidro azul**, letra branca) e `zap` (**vidro verde** — TODO botão de WhatsApp: Cobrar, Mandar, Enviar; em `estilo.ts` é `botaoZap`). Cartões das 4 situações no painel são de **vidro da própria cor** (`pages/Inicio.tsx`). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
 
 ## Campos de digitar (regras do dono, 01/10/2026)
 
