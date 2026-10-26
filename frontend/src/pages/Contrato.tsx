@@ -8,6 +8,7 @@ import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from 
 import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { rastrear } from '../lib/analytics'
+import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
@@ -48,6 +49,7 @@ function CampoReais({ id, ...resto }: { id: string } & InputHTMLAttributes<HTMLI
 export default function Contrato() {
   const { id } = useParams()
   const [c, setC] = useState<ContratoT | null>(null)
+  const [foto, setFoto] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [pagando, setPagando] = useState<Parcela | null>(null)
   const [valorPago, setValorPago] = useState('')
@@ -83,6 +85,11 @@ export default function Contrato() {
         setCarregando(false)
       })
   }, [id])
+
+  // Selfie do cadastro no topo (só se o cliente tiver)
+  useEffect(() => {
+    if (c?.cliente_id) fotosClientes([c.cliente_id]).then((f) => setFoto(f[c.cliente_id] ?? null)).catch(() => {})
+  }, [c?.cliente_id])
 
   useEffect(() => {
     carregar()
@@ -176,7 +183,7 @@ export default function Contrato() {
   const recuperado = Number(c.capital) > 0 ? Math.round(((Number(c.capital) - Number(c.capital_em_aberto)) / Number(c.capital)) * 100) : 0
 
   return (
-    <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} largo
+    <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} foto={foto} largo
       acoes={
         <Link to={`/contratos/${c.id}/extrato`} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-borda bg-superficie px-4 text-sm font-bold">
           <Icone nome="relatorios" tamanho={18} />

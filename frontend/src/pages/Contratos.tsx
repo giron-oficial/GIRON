@@ -7,6 +7,7 @@ import { recuperacao } from '../lib/recuperacao'
 import { seloContrato } from '../components/estilo'
 import { regraDaConfig } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, lerId, nomeModalidade, reais } from '../lib/formatos'
+import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
 
 type Linha = {
@@ -17,6 +18,7 @@ type Linha = {
   capital_em_aberto: number
   status: string
   data_contrato: string
+  cliente_id: string
   clientes: { numero: number; nome_completo: string } | null
   parcelas: { vencimento: string; status: string }[]
   pagamentos: { valor_pago: number; estornado_em: string | null }[]
@@ -46,17 +48,23 @@ const diasEntre = (de: string, ate: string) => Math.round((Date.parse(ate + 'T12
 
 export default function Contratos() {
   const [linhas, setLinhas] = useState<Linha[]>([])
+  const [fotos, setFotos] = useState<Record<string, string>>({})
   const [diasCritico, setDiasCritico] = useState(2)
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState<Filtro>('ativos')
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
 
+  // Selfie do cadastro: aparece só em quem tem
+  useEffect(() => {
+    if (linhas.length) fotosClientes(linhas.map((k) => k.cliente_id)).then(setFotos).catch(() => {})
+  }, [linhas])
+
   useEffect(() => {
     Promise.all([
       supabase
         .from('contratos')
-        .select('id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, clientes(numero, nome_completo), parcelas(vencimento, status), pagamentos(valor_pago, estornado_em)')
+        .select('id, numero, modalidade, capital, capital_em_aberto, status, data_contrato, cliente_id, clientes(numero, nome_completo), parcelas(vencimento, status), pagamentos(valor_pago, estornado_em)')
         .order('data_contrato', { ascending: false }),
       supabase.from('fomentado_configuracoes').select('dias_para_critico').maybeSingle(),
     ]).then(([c, cfg]) => {
@@ -141,6 +149,9 @@ export default function Contratos() {
           return (
             <li key={k.id}>
               <Link to={`/contratos/${k.id}`} className="cartao flex items-center gap-3 rounded-[20px] p-3 transition hover:border-marca/40 active:scale-[0.99]">
+                {fotos[k.cliente_id] && (
+                  <img src={fotos[k.cliente_id]} alt={`Foto de ${k.clientes?.nome_completo ?? 'cliente'}`} loading="lazy" className="size-11 shrink-0 rounded-[14px] object-cover" />
+                )}
                 <span className="flex h-11 shrink-0 items-center justify-center rounded-[14px] bg-superficie-2 px-2.5 text-xs font-extrabold tabular-nums">
                   {idContrato(k.numero)}
                 </span>

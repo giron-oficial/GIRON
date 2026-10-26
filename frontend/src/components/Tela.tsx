@@ -10,6 +10,7 @@ export default function Tela({
   voltar,
   acoes,
   largo,
+  foto,
   children,
 }: {
   titulo?: string
@@ -17,6 +18,7 @@ export default function Tela({
   voltar?: string
   acoes?: ReactNode
   largo?: boolean
+  foto?: string | null
   children: ReactNode
 }) {
   return (
@@ -29,9 +31,12 @@ export default function Tela({
         )}
         {(titulo || acoes) && (
           <header className="mt-1 flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-3">
+              {foto && <img src={foto} alt="Foto do cliente" className="size-14 shrink-0 rounded-2xl object-cover" />}
+              <div className="min-w-0">
               {titulo && <h1 className="text-2xl font-bold tracking-tight lg:text-[28px]">{titulo}</h1>}
               {subtitulo && <p className="mt-0.5 text-[13px] text-suave">{subtitulo}</p>}
+              </div>
             </div>
             {acoes && <div className="flex gap-2">{acoes}</div>}
           </header>

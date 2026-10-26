@@ -5,6 +5,7 @@ import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, iniciais, seloCadastro, botaoZap } from '../components/estilo'
 import { cpfEscondido, idCliente, lerId, mascaraTelefone, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
+import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
 
 type Cliente = {
@@ -27,6 +28,7 @@ const filtros: { id: Filtro; texto: string }[] = [
 
 export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([])
+  const [fotos, setFotos] = useState<Record<string, string>>({})
   const [busca, setBusca] = useState('')
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [carregando, setCarregando] = useState(true)
@@ -51,6 +53,11 @@ export default function Clientes() {
       setErroLink('Não deu pra copiar sozinho. Segure o dedo no link e copie.')
     }
   }
+
+  // Selfie do cadastro de cada cliente (sem foto, ficam as iniciais)
+  useEffect(() => {
+    if (clientes.length) fotosClientes(clientes.map((c) => c.id)).then(setFotos).catch(() => {})
+  }, [clientes])
 
   useEffect(() => {
     supabase
@@ -165,7 +172,11 @@ export default function Clientes() {
           return (
             <li key={c.id}>
               <Link to={`/clientes/${c.id}`} className="cartao flex items-center gap-3 rounded-[20px] p-3 transition hover:border-marca/40 active:scale-[0.99]">
-                <span className={`flex size-11 shrink-0 items-center justify-center rounded-[14px] text-sm font-extrabold ${selo.avatar}`}>{iniciais(c.nome_completo)}</span>
+                {fotos[c.id] ? (
+                  <img src={fotos[c.id]} alt={`Foto de ${c.nome_completo}`} loading="lazy" className="size-11 shrink-0 rounded-[14px] object-cover" />
+                ) : (
+                  <span className={`flex size-11 shrink-0 items-center justify-center rounded-[14px] text-sm font-extrabold ${selo.avatar}`}>{iniciais(c.nome_completo)}</span>
+                )}
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate font-bold">{c.nome_completo}</span>
                   <span className="text-xs font-bold text-texto/80 tabular-nums">{idCliente(c.numero)}</span>
