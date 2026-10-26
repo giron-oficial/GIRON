@@ -33,6 +33,7 @@ export type Financeira = {
   telefone: string
   observacao: string
   robo: boolean
+  whatsapp: boolean
   situacao: SituacaoFinanceira
   cobrancas: Cobranca[]
   proxima: Cobranca | null
@@ -89,7 +90,7 @@ export async function carregarPainelDono(): Promise<PainelDono> {
       .select('id, nome_empresa, subdominio, logo_arquivo, criado_em, status_acesso, bloqueio_manual, teste_gratis_ate, liberado_manual_ate, mensalidade_valor, responsavel_nome, telefone, observacao_dono')
       .order('nome_empresa'),
     supabase.from('assinaturas').select('id, tenant_id, tipo, vencimento, valor, pago_em, parcela, parcelas_total').order('vencimento'),
-    supabase.from('recursos_extras').select('tenant_id, liberado').eq('recurso', 'agente_telegram'),
+    supabase.from('recursos_extras').select('tenant_id, recurso, liberado'),
     supabase.rpc('dono_uso'),
   ])
   const erro = fom.error ?? ass.error ?? rec.error ?? uso.error
@@ -107,7 +108,9 @@ export async function carregarPainelDono(): Promise<PainelDono> {
     parcela: a.parcela,
     parcelasTotal: a.parcelas_total,
   }))
-  const robo = new Map((rec.data ?? []).map((r) => [r.tenant_id, r.liberado as boolean]))
+  const ligado = (recurso: string) => new Map((rec.data ?? []).filter((r) => r.recurso === recurso).map((r) => [r.tenant_id, r.liberado as boolean]))
+  const robo = ligado('agente_telegram')
+  const whatsapp = ligado('whatsapp_automatico')
   const usoPor = new Map(
     ((uso.data ?? []) as { tenant_id: string; clientes: number; contratos_ativos: number; ultimo_acesso: string | null }[]).map((u) => [u.tenant_id, u]),
   )
@@ -140,6 +143,7 @@ export async function carregarPainelDono(): Promise<PainelDono> {
       telefone: f.telefone ?? '',
       observacao: f.observacao_dono ?? '',
       robo: robo.get(f.id) ?? false,
+      whatsapp: whatsapp.get(f.id) ?? false,
       situacao: situacao(base, hoje),
       atrasado: vencidas.reduce((s, c) => s + c.valor, 0),
       implantacao: impl.length
@@ -219,6 +223,7 @@ export const donoAcoes = {
   estenderTeste: (tenant: string, diasMais: number) => supabase.rpc('dono_estender_teste', { p_tenant: tenant, p_dias: diasMais }),
   liberarAte: (tenant: string, ate: string | null) => supabase.rpc('dono_liberar_ate', { p_tenant: tenant, p_ate: ate }),
   robo: (tenant: string, ligado: boolean) => supabase.rpc('dono_robo', { p_tenant: tenant, p_ligado: ligado }),
+  whatsapp: (tenant: string, ligado: boolean) => supabase.rpc('dono_whatsapp', { p_tenant: tenant, p_ligado: ligado }),
   travar: (tenant: string, travado: boolean) => supabase.from('fomentados').update({ bloqueio_manual: travado }).eq('id', tenant),
   contato: (tenant: string, c: { responsavel: string; telefone: string; observacao: string; mensalidade: number }) =>
     supabase

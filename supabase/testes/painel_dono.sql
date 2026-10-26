@@ -109,6 +109,15 @@ select public.dono_estender_teste(:'B', 5);
 select pg_temp.r('mais 5 dias de teste somam no fim do teste atual',
   (select teste_gratis_ate from public.fomentados where id = :'B') = current_date + 20);
 
+-- WhatsApp automatico: so o dono liga
+select public.dono_whatsapp(:'B', true);
+select pg_temp.r('dono liga o WhatsApp automatico',
+  (select liberado from public.recursos_extras where tenant_id = :'B' and recurso = 'whatsapp_automatico'));
+select pg_temp.como('00000000-0000-0000-0000-0000000000a2');
+select pg_temp.r('financeira nao consegue ligar o proprio WhatsApp automatico',
+  pg_temp.falha($q$select public.dono_whatsapp('10000000-0000-0000-0000-0000000000a2', true)$q$));
+select pg_temp.como('00000000-0000-0000-0000-0000000000d1');
+
 -- Uso: dono ve so numeros; nao ve clientes
 select pg_temp.r('dono ve o uso de cada financeira', (select count(*) from public.dono_uso() where tenant_id in (:'A', :'B')) = 2);
 select pg_temp.r('dono continua sem ver os clientes das financeiras', (select count(*) from public.clientes) = 0);
