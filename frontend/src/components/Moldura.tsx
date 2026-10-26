@@ -25,6 +25,18 @@ function iniciais(nome: string) {
   return ((partes[0]?.[0] ?? '') + (partes.length > 1 ? partes[partes.length - 1][0] : '')).toUpperCase()
 }
 
+// Marca da empresa do Fomentado: a logo dele, ou as iniciais se ainda não mandou
+function Marca({ r, className, fundo }: { r: ResumoBarra | null; className: string; fundo: string }) {
+  if (r?.logo) {
+    return (
+      <span className={`flex shrink-0 items-center justify-center overflow-hidden bg-texto p-1 ${className}`}>
+        <img src={r.logo} alt={r.nome} className="size-full object-contain" />
+      </span>
+    )
+  }
+  return <span className={`flex shrink-0 items-center justify-center font-display font-bold ${fundo} ${className}`}>{r ? iniciais(r.nome) : ''}</span>
+}
+
 // Cartão do plano: teste grátis (com barrinha), ativo ou bloqueado
 function Plano({ r }: { r: ResumoBarra }) {
   if (r.statusAcesso === 'bloqueio_total' || r.statusAcesso === 'bloqueio_parcial') {
@@ -76,9 +88,10 @@ export default function Moldura({ children }: { children: ReactNode }) {
   const [resumo, setResumo] = useState<ResumoBarra | null>(resumoGuardado)
 
   useEffect(() => {
-    carregarBarra()
-      .then(setResumo)
-      .catch(() => {})
+    const carregar = () => carregarBarra().then(setResumo).catch(() => {})
+    carregar()
+    window.addEventListener('giron:marca', carregar)
+    return () => window.removeEventListener('giron:marca', carregar)
   }, [])
 
   const contadores: Record<string, ReactNode> = {
@@ -103,7 +116,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
 
         {resumo && (
           <div className="flex items-center gap-3 rounded-2xl bg-superficie-2 p-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-borda font-display text-sm font-bold">{iniciais(resumo.nome)}</span>
+            <Marca r={resumo} className="size-10 rounded-xl text-sm" fundo="bg-borda" />
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-bold">{resumo.nome}</span>
               <span className="flex items-center gap-1 truncate text-[11px] text-suave">
@@ -164,8 +177,8 @@ export default function Moldura({ children }: { children: ReactNode }) {
             <span className="font-display text-[15px] font-extrabold tracking-wider">GIRON</span>
           </Link>
           <details className="relative">
-            <summary aria-label="Sua conta" className="flex size-10 cursor-pointer list-none items-center justify-center rounded-[13px] bg-superficie-2 font-display text-[13px] font-bold [&::-webkit-details-marker]:hidden">
-              {resumo ? iniciais(resumo.nome) : ''}
+            <summary aria-label="Sua conta" className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+              <Marca r={resumo} className="size-10 rounded-[13px] text-[13px]" fundo="bg-superficie-2" />
             </summary>
             <div className="cartao absolute top-12 right-0 z-20 flex w-64 flex-col gap-2.5 rounded-2xl p-3 shadow-2xl shadow-black/50">
               {resumo && <span className="truncate text-sm font-bold">{resumo.nome}</span>}

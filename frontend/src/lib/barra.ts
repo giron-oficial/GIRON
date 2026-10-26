@@ -1,8 +1,10 @@
 import { supabase } from './supabase'
+import { urlLogo } from './marca'
 
 export type ResumoBarra = {
   nome: string
   subdominio: string
+  logo: string | null
   statusAcesso: string
   testeGratisAte: string | null
   testeFaltam: number
@@ -21,7 +23,7 @@ export const resumoGuardado = () => ultimo
 // Dados da barra lateral: empresa, plano e contadores do menu
 export async function carregarBarra(): Promise<ResumoBarra | null> {
   const [empresa, clientes, pendentes, cobrar] = await Promise.all([
-    supabase.from('fomentados').select('nome_empresa, subdominio, status_acesso, teste_gratis_ate').maybeSingle(),
+    supabase.from('fomentados').select('nome_empresa, subdominio, logo_arquivo, status_acesso, teste_gratis_ate').maybeSingle(),
     supabase.from('clientes').select('id', { count: 'exact', head: true }).neq('status_cadastro', 'reprovado'),
     supabase.from('clientes').select('id', { count: 'exact', head: true }).eq('status_cadastro', 'pendente'),
     supabase
@@ -35,6 +37,7 @@ export async function carregarBarra(): Promise<ResumoBarra | null> {
   ultimo = {
     nome: empresa.data.nome_empresa,
     subdominio: empresa.data.subdominio,
+    logo: urlLogo(empresa.data.logo_arquivo),
     statusAcesso: empresa.data.status_acesso,
     testeGratisAte: empresa.data.teste_gratis_ate,
     testeFaltam: empresa.data.teste_gratis_ate

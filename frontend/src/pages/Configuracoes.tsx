@@ -4,6 +4,7 @@ import { CampoMini, Grupo, Linha, Passos } from '../components/Ajustes'
 import ChavesPix from '../components/ChavesPix'
 import Icone from '../components/Icone'
 import Interruptor from '../components/Interruptor'
+import MinhaEmpresa from '../components/MinhaEmpresa'
 import Tela from '../components/Tela'
 import { erroCaixa } from '../components/estilo'
 import { encargosAtraso } from '../lib/atraso'
@@ -13,7 +14,7 @@ import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Configurações do Fomentado (fomentado_configuracoes), no estilo "ajustes do celular":
-// juro padrão, regras de atraso (5.5), o que o cliente vê no extrato (5.7), chaves Pix (5.9) e conta.
+// marca da empresa (logo e nome), juro padrão, regras de atraso (5.5), o que o cliente vê no extrato (5.7), chaves Pix (5.9) e conta.
 // Só aparece "Salvar" quando algo mudou; as chaves Pix gravam sozinhas.
 
 type Desde = 'vencimento' | 'critico'
@@ -91,6 +92,8 @@ export default function Configuracoes() {
   return (
     <Tela titulo="Configurações" subtitulo="Regras que o sistema usa nos seus empréstimos">
       <div className="mt-4 flex flex-col gap-3 lg:mt-5">
+        <MinhaEmpresa />
+
         <Grupo icone="porcento" titulo="Juros" descricao="Já vem preenchido quando você faz um empréstimo novo">
           <Linha titulo="Juro padrão ao mês" htmlFor="jp">
             <CampoMini id="jp" valor={v.juroPadrao} onChange={(x) => muda('juroPadrao', mascaraPercentual(x))} sufixo="%" placeholder="10" inputMode="decimal" largura="w-28" />
