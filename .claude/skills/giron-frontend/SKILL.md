@@ -10,6 +10,10 @@ Design system: https://claude.ai/artifact/KjvviGQ4z2ErdmHb6xobkj . Aplicado no s
 Layout continua o mesmo: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo").
 Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui não tem dourado nem vidro nos cartões. **Exceção pedida pelo dono (16/10/2026): o liga/desliga é em VIDRO (glass)** — `components/Interruptor.tsx`, use em TODO lugar que é "sim ou não" (nunca caixinha de marcar); nas páginas claras do cliente, passe `claro`.
 
+## Regra do dono: nada pessoal na tela (26/10/2026)
+
+Nunca escrever nome, apelido, telefone ou e-mail pessoal do dono (Lellis, Flávio etc.) em tela, extrato, mensagem ou e-mail do sistema. O que o cliente final vê é a marca do **Fomentado** (logo e nome dele) e, como assinatura/suporte, só **GIRON · girongestao@gmail.com**. Os textos de contato ficam na constante `EMAIL_SUPORTE`.
+
 ## Princípios
 
 1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
