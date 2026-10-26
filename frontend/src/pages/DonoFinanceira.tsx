@@ -316,13 +316,13 @@ export default function DonoFinanceira() {
                     )
                   )}
                   <Ajuste titulo="Robô do Telegram" texto={f.robo ? 'Ligado: ela consulta e lança tudo pelo Telegram' : 'Desligado'}>
-                    <Interruptor verde rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
+                    <Interruptor rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
                   </Ajuste>
                   <Ajuste titulo="WhatsApp automático" texto={f.whatsapp ? (f.testeGratisAte ? 'Ligado: no teste, até 5 mensagens grátis' : 'Ligado: o sistema cobra os clientes dela sozinho') : 'Desligado: só liga se ela pedir'}>
-                    <Interruptor verde rotulo="WhatsApp automático" ligado={f.whatsapp} onChange={(v) => acao(donoAcoes.whatsapp(f.id, v))} />
+                    <Interruptor rotulo="WhatsApp automático" ligado={f.whatsapp} onChange={(v) => acao(donoAcoes.whatsapp(f.id, v))} />
                   </Ajuste>
                   <Ajuste titulo="Travar (só consulta)" texto="Ela vê tudo, mas não consegue mexer em nada.">
-                    <Interruptor verde rotulo="Travar (só consulta)" ligado={f.bloqueioManual} onChange={(v) => acao(donoAcoes.travar(f.id, v))} />
+                    <Interruptor rotulo="Travar (só consulta)" ligado={f.bloqueioManual} onChange={(v) => acao(donoAcoes.travar(f.id, v))} />
                   </Ajuste>
                 </Bloco>
 

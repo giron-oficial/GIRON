@@ -34,16 +34,16 @@
   border: 1px solid #1B2D4F;
 }
 
-/* Botão/realce da marca: VIDRO AZUL com letra branca (nome "verde" mantido pra não mexer em todas as telas).
-   Mesmo desenho do vidro verde do WhatsApp (zap). */
+/* Botão principal / item escolhido: VIDRO VERDE com letra branca (pedido do dono em 26/10/2026, noite:
+   "botões em verde glass no sistema todo"). Mesmo desenho do vidro verde do WhatsApp (zap). */
 @utility verde {
-  background: linear-gradient(160deg, rgb(47 128 255 / 0.62), rgb(31 95 224 / 0.3));
-  border: 1px solid rgb(76 194 255 / 0.65);
+  background: linear-gradient(160deg, rgb(52 209 122 / 0.5), rgb(19 131 74 / 0.2));
+  border: 1px solid rgb(52 209 122 / 0.7);
   color: #FFFFFF;
-  box-shadow: 0 8px 24px -10px rgb(47 128 255 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 16px rgb(76 194 255 / 0.15);
+  box-shadow: 0 8px 24px -10px rgb(52 209 122 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 16px rgb(52 209 122 / 0.15);
   backdrop-filter: blur(12px);
   &:hover {
-    background: linear-gradient(160deg, rgb(47 128 255 / 0.75), rgb(31 95 224 / 0.38));
+    background: linear-gradient(160deg, rgb(52 209 122 / 0.62), rgb(19 131 74 / 0.28));
   }
 }
 

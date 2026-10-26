@@ -10,6 +10,8 @@ Design system: https://claude.ai/artifact/KjvviGQ4z2ErdmHb6xobkj . Aplicado no s
 Layout continua o mesmo: **opção A no computador** (menu lateral fixo, painel em faixas) e **opção B no celular** (barra de baixo com o "+" no meio e a aba "Resumo").
 Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (azul-marinho com vidro e dourado): aqui não tem dourado nem vidro nos cartões. **Exceção pedida pelo dono (16/10/2026): o liga/desliga é em VIDRO (glass)** — `components/Interruptor.tsx`, use em TODO lugar que é "sim ou não" (nunca caixinha de marcar); nas páginas claras do cliente, passe `claro`.
 
+**Regra do dono (26/10/2026, noite): botões principais e liga/desliga em VIDRO VERDE no sistema todo.** A utility `verde` (botão principal, item escolhido, filtro ativo, "+" do celular) e o `Interruptor` ligado são verde glass. O resto do tema (fundo, cartões, links, menu ativo, gráficos) continua azul.
+
 ## Regra do dono: nada pessoal na tela (26/10/2026)
 
 Nunca escrever nome, apelido, telefone ou e-mail pessoal do dono (Lellis, Flávio etc.) em tela, extrato, mensagem ou e-mail do sistema. O que o cliente final vê é a marca do **Fomentado** (logo e nome dele) e, como assinatura/suporte, só **GIRON · girongestao@gmail.com**. Os textos de contato ficam na constante `EMAIL_SUPORTE`.
@@ -18,7 +20,7 @@ Nunca escrever nome, apelido, telefone ou e-mail pessoal do dono (Lellis, Flávi
 
 1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
 2. **Informação primordial no topo.** Painel: capital em trânsito (cartão azul-escuro com brilho azul, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
-3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = botão principal, link, item ativo do menu. WhatsApp = vidro verde (`zap`). Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
+3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = link e item ativo do menu. Botão principal = vidro verde (`verde`). WhatsApp = vidro verde (`zap`). Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
 4. **Situações em cor CHEIA, com degradê da mesma cor** e letras brancas (objeto `situacoes` de `pages/Inicio.tsx`). Bolinha do "vence hoje" vermelha piscando (`anima-pulso`).
 5. **Português simples na tela.** Sem termos técnicos e sem emoji na interface.
 
@@ -43,7 +45,7 @@ Os nomes antigos foram mantidos pra não mexer em todas as telas: `marca`, `sobr
 Cartões de destaque (capital em trânsito, "Cliente vai pagar", contrato): degradê de #0C2550 pra `superficie`, borda #1D3D75, rótulo #BFD8FF.
 Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros: somem ou ofuscam no escuro.
 Fontes: **Exo 2** nos títulos e números grandes (`font-display`, h1–h3) e **Inter** no resto (`font-sans`), as duas do Google Fonts. Números com `tabular-nums`, dinheiro em 700–800. **Dinheiro SEMPRE com centavos** (`reais()`, ex.: R$ 3.000,00) — nunca esconder o ",00" (regra do dono, 26/10/2026). Números do painel grandes; em colunas estreitas use tamanho que se ajusta ao espaço (`@container` + `text-[clamp(...cqi...)]`) em vez de cortar.
-Utilitários: `cartao`, `vidro` (painel de vidro azul-escuro: cartões de destaque do painel, todos iguais), `verde` (botão principal em **vidro azul**, letra branca) e `zap` (**vidro verde** — TODO botão de WhatsApp: Cobrar, Mandar, Enviar; em `estilo.ts` é `botaoZap`). Cartões das 4 situações no painel são de **vidro da própria cor** (`pages/Inicio.tsx`). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
+Utilitários: `cartao`, `vidro` (painel de vidro azul-escuro: cartões de destaque do painel, todos iguais), `verde` (botão principal em **vidro verde**, letra branca — desde 26/10/2026 à noite) e `zap` (**vidro verde** — TODO botão de WhatsApp: Cobrar, Mandar, Enviar; em `estilo.ts` é `botaoZap`). Cartões das 4 situações no painel são de **vidro da própria cor** (`pages/Inicio.tsx`). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
 
 ## Campos de digitar (regras do dono, 01/10/2026)
 
