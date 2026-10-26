@@ -37,7 +37,7 @@ export default function LinhaCapital({ pontos }: { pontos: PontoCapital[] }) {
   const ultimo = pontos.length - 1
   const sel = ativo ?? ultimo
   const primeiro = pontos[0]?.valor ?? 0
-  const variacao = primeiro > 0 ? Math.round(((pontos[ultimo].valor - primeiro) / primeiro) * 100) : null
+  const variacao = primeiro >= 1 ? Math.round(((pontos[ultimo].valor - primeiro) / primeiro) * 100) : null
 
   return (
     <div className="flex min-w-0 flex-col gap-1">

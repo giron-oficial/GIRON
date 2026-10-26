@@ -198,7 +198,7 @@ export async function carregarPainelDono(): Promise<PainelDono> {
     aReceberMes: cobrancas.filter((c) => !c.pagoEm && c.vencimento >= hoje && c.vencimento.startsWith(mesAtual)).reduce((s, c) => s + c.valor, 0),
     atrasado: financeiras.reduce((s, f) => s + f.atrasado, 0),
     mensalFixo: financeiras
-      .filter((f) => f.cobrancas.some((c) => c.tipo === 'mensalidade') && f.statusAcesso !== 'bloqueio_total')
+      .filter((f) => f.cobrancas.some((c) => c.tipo === 'mensalidade') && !f.testeGratisAte && f.statusAcesso !== 'bloqueio_total')
       .reduce((s, f) => s + f.mensalidade, 0),
     meses,
     alertas,
