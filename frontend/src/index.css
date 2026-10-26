@@ -34,10 +34,25 @@
   border: 1px solid #1B2D4F;
 }
 
-/* Botão/realce da marca: azul com letra branca (nome "verde" mantido pra não mexer em todas as telas) */
+/* Botão/realce da marca: VIDRO AZUL com letra branca (nome "verde" mantido pra não mexer em todas as telas).
+   Mesmo desenho do vidro verde do WhatsApp (zap). */
 @utility verde {
-  background-color: #2F80FF;
+  background: linear-gradient(160deg, rgb(47 128 255 / 0.62), rgb(31 95 224 / 0.3));
+  border: 1px solid rgb(76 194 255 / 0.65);
   color: #FFFFFF;
+  box-shadow: 0 8px 24px -10px rgb(47 128 255 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 16px rgb(76 194 255 / 0.15);
+  backdrop-filter: blur(12px);
+  &:hover {
+    background: linear-gradient(160deg, rgb(47 128 255 / 0.75), rgb(31 95 224 / 0.38));
+  }
+}
+
+/* Painel de vidro azul-escuro: cartões de destaque do painel, todos iguais */
+@utility vidro {
+  background: linear-gradient(160deg, rgb(47 128 255 / 0.14), rgb(10 20 38 / 0.6) 55%);
+  border: 1px solid rgb(125 190 255 / 0.16);
+  box-shadow: 0 12px 34px -20px rgb(47 128 255 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.07);
+  backdrop-filter: blur(14px);
 }
 
 /* Botão de WhatsApp (Cobrar, Mandar, Enviar): vidro VERDE, pedido do dono em 26/10/2026 */

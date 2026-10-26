@@ -157,7 +157,7 @@ export default function Inicio() {
               {saudacao()}, {nome}
             </h1>
           </div>
-          <Link to="/calculadora" className="cartao flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold hover:text-marca">
+          <Link to="/calculadora" className="vidro flex h-11 items-center gap-2 rounded-xl px-4 text-sm font-semibold hover:text-marca-brilho">
             <Icone nome="calculadora" tamanho={18} />
             Calculadora
           </Link>
@@ -172,13 +172,13 @@ export default function Inicio() {
 
         <section
           aria-label="Capital em trânsito"
-          className="relative flex flex-col gap-2 overflow-hidden rounded-[18px] border border-[#1D3D75] bg-[radial-gradient(circle_at_88%_15%,rgb(47_128_255/0.28),transparent_55%),linear-gradient(135deg,#0C2550,#0A1426_65%)] px-5 py-4.5 lg:col-span-6 lg:p-5.5"
+          className="vidro relative flex flex-col gap-2 overflow-hidden rounded-[18px] px-5 py-4.5 lg:col-span-6 lg:p-5"
         >
           <svg width="150" height="54" viewBox="0 0 150 54" fill="none" aria-hidden="true" className="pointer-events-none absolute right-4 bottom-4 hidden sm:block">
             <path d="M2 46 C 22 40, 30 44, 46 34 S 74 30, 88 22 S 118 18, 148 6" stroke="#4CC2FF" strokeWidth="2.5" strokeLinecap="round" />
             <circle cx="148" cy="6" r="4" fill="#4CC2FF" />
           </svg>
-          <span className="relative flex items-center gap-1.5 text-xs text-[#BFD8FF] lg:text-[13px]">
+          <span className="relative flex items-center gap-1.5 text-xs text-suave lg:text-[13px]">
             <span className="size-1.5 rounded-full bg-marca" />
             <span className="lg:hidden">{saudacao()}, {nome} ·</span>
             Capital em trânsito
@@ -190,7 +190,7 @@ export default function Inicio() {
           </span>
         </section>
 
-        <section id="resumo" aria-label="Resumo do mês" className="cartao scroll-mt-4 rounded-[18px] p-4 max-lg:order-1 lg:col-span-6 lg:p-5">
+        <section id="resumo" aria-label="Resumo do mês" className="vidro scroll-mt-4 rounded-[18px] p-4 max-lg:order-1 lg:col-span-6 lg:p-5">
           <h2 className="mb-3 text-sm font-bold first-letter:uppercase">{mes} até agora</h2>
           <div className="grid grid-cols-3">
             <Mini
