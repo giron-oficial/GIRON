@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth'
 import { carregarBarra, resumoGuardado, type ResumoBarra } from '../lib/barra'
 import { supabase } from '../lib/supabase'
 import Icone, { type NomeIcone } from './Icone'
+import FogoAzul from './FogoAzul'
 import { Logo } from './Logo'
 
 const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
@@ -51,19 +52,19 @@ function Plano({ r }: { r: ResumoBarra }) {
     const faltam = r.testeFaltam
     const usado = Math.min(100, Math.round(((TESTE_DIAS - faltam) / TESTE_DIAS) * 100))
     return (
-      <div className="flex flex-col gap-2 rounded-2xl bg-superficie-2 p-3.5">
+      <div className="vidro-menu flex flex-col gap-2 rounded-2xl p-3.5">
         <div className="flex items-baseline justify-between">
           <span className="text-xs text-suave">Teste grátis</span>
           <span className="text-sm font-bold">{faltam === 0 ? 'Termina hoje' : `Faltam ${faltam} ${faltam === 1 ? 'dia' : 'dias'}`}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-borda">
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
           <div className="h-full rounded-full bg-linear-90 from-marca-clara to-marca" style={{ width: `${usado}%` }} />
         </div>
       </div>
     )
   }
   return (
-    <div className="flex items-center gap-2 rounded-2xl bg-superficie-2 p-3.5 text-sm font-bold">
+    <div className="vidro-menu flex items-center gap-2 rounded-2xl p-3.5 text-sm font-bold">
       <span className="size-2 rounded-full bg-marca-brilho" />
       Plano ativo
     </div>
@@ -108,14 +109,15 @@ export default function Moldura({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:flex">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-borda bg-tinta px-3.5 py-5 lg:flex">
+      <aside className="sticky top-0 isolate hidden h-dvh w-60 shrink-0 flex-col gap-5 overflow-y-auto border-r border-borda px-3.5 py-5 lg:flex">
+        <FogoAzul />
         <div className="flex items-center gap-2.5 px-2">
           <Logo tamanho={32} />
           <span className="font-display text-lg font-extrabold tracking-wider">GIRON</span>
         </div>
 
         {resumo && (
-          <div className="flex items-center gap-3 rounded-2xl bg-superficie-2 p-3">
+          <div className="vidro-menu flex items-center gap-3 rounded-2xl p-3">
             <Marca r={resumo} className="size-10 rounded-xl text-sm" fundo="bg-borda" />
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-bold">{resumo.nome}</span>
@@ -134,7 +136,7 @@ export default function Moldura({ children }: { children: ReactNode }) {
               to={i.to}
               end={i.to === '/'}
               className={({ isActive }) =>
-                `flex h-11 items-center gap-3 rounded-xl px-3 text-sm ${isActive ? 'bg-superficie-2 font-bold text-marca' : 'font-medium text-suave hover:bg-superficie-2/60 hover:text-texto'}`
+                `flex h-11 items-center gap-3 rounded-xl px-3 text-sm ${isActive ? 'vidro-menu font-bold text-marca-brilho' : 'border border-transparent font-medium text-suave hover:bg-white/5 hover:text-texto'}`
               }
             >
               <Icone nome={i.icone} />
@@ -157,8 +159,8 @@ export default function Moldura({ children }: { children: ReactNode }) {
             Novo cliente
           </Link>
           {resumo && <Plano r={resumo} />}
-          <div className="flex items-center gap-2 px-1">
-            <span className="min-w-0 flex-1 truncate text-[11px] text-suave">{session?.user.email}</span>
+          <div className="vidro-menu flex items-center gap-2 rounded-xl py-0.5 pr-0.5 pl-2.5">
+            <span className="min-w-0 flex-1 truncate text-[11px] text-texto/80">{session?.user.email}</span>
             <button
               onClick={() => supabase.auth.signOut()}
               className="flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-suave hover:bg-superficie-2 hover:text-texto"
