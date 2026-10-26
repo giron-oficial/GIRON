@@ -1,22 +1,36 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { CampoMini, Grupo, Linha, Passos } from '../components/Ajustes'
 import ChavesPix from '../components/ChavesPix'
-import Icone from '../components/Icone'
+import Icone, { type NomeIcone } from '../components/Icone'
 import Interruptor from '../components/Interruptor'
 import MeuPlano from '../components/MeuPlano'
 import MinhaEmpresa from '../components/MinhaEmpresa'
 import Tela from '../components/Tela'
 import { erroCaixa } from '../components/estilo'
 import { encargosAtraso } from '../lib/atraso'
+import { carregarBarra, resumoGuardado, type ResumoBarra } from '../lib/barra'
 import { useAuth } from '../lib/auth'
 import { mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
 
 // Configurações do Fomentado (fomentado_configuracoes), no estilo "ajustes do celular":
-// marca da empresa (logo e nome), juro padrão, regras de atraso (5.5), o que o cliente vê no extrato (5.7), chaves Pix (5.9) e conta.
+// primeiro uma lista curta (um item por assunto); tocou, abre só aquele assunto numa tela própria (?s=juros etc.).
+// Pedido do dono em 26/10/2026: a página inteira de uma vez ficava gigante e confusa no celular.
+// Assuntos: meu plano, marca da empresa, juro padrão, atraso (5.5), extrato do cliente (5.7), chaves Pix (5.9) e conta.
 // Só aparece "Salvar" quando algo mudou; as chaves Pix gravam sozinhas.
+
+type Secao = 'plano' | 'empresa' | 'juros' | 'atraso' | 'extrato' | 'pix' | 'conta'
+const secoes: { id: Secao; titulo: string; icone: NomeIcone; cor: string }[] = [
+  { id: 'plano', titulo: 'Meu plano', icone: 'moeda', cor: 'text-sucesso bg-sucesso/15' },
+  { id: 'empresa', titulo: 'Minha empresa', icone: 'maleta', cor: 'text-marca bg-marca/15' },
+  { id: 'juros', titulo: 'Juros', icone: 'porcento', cor: 'text-marca bg-marca/15' },
+  { id: 'atraso', titulo: 'Atraso', icone: 'relogio', cor: 'text-vencido bg-vencido/15' },
+  { id: 'extrato', titulo: 'Extrato do cliente', icone: 'recibo', cor: 'text-amanha bg-amanha/15' },
+  { id: 'pix', titulo: 'Chaves Pix', icone: 'pix', cor: 'text-marca bg-marca/15' },
+  { id: 'conta', titulo: 'Conta', icone: 'cadeado', cor: 'text-suave bg-superficie-2' },
+]
 
 type Desde = 'vencimento' | 'critico'
 type Valores = { juroPadrao: string; dias: number; multa: string; juroDia: string; desde: Desde; juroExtrato: boolean; totalExtrato: boolean }
@@ -31,6 +45,12 @@ export default function Configuracoes() {
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
+  const [params, setParams] = useSearchParams()
+  const secao = secoes.find((x) => x.id === params.get('s'))?.id ?? null
+  const [r, setR] = useState<ResumoBarra | null>(resumoGuardado)
+  useEffect(() => {
+    carregarBarra().then(setR).catch(() => {})
+  }, [])
   const muda = <K extends keyof Valores>(k: K, x: Valores[K]) => { setV((a) => ({ ...a, [k]: x })); setSalvo(false) }
 
   useEffect(() => {
@@ -90,19 +110,51 @@ export default function Configuracoes() {
   }
 
   const diasVencido = v.dias - 1
+  const resumo: Record<Secao, string> = {
+    plano: !r ? '' : `${r.testeGratisAte ? `Teste grátis · ${r.testeFaltam} ${r.testeFaltam === 1 ? 'dia' : 'dias'}` : `${reais(r.mensalidade)}/mês`} · Telegram ${r.robo ? 'ligado' : 'desligado'} · WhatsApp ${r.whatsapp ? 'ligado' : 'desligado'}`,
+    empresa: r?.nome ?? '',
+    juros: v.juroPadrao ? `${v.juroPadrao}% ao mês` : 'Sem juro padrão',
+    atraso: `Crítico com ${v.dias} dias${cobra ? ` · multa ${reais(regra.multa)} · juro ${reais(regra.juroDia)}/dia` : ' · sem multa'}`,
+    extrato: [v.juroExtrato && '% de juro', v.totalExtrato && 'total a pagar'].filter(Boolean).join(' e ') || 'Só o básico',
+    pix: 'Suas chaves pra receber',
+    conta: session?.user.email ?? '',
+  }
+  const atual = secoes.find((x) => x.id === secao)
+
   return (
-    <Tela titulo="Configurações" subtitulo="Regras que o sistema usa nos seus empréstimos">
+    <Tela
+      titulo={atual ? atual.titulo : 'Configurações'}
+      subtitulo={atual ? undefined : 'Toque num item pra ver ou mudar'}
+      voltar={atual ? '/configuracoes' : undefined}
+    >
       <div className="mt-4 flex flex-col gap-3 lg:mt-5">
-        <MeuPlano />
+        {!secao && (
+          <nav aria-label="Assuntos das configurações" className="cartao divide-y divide-borda overflow-hidden rounded-[18px]">
+            {secoes.map((x) => (
+              <button key={x.id} type="button" onClick={() => setParams({ s: x.id })} className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-superficie-2/40 lg:px-5">
+                <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${x.cor}`}>
+                  <Icone nome={x.icone} tamanho={18} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[15px] font-bold">{x.titulo}</span>
+                  <span className="truncate text-xs text-suave">{resumo[x.id]}</span>
+                </span>
+                <Icone nome="direita" tamanho={18} className="shrink-0 text-suave" />
+              </button>
+            ))}
+          </nav>
+        )}
 
-        <MinhaEmpresa />
-
+        {secao === 'plano' && <MeuPlano />}
+        {secao === 'empresa' && <MinhaEmpresa />}
+        {secao === 'juros' && (
         <Grupo icone="porcento" titulo="Juros" descricao="Já vem preenchido quando você faz um empréstimo novo">
           <Linha titulo="Juro padrão ao mês" htmlFor="jp">
             <CampoMini id="jp" valor={v.juroPadrao} onChange={(x) => muda('juroPadrao', mascaraPercentual(x))} sufixo="%" placeholder="10" inputMode="decimal" largura="w-28" />
           </Linha>
         </Grupo>
-
+        )}
+        {secao === 'atraso' && (
         <Grupo icone="relogio" titulo="Atraso" descricao="Deixe multa e juro em zero pra não cobrar. Na hora de receber você sempre pode negociar." cor="text-vencido bg-vencido/15">
           <Linha titulo="Vira Crítico com" dica="Antes disso a parcela fica só como Vencida">
             <Passos valor={v.dias} onChange={(x) => muda('dias', x)} min={2} max={60} sufixo={v.dias === 1 ? 'dia' : 'dias'} />
@@ -146,7 +198,8 @@ export default function Configuracoes() {
             </div>
           )}
         </Grupo>
-
+        )}
+        {secao === 'extrato' && (
         <Grupo icone="recibo" titulo="Extrato do cliente" descricao="O extrato interno (só seu) sempre mostra tudo" cor="text-amanha bg-amanha/15">
           <Linha titulo="Mostrar o % de juro ao mês">
             <Interruptor ligado={v.juroExtrato} onChange={(x) => muda('juroExtrato', x)} rotulo="Mostrar o % de juro ao mês no extrato do cliente" />
@@ -155,9 +208,9 @@ export default function Configuracoes() {
             <Interruptor ligado={v.totalExtrato} onChange={(x) => muda('totalExtrato', x)} rotulo="Mostrar o total a pagar no extrato do cliente" />
           </Linha>
         </Grupo>
-
-        <ChavesPix tenant={tenant} />
-
+        )}
+        {secao === 'pix' && <ChavesPix tenant={tenant} />}
+        {secao === 'conta' && (
         <Grupo icone="cadeado" titulo="Conta" cor="text-suave bg-superficie-2">
           <Linha titulo="E-mail de acesso" dica={session?.user.email} />
           <Link to="/nova-senha" className="flex items-center justify-between gap-3 px-4 py-3.5 text-[15px] font-semibold transition hover:bg-superficie-2/40 lg:px-5">
@@ -165,6 +218,7 @@ export default function Configuracoes() {
             <Icone nome="direita" tamanho={18} className="text-suave" />
           </Link>
         </Grupo>
+        )}
 
         {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
       </div>

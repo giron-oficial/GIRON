@@ -83,7 +83,7 @@ function Plano({ r }: { r: ResumoBarra }) {
 function Recursos({ r }: { r: ResumoBarra }) {
   const item = (nome: 'telegram' | 'whatsapp', rotulo: string, ligado: boolean) => (
     <Link
-      to={{ pathname: '/configuracoes', hash: 'plano' }}
+      to={{ pathname: '/configuracoes', search: '?s=plano' }}
       title={`${rotulo}: ${ligado ? 'ligado' : 'desligado'}`}
       className="vidro-menu flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-xs font-semibold"
     >

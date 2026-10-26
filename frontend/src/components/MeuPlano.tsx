@@ -30,7 +30,7 @@ export default function MeuPlano() {
   if (!r) return null
 
   const plano = r.testeGratisAte
-    ? { titulo: 'Teste grátis', dica: r.testeFaltam === 0 ? 'Termina hoje' : `Faltam ${r.testeFaltam} ${r.testeFaltam === 1 ? 'dia' : 'dias'} (até ${dataBr(r.testeGratisAte)}). No teste está tudo liberado.` }
+    ? { titulo: 'Teste grátis', dica: r.testeFaltam === 0 ? 'Termina hoje' : `Faltam ${r.testeFaltam} ${r.testeFaltam === 1 ? 'dia' : 'dias'} (até ${dataBr(r.testeGratisAte)})` }
     : { titulo: `${reais(r.mensalidade)} por mês`, dica: r.proximaMensalidade ? `Próximo vencimento: ${dataBr(r.proximaMensalidade.vencimento)}` : 'Plano ativo' }
   const ativar = (recurso: string) => (
     <a href={pedir(r.nome, recurso)} className="verde inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-bold">
@@ -39,12 +39,12 @@ export default function MeuPlano() {
   )
 
   return (
-    <div id="plano" className="scroll-mt-4">
-      <Grupo icone="moeda" titulo="Meu plano" descricao="Para ativar ou mudar algo, fale com o suporte do GIRON" cor="text-sucesso bg-sucesso/15">
+    <div>
+      <Grupo icone="moeda" titulo="Meu plano" descricao="Pra ativar algo, toque em Quero ativar" cor="text-sucesso bg-sucesso/15">
         <Linha titulo={plano.titulo} dica={plano.dica} />
         <Linha
           titulo="Robô do Telegram"
-          dica={r.robo ? 'Você consulta e lança tudo pelo Telegram. O robô está em construção e chega em breve.' : 'Consulte críticos, vencidos, contratos e lance pagamentos pelo Telegram.'}
+          dica={r.robo ? 'Em construção: chega em breve' : 'Consulte e lance tudo pelo Telegram'}
         >
           {r.robo ? <Selo ligado /> : ativar('robô do Telegram')}
         </Linha>
@@ -53,9 +53,9 @@ export default function MeuPlano() {
           dica={
             r.whatsapp
               ? r.testeGratisAte
-                ? 'O sistema cobra seus clientes sozinho. No teste: até 5 mensagens grátis, cada uma pra um cliente diferente.'
-                : 'O sistema cobra seus clientes sozinho.'
-              : 'Hoje você cobra pelo botão "Cobrar", do seu celular. Quer que o sistema cobre sozinho?'
+                ? 'No teste: 5 mensagens grátis'
+                : 'O sistema cobra sozinho'
+              : 'O sistema cobra seus clientes sozinho'
           }
         >
           {r.whatsapp ? <Selo ligado /> : ativar('WhatsApp automático')}

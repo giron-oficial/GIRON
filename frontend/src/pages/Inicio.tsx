@@ -273,7 +273,7 @@ export default function Inicio() {
               <div className="flex min-w-0 flex-col">
                 <h2 className="text-[15px] font-bold lg:text-base">{filtro ? situacoes[filtro].titulo : 'Cobrar agora'}</h2>
                 {envioAuto !== null && (
-                  <Link to={{ pathname: '/configuracoes', hash: 'plano' }} className="flex items-center gap-1.5 text-[11px] text-suave hover:text-texto">
+                  <Link to={{ pathname: '/configuracoes', search: '?s=plano' }} className="flex items-center gap-1.5 text-[11px] text-suave hover:text-texto">
                     <span className={`size-1.5 rounded-full ${envioAuto ? 'bg-sucesso' : 'bg-suave/60'}`} />
                     {envioAuto ? 'Envio automático no WhatsApp ligado' : 'Envio automático desligado: cobre pelo botão Cobrar'}
                   </Link>
