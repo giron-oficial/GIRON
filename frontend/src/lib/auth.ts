@@ -1,8 +1,9 @@
 import type { Session } from '@supabase/supabase-js'
 import { createContext, useContext } from 'react'
 
-export type Auth = { session: Session | null; carregando: boolean }
-export const AuthContext = createContext<Auth>({ session: null, carregando: true })
+// papel: 'fomentado' (financeira), 'cobrador' ou 'dono_giron' (dono do GIRON, vê o Painel do Dono)
+export type Auth = { session: Session | null; papel: string | null; carregando: boolean }
+export const AuthContext = createContext<Auth>({ session: null, papel: null, carregando: true })
 export const useAuth = () => useContext(AuthContext)
 
 // Mensagens de erro do login em portugues simples

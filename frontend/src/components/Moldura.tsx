@@ -19,7 +19,7 @@ const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
 const emBreve: { rotulo: string; icone: NomeIcone }[] = [
 ]
 
-const TESTE_DIAS = 30
+const TESTE_DIAS = 15
 
 function iniciais(nome: string) {
   const partes = nome.trim().split(/\s+/)

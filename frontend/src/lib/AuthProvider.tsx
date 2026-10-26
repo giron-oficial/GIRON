@@ -6,7 +6,9 @@ import { supabase } from './supabase'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
+  const [papel, setPapel] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
+  const usuario = session?.user.id
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -24,5 +26,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  return <AuthContext.Provider value={{ session, carregando }}>{children}</AuthContext.Provider>
+  // Papel de quem entrou (financeira ou dono do GIRON): a tela só abre depois de saber
+  useEffect(() => {
+    if (!usuario) {
+      setPapel(null)
+      return
+    }
+    let vivo = true
+    supabase
+      .from('usuarios')
+      .select('papel')
+      .eq('id', usuario)
+      .maybeSingle()
+      .then(({ data }) => vivo && setPapel(data?.papel ?? 'fomentado'))
+    return () => {
+      vivo = false
+    }
+  }, [usuario])
+
+  return <AuthContext.Provider value={{ session, papel, carregando: carregando || (!!session && !papel) }}>{children}</AuthContext.Provider>
 }
