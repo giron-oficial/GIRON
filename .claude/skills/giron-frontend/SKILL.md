@@ -14,7 +14,7 @@ Ele não quer cara de SaaS genérico e **não quer parecido com o CredPlus** (az
 
 1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
 2. **Informação primordial no topo.** Painel: capital em trânsito (cartão azul-escuro com brilho azul, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
-3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = botão principal, link, item ativo do menu, WhatsApp. Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
+3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = botão principal, link, item ativo do menu. WhatsApp = vidro verde (`zap`). Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
 4. **Situações em cor CHEIA, com degradê da mesma cor** e letras brancas (objeto `situacoes` de `pages/Inicio.tsx`). Bolinha do "vence hoje" vermelha piscando (`anima-pulso`).
 5. **Português simples na tela.** Sem termos técnicos e sem emoji na interface.
 
@@ -39,7 +39,7 @@ Os nomes antigos foram mantidos pra não mexer em todas as telas: `marca`, `sobr
 Cartões de destaque (capital em trânsito, "Cliente vai pagar", contrato): degradê de #0C2550 pra `superficie`, borda #1D3D75, rótulo #BFD8FF.
 Selos e avisos: fundo da cor com `/15` e texto na própria cor (ex.: `bg-vencido/15 text-vencido`). **Não use** `bg-white`, `text-slate-*` nem tons pastel claros: somem ou ofuscam no escuro.
 Fontes: **Exo 2** nos títulos e números grandes (`font-display`, h1–h3) e **Inter** no resto (`font-sans`), as duas do Google Fonts. Números com `tabular-nums`, dinheiro em 700–800.
-Utilitários: `cartao` e `verde` (fundo azul #2F80FF, letra branca). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
+Utilitários: `cartao`, `verde` (fundo azul #2F80FF, letra branca) e `zap` (**vidro verde** — TODO botão de WhatsApp: Cobrar, Mandar, Enviar; em `estilo.ts` é `botaoZap`). Cartões das 4 situações no painel são de **vidro da própria cor** (`pages/Inicio.tsx`). Cantos: 18 px nos cartões grandes, 14 px em cartões menores, 12–16 px em botões.
 
 ## Campos de digitar (regras do dono, 01/10/2026)
 
