@@ -173,13 +173,20 @@ export default function Moldura({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="min-w-0 flex-1 pb-28 lg:px-7 lg:py-6 lg:pb-8">
-        <div className="flex items-center justify-between px-4 pt-4 lg:hidden">
-          <Link to="/" className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3 px-4 pt-4 lg:hidden">
+          <Link to="/" className="flex shrink-0 items-center gap-2">
             <Logo tamanho={30} />
             <span className="font-display text-[15px] font-extrabold tracking-wider">GIRON</span>
           </Link>
-          <details className="relative">
-            <summary aria-label="Sua conta" className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <details className="relative min-w-0">
+            <summary aria-label="Sua conta" className="flex cursor-pointer list-none items-center gap-2.5 [&::-webkit-details-marker]:hidden">
+              {/* nome da empresa do Fomentado na frente da logo dele */}
+              {resumo && (
+                <span className="flex min-w-0 flex-col items-end text-right leading-tight">
+                  <span className="max-w-[46vw] truncate text-sm font-bold">{resumo.nome}</span>
+                  <span className="max-w-[46vw] truncate text-[10px] text-suave">{resumo.subdominio}.gironga.com.br</span>
+                </span>
+              )}
               <Marca r={resumo} className="size-10 rounded-[13px] text-[13px]" fundo="bg-superficie-2" />
             </summary>
             <div className="cartao absolute top-12 right-0 z-20 flex w-64 flex-col gap-2.5 rounded-2xl p-3 shadow-2xl shadow-black/50">
