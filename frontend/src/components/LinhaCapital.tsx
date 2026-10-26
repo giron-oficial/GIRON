@@ -36,8 +36,9 @@ export default function LinhaCapital({ pontos }: { pontos: PontoCapital[] }) {
   const area = `${linha}L${x(pontos.length - 1)},${ALTURA - BASE}L${x(0)},${ALTURA - BASE}Z`
   const ultimo = pontos.length - 1
   const sel = ativo ?? ultimo
-  const primeiro = pontos[0]?.valor ?? 0
-  const variacao = primeiro >= 1 ? Math.round(((pontos[ultimo].valor - primeiro) / primeiro) * 100) : null
+  // Comparação com o fim do mês passado (o começo dos 6 meses pode ser zero e dava % sem sentido)
+  const anterior = pontos[ultimo - 1]
+  const variacao = anterior && anterior.valor >= 1 ? Math.round(((pontos[ultimo].valor - anterior.valor) / anterior.valor) * 100) : null
 
   return (
     <div className="flex min-w-0 flex-col gap-1">
@@ -45,7 +46,7 @@ export default function LinhaCapital({ pontos }: { pontos: PontoCapital[] }) {
         <span className="text-suave">Últimos 6 meses</span>
         {variacao !== null && variacao !== 0 && (
           <span className={`font-semibold ${variacao > 0 ? 'text-sucesso' : 'text-vencido'}`}>
-            {variacao > 0 ? '↑' : '↓'} {Math.abs(variacao)}%
+            {variacao > 0 ? '↑' : '↓'} {Math.abs(variacao)}% <span className="font-normal text-suave">desde {anterior.rotulo}</span>
           </span>
         )}
       </div>
