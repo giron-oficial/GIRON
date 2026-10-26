@@ -141,6 +141,7 @@ export default function Inicio() {
   const p = painel
   const totalJuros = p.jurosRecebidos + p.jurosPendentes
   const percentual = totalJuros > 0 ? Math.min(100, Math.round((p.jurosRecebidos / totalJuros) * 100)) : 0
+  const corGrau = percentual < 34 ? '#F0525C' : percentual < 67 ? '#F5C02E' : '#34D17A'
   const lista = filtro ? p.cobrancas.filter((c) => c.situacao === filtro) : p.cobrancas
   const visiveis = verTodos ? lista : lista.slice(0, 5)
   const nome = empresa.nome_empresa.split(' ')[0]
@@ -307,13 +308,17 @@ export default function Inicio() {
             })}
         </section>
 
-        <section aria-label="Clientes do mês" className="cartao flex items-center gap-5 rounded-[18px] p-5 max-lg:order-1 lg:col-span-4">
+        <section aria-label="Clientes do mês" className="vidro flex items-center gap-5 rounded-[18px] p-5 max-lg:order-1 lg:col-span-4">
+            {/* Anel colorido conforme o grau: vermelho (pouco recebido) → amarelo → verde (perto de 100%) */}
             <div
               className="flex size-30 shrink-0 items-center justify-center rounded-full"
-              style={{ background: `conic-gradient(#2F80FF 0 ${percentual}%, #0F1D36 ${percentual}% 100%)` }}
+              style={{
+                background: `conic-gradient(transparent 0 ${percentual}%, #0F1D36 ${percentual}% 100%), conic-gradient(#F0525C 0%, #F5C02E 50%, #34D17A 100%)`,
+                filter: `drop-shadow(0 0 10px ${corGrau}66)`,
+              }}
             >
-              <div className="flex size-23 flex-col items-center justify-center rounded-full bg-superficie">
-                <span className="font-display text-[26px] font-extrabold">{percentual}%</span>
+              <div className="flex size-23 flex-col items-center justify-center rounded-full bg-[#08111F]">
+                <span className="font-display text-[26px] font-extrabold" style={{ color: corGrau }}>{percentual}%</span>
                 <span className="text-[11px] text-suave">dos juros</span>
               </div>
             </div>
