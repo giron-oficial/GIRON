@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type InputHTMLAttributes } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
-import { botaoClaro, botaoVerde, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
+import { botaoClaro, botaoVerde, campo, erroCaixa, rotulo, tituloSecao, botaoZap } from '../components/estilo'
 import { textoExtrato, textoSimulacao, textoTarjeta, valorTexto, forma, type ParcelaCalc } from '../lib/calculadora'
 import { linkWhatsApp, mascaraPercentual, mascaraReais, numeroBr, percentualCompleto, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
@@ -60,7 +60,7 @@ function CaixaTexto({ titulo, texto, telefone, aoEnviar }: { titulo: string; tex
           <Icone nome="copiar" tamanho={18} />
           Copiar
         </button>
-        <a href={zap} target="_blank" rel="noreferrer" onClick={() => aoEnviar?.('whatsapp')} className={botaoVerde}>
+        <a href={zap} target="_blank" rel="noreferrer" onClick={() => aoEnviar?.('whatsapp')} className={botaoZap}>
           <Icone nome="whatsapp" tamanho={18} />
           WhatsApp
         </a>

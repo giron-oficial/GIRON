@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
-import { botaoClaro, botaoVerde, tituloSecao } from '../components/estilo'
+import { botaoClaro, tituloSecao, botaoZap } from '../components/estilo'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { dataBr, idCliente, idContrato, linkWhatsApp, nomeModalidade, percentualCompleto, reais } from '../lib/formatos'
 import { compartilharImagem, reciboImagem, reciboTexto, type LinhaRecibo } from '../lib/recibo'
@@ -215,7 +215,7 @@ export default function Extrato() {
         <div className="flex flex-col gap-3 lg:sticky lg:top-6">
           <section className="cartao flex flex-col gap-2 rounded-[22px] p-4">
             <h2 className={tituloSecao}>Enviar</h2>
-            <button type="button" onClick={enviar} disabled={!blob} className={`${botaoVerde} w-full`}>
+            <button type="button" onClick={enviar} disabled={!blob} className={`${botaoZap} w-full`}>
               <Icone nome="whatsapp" tamanho={18} />
               Enviar imagem no WhatsApp
             </button>

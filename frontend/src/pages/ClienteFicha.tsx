@@ -335,7 +335,7 @@ export default function ClienteFicha() {
                   <p className="text-xs text-suave">Link pronto. Vale 7 dias e só pode ser usado uma vez. O cliente só vê o nome da empresa e o primeiro nome dele.</p>
                   <p className="rounded-xl bg-superficie px-3 py-2 text-xs font-medium break-all">{linkLocal}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <a href={linkWhatsApp(cliente.telefone, `Olá, ${cliente.nome_completo.split(' ')[0]}! Quando estiver no local, abra este link e envie sua nova localização: ${linkLocal}`)} target="_blank" rel="noreferrer" className="verde inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold">
+                    <a href={linkWhatsApp(cliente.telefone, `Olá, ${cliente.nome_completo.split(' ')[0]}! Quando estiver no local, abra este link e envie sua nova localização: ${linkLocal}`)} target="_blank" rel="noreferrer" className="zap inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold">
                       <Icone nome="whatsapp" tamanho={16} />
                       Mandar
                     </a>
@@ -376,7 +376,7 @@ export default function ClienteFicha() {
                       href={`https://wa.me/?text=${encodeURIComponent(`${cliente.nome_completo} - ${l.nome}: ${mapa(l)}`)}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="verde inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold"
+                      className="zap inline-flex h-10 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold"
                     >
                       <Icone nome="whatsapp" tamanho={16} />
                       Mandar

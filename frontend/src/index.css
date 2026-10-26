@@ -40,6 +40,18 @@
   color: #FFFFFF;
 }
 
+/* Botão de WhatsApp (Cobrar, Mandar, Enviar): vidro VERDE, pedido do dono em 26/10/2026 */
+@utility zap {
+  background: linear-gradient(160deg, rgb(52 209 122 / 0.5), rgb(19 131 74 / 0.2));
+  border: 1px solid rgb(52 209 122 / 0.7);
+  color: #ECFFF4;
+  box-shadow: 0 8px 24px -10px rgb(52 209 122 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 16px rgb(52 209 122 / 0.15);
+  backdrop-filter: blur(12px);
+  &:hover {
+    background: linear-gradient(160deg, rgb(52 209 122 / 0.62), rgb(19 131 74 / 0.28));
+  }
+}
+
 @layer base {
   :root {
     color-scheme: dark;

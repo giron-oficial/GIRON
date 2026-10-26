@@ -285,7 +285,7 @@ export default function Inicio() {
                       rel="noreferrer"
                       onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_inicio', situacao: situacaoEvento(c.situacao) })}
                       aria-label={`Cobrar ${c.cliente} no WhatsApp`}
-                      className="verde flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
+                      className="zap flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
                     >
                       <Icone nome="whatsapp" />
                       <span className="hidden lg:inline">Cobrar</span>

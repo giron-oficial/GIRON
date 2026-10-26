@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
-import { botaoClaro, botaoVerde, iniciais, seloCadastro } from '../components/estilo'
+import { botaoClaro, botaoVerde, iniciais, seloCadastro, botaoZap } from '../components/estilo'
 import { cpfEscondido, idCliente, lerId, mascaraTelefone, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
@@ -115,7 +115,7 @@ export default function Clientes() {
               href={`https://wa.me/?text=${encodeURIComponent('Olá! Para fazer seu cadastro, preencha por este link: ' + link)}`}
               target="_blank"
               rel="noreferrer"
-              className={`${botaoVerde} h-11`}
+              className={`${botaoZap} h-11`}
             >
               <Icone nome="whatsapp" tamanho={18} />
               WhatsApp

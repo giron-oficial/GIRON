@@ -1,4 +1,4 @@
-// Classes do tema visual escuro com verde usadas em várias telas (ver skill giron-frontend)
+// Classes do tema visual Azul Espacial usadas em várias telas (ver skill giron-frontend)
 
 export const campo =
   'mt-1.5 w-full rounded-2xl border border-borda bg-superficie-2 px-4 py-3 text-base outline-none transition placeholder:text-suave/70 focus:border-marca focus:ring-4 focus:ring-marca/15'
@@ -7,6 +7,10 @@ export const rotulo = 'block text-sm font-semibold'
 
 export const botaoVerde =
   'verde inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 font-extrabold transition active:scale-[0.98] disabled:opacity-60'
+
+// Botão de WhatsApp: vidro verde
+export const botaoZap =
+  'zap inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 font-extrabold transition active:scale-[0.98] disabled:opacity-60'
 
 export const botaoClaro =
   'cartao inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 font-semibold transition hover:text-marca active:scale-[0.98] disabled:opacity-60'
