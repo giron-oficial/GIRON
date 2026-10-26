@@ -6,12 +6,12 @@ import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 
-// Cores e textos das 4 situações (bolinhas de vencimento): cartão de cor cheia, em degradê da mesma cor
-const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'bg-linear-135 from-[#A37BFF] to-[#6B3FE0] text-white shadow-critico/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-critico/15', escura: 'text-critico' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'bg-linear-135 from-[#F0525C] to-[#C8252F] text-white shadow-vencido/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-vencido/15', escura: 'text-vencido' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'bg-linear-135 from-[#3FA9FF] to-[#0B6FD6] text-white shadow-hoje/35', sub: 'text-white', bolinha: 'bg-[#F0525C] anima-pulso', clara: 'bg-hoje/15', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'bg-linear-135 from-[#F5C02E] to-[#D99A00] text-white shadow-amanha/35', sub: 'text-white', bolinha: 'bg-white', clara: 'bg-amanha/15', escura: 'text-amanha' },
+// Cores e textos das 4 situações (bolinhas de vencimento): cartão de VIDRO da cor (transparente, borda e brilho da mesma cor)
+const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; brilho: string; sub: string; bolinha: string; clara: string; escura: string }> = {
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'border border-[#A37BFF]/70 bg-linear-160 from-[#A37BFF]/60 via-[#6B3FE0]/30 to-[#6B3FE0]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(163,123,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(163,123,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#D4C2FF] shadow-[0_0_10px_2px_rgba(163,123,255,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(163,123,255,0.55),transparent_70%)]', clara: 'bg-critico/15', escura: 'text-critico' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'border border-[#F0525C]/70 bg-linear-160 from-[#F0525C]/60 via-[#C8252F]/30 to-[#C8252F]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(240,82,92,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(240,82,92,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFB3B8] shadow-[0_0_10px_2px_rgba(240,82,92,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(240,82,92,0.55),transparent_70%)]', clara: 'bg-vencido/15', escura: 'text-vencido' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'border border-[#3FA9FF]/70 bg-linear-160 from-[#3FA9FF]/60 via-[#0B6FD6]/30 to-[#0B6FD6]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(63,169,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(63,169,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#F0525C] anima-pulso', brilho: 'bg-[radial-gradient(circle,rgba(63,169,255,0.55),transparent_70%)]', clara: 'bg-hoje/15', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'border border-[#F5C02E]/70 bg-linear-160 from-[#F5C02E]/60 via-[#D99A00]/30 to-[#D99A00]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(245,192,46,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(245,192,46,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFE7A3] shadow-[0_0_10px_2px_rgba(245,192,46,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(245,192,46,0.55),transparent_70%)]', clara: 'bg-amanha/15', escura: 'text-amanha' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
@@ -224,11 +224,12 @@ export default function Inicio() {
                 key={s}
                 onClick={() => setFiltro(ativo ? null : s)}
                 aria-pressed={ativo}
-                className={`flex flex-col items-center gap-0.5 rounded-[18px] px-1.5 pt-2.5 pb-2 text-left tabular-nums shadow-lg transition lg:items-stretch lg:gap-2 lg:rounded-[16px] lg:px-4 lg:py-3.5 ${info.cartao} ${ativo ? 'ring-4 ring-white/80 ring-offset-2 ring-offset-fundo' : ''}`}
+                className={`relative isolate flex flex-col items-center gap-0.5 overflow-hidden rounded-[18px] px-1.5 pt-2.5 pb-2 text-left tabular-nums transition hover:brightness-110 lg:items-stretch lg:gap-2 lg:rounded-[16px] lg:px-4 lg:py-3.5 ${info.cartao} ${ativo ? 'ring-2 ring-white/80 ring-offset-2 ring-offset-fundo' : ''}`}
               >
+                <span aria-hidden className={`pointer-events-none absolute -top-10 -right-8 -z-10 size-32 rounded-full blur-md ${info.brilho}`} />
                 <span className="flex items-center gap-2 lg:justify-between">
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    <span className={`size-2.5 rounded-full ring-4 ring-white/25 ${info.bolinha}`} />
+                    <span className={`size-2.5 rounded-full ring-4 ring-white/15 ${info.bolinha}`} />
                     <span className="hidden lg:inline">{info.titulo}</span>
                   </span>
                   <span className="hidden text-2xl leading-none font-bold lg:inline">{clientes.length}</span>
@@ -236,7 +237,7 @@ export default function Inicio() {
                 <span className="text-[22px] leading-tight font-bold lg:hidden">{clientes.length}</span>
                 <span className="text-[11px] font-semibold lg:hidden">{info.rotulo}</span>
                 <span className="text-[10px] font-semibold lg:text-base lg:font-bold">{semCentavos(total)}</span>
-                <span className={`hidden flex-col gap-1 border-t border-white/25 pt-2 text-xs font-medium lg:flex`}>
+                <span className={`hidden flex-col gap-1 border-t border-white/15 pt-2 text-xs font-medium lg:flex`}>
                   {clientes.slice(0, 2).map((c) => (
                     <span key={c.nome} className="flex justify-between gap-2">
                       <span className="truncate">{c.nome}</span>
