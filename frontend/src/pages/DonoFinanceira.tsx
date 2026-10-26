@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Interruptor from '../components/Interruptor'
 import MolduraDono from '../components/MolduraDono'
-import { botaoClaro, botaoEscuro, botaoZap, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
+import { botaoClaro, botaoZap, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
 import { carregarPainelDono, donoAcoes, iso, nomeSituacao, type Cobranca, type Financeira } from '../lib/dono'
 import { dataBr, linkWhatsApp, mascaraReais, mascaraTelefone, numeroBr, reais, reaisCampo } from '../lib/formatos'
 import { MarcaFinanceira } from './DonoPainel'
@@ -125,57 +125,74 @@ function ComecarCobranca({ f, pronto }: { f: Financeira; pronto: () => void }) {
   )
 }
 
-// Uma cobrança em aberto: toca em "Recebi", confere a data e confirma
-function Aberta({ c, f, hoje, mudou }: { c: Cobranca; f: Financeira; hoje: string; mudou: () => void }) {
-  const [abrir, setAbrir] = useState(false)
-  const [data, setData] = useState(hoje)
-  const [erro, setErro] = useState('')
+// Uma cobrança em aberto: uma linha só (nome, vencimento, valor e o botão Receber)
+function Aberta({ c, hoje, receber }: { c: Cobranca; hoje: string; receber: () => void }) {
   const atraso = c.vencimento < hoje ? Math.round((Date.parse(hoje) - Date.parse(c.vencimento)) / 86400000) : 0
   const situacao = atraso > 0 ? { t: `${atraso} ${atraso === 1 ? 'dia' : 'dias'} de atraso`, c: 'text-vencido' } : c.vencimento === hoje ? { t: 'Vence hoje', c: 'text-hoje' } : { t: `Vence ${dataBr(c.vencimento)}`, c: 'text-suave' }
-  const texto = `Olá${f.responsavel ? `, ${f.responsavel.split(' ')[0]}` : ''}! Aqui é do GIRON. A ${nomeCobranca(c).toLowerCase()} de ${reais(c.valor)} ${atraso > 0 ? `venceu em ${dataBr(c.vencimento)}` : c.vencimento === hoje ? 'vence hoje' : `vence em ${dataBr(c.vencimento)}`}.`
+  return (
+    <div className="flex items-center gap-3 border-t border-superficie-2 py-2.5 first:border-t-0 first:pt-0">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm font-bold">{nomeCobranca(c)}</span>
+        <span className={`text-xs font-semibold ${situacao.c}`}>{situacao.t}</span>
+      </div>
+      <span className="shrink-0 font-display font-extrabold tabular-nums">{reais(c.valor)}</span>
+      <button onClick={receber} className="zap h-9 shrink-0 rounded-xl px-3 text-sm font-bold">Receber</button>
+    </div>
+  )
+}
+
+// Janela pequena por cima da ficha pra confirmar o recebimento
+function JanelaReceber({ c, f, hoje, fechar, pronto }: { c: Cobranca; f: Financeira; hoje: string; fechar: () => void; pronto: () => void }) {
+  const [data, setData] = useState(hoje)
+  const [erro, setErro] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const atraso = c.vencimento < hoje
+  const texto = `Olá${f.responsavel ? `, ${f.responsavel.split(' ')[0]}` : ''}! Aqui é do GIRON. A ${nomeCobranca(c).toLowerCase()} de ${reais(c.valor)} ${atraso ? `venceu em ${dataBr(c.vencimento)}` : c.vencimento === hoje ? 'vence hoje' : `vence em ${dataBr(c.vencimento)}`}.`
+
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && fechar()
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }, [fechar])
 
   async function confirmar() {
     setErro('')
+    setEnviando(true)
     const { error } = await donoAcoes.receber(c.id, data)
+    setEnviando(false)
     if (error) setErro('Não foi possível marcar como recebido. Tente de novo.')
-    else mudou()
+    else pronto()
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-2xl bg-superficie-2 p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col">
-          <span className="text-sm font-bold">{nomeCobranca(c)}</span>
-          <span className={`text-xs font-semibold ${situacao.c}`}>{situacao.t}</span>
-        </div>
-        <span className="font-display text-lg font-extrabold tabular-nums">{reais(c.valor)}</span>
-      </div>
-      {!abrir ? (
-        <div className="flex gap-2">
-          <button onClick={() => setAbrir(true)} className={`${botaoZap} h-11 flex-1 text-sm`}>
-            <Icone nome="certo" tamanho={18} />
-            Recebi
-          </button>
-          {f.telefone && (
-            <a href={linkWhatsApp(f.telefone, texto)} target="_blank" rel="noreferrer" className={`${botaoZap} h-11 flex-1 text-sm`}>
-              <Icone nome="whatsapp" tamanho={18} />
-              Cobrar
-            </a>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-suave">
-            Recebido em
-            <input type="date" value={data} max={hoje} onChange={(e) => setData(e.target.value)} className={`${campo} [color-scheme:dark]`} />
-          </label>
-          {erro && <p className={erroCaixa}>{erro}</p>}
-          <div className="flex gap-2">
-            <button onClick={() => setAbrir(false)} className={`${botaoEscuro} h-11 flex-1 text-sm`}>Cancelar</button>
-            <button onClick={confirmar} disabled={!data} className={`${botaoZap} h-11 flex-1 text-sm`}>Confirmar {reais(c.valor)}</button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center" onClick={fechar}>
+      <div role="dialog" aria-modal="true" aria-label="Receber pagamento" onClick={(e) => e.stopPropagation()} className="cartao flex w-full max-w-sm flex-col gap-4 rounded-[18px] p-5 shadow-2xl shadow-black/60">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col">
+            <span className="text-xs text-suave">{f.nome}</span>
+            <span className="font-bold">{nomeCobranca(c)}</span>
+            <span className="text-xs text-suave">Vencimento {dataBr(c.vencimento)}</span>
           </div>
+          <button onClick={fechar} aria-label="Fechar" className="-mt-1 -mr-1 flex size-9 items-center justify-center rounded-xl text-suave hover:bg-white/5">
+            <Icone nome="xis" tamanho={18} />
+          </button>
         </div>
-      )}
+        <span className="font-display text-3xl font-extrabold tabular-nums">{reais(c.valor)}</span>
+        <label className="text-xs font-semibold text-suave">
+          Recebido em
+          <input type="date" value={data} max={hoje} onChange={(e) => setData(e.target.value)} className={`${campo} [color-scheme:dark]`} />
+        </label>
+        {erro && <p className={erroCaixa}>{erro}</p>}
+        <button onClick={confirmar} disabled={!data || enviando} className={botaoZap}>
+          <Icone nome="certo" tamanho={18} />
+          {enviando ? 'Salvando…' : 'Confirmar recebimento'}
+        </button>
+        {f.telefone && (
+          <a href={linkWhatsApp(f.telefone, texto)} target="_blank" rel="noreferrer" className="text-center text-sm font-semibold text-suave hover:text-texto">
+            Ainda não pagou? Cobrar no WhatsApp
+          </a>
+        )}
+      </div>
     </div>
   )
 }
@@ -229,6 +246,8 @@ export default function DonoFinanceira() {
   const [f, setF] = useState<Financeira | null>(null)
   const [erro, setErro] = useState('')
   const [verPagas, setVerPagas] = useState(false)
+  const [verAbertas, setVerAbertas] = useState(false)
+  const [receber, setReceber] = useState<Cobranca | null>(null)
   const hoje = iso(new Date())
 
   const carregar = useCallback(() => {
@@ -309,10 +328,16 @@ export default function DonoFinanceira() {
                 ) : (
                   <Bloco titulo="Cobranças em aberto">
                     {abertas.length === 0 && <p className="text-sm text-suave">Nada em aberto. Tudo pago.</p>}
-                    {abertas.map((c) => (
-                      <Aberta key={c.id} c={c} f={f} hoje={hoje} mudou={carregar} />
-                    ))}
-                    {!f.telefone && abertas.length > 0 && <p className="text-xs text-suave">Coloque o WhatsApp dela em "Contato" pra aparecer o botão de cobrar.</p>}
+                    <div className="flex flex-col">
+                      {(verAbertas ? abertas : abertas.slice(0, 3)).map((c) => (
+                        <Aberta key={c.id} c={c} hoje={hoje} receber={() => setReceber(c)} />
+                      ))}
+                    </div>
+                    {abertas.length > 3 && (
+                      <button onClick={() => setVerAbertas(!verAbertas)} className="text-left text-sm font-semibold text-marca">
+                        {verAbertas ? 'Mostrar menos' : `Ver todas (${abertas.length})`}
+                      </button>
+                    )}
                   </Bloco>
                 )}
 
@@ -365,6 +390,18 @@ export default function DonoFinanceira() {
               </div>
             </div>
           </>
+        )}
+        {f && receber && (
+          <JanelaReceber
+            c={receber}
+            f={f}
+            hoje={hoje}
+            fechar={() => setReceber(null)}
+            pronto={() => {
+              setReceber(null)
+              carregar()
+            }}
+          />
         )}
       </main>
     </MolduraDono>
