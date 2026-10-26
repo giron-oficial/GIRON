@@ -21,7 +21,6 @@ const statusAcesso: Record<string, string> = {
   bloqueio_total: 'Acesso bloqueado. Fale com o suporte do GIRON.',
 }
 
-const semCentavos = (v: number) => reais(v).replace(',00', '')
 
 function saudacao() {
   const h = new Date().getHours()
@@ -67,12 +66,12 @@ function mensagem(c: Cobranca, pix: string | null) {
 
 function Mini({ rotulo, valor, icone, cor, rodape, barra }: { rotulo: string; valor: number; icone: NomeIcone; cor: string; rodape: string; barra?: number }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5 border-l border-superficie-2 pl-3 first:border-l-0 first:pl-0 lg:pl-4">
+    <div className="@container flex min-w-0 flex-col gap-1.5 border-l border-superficie-2 pl-3 first:border-l-0 first:pl-0 lg:pl-4">
       <span className={`flex size-7.5 items-center justify-center rounded-[10px] ${cor}`}>
         <Icone nome={icone} tamanho={15} />
       </span>
       <span className="truncate text-[11px] text-suave lg:text-xs">{rotulo}</span>
-      <span className="truncate font-display text-[16px] font-extrabold lg:text-[19px] xl:text-[22px]">{semCentavos(valor)}</span>
+      <span className="truncate font-display text-[clamp(15px,14.5cqi,30px)] leading-tight font-extrabold tabular-nums">{reais(valor)}</span>
       {barra !== undefined && (
         <div className="h-1 overflow-hidden rounded-full bg-superficie-2 lg:h-1.5">
           <div className="h-full rounded-full bg-linear-90 from-marca-clara to-marca" style={{ width: `${barra}%` }} />
@@ -183,7 +182,7 @@ export default function Inicio() {
             <span className="lg:hidden">{saudacao()}, {nome} ·</span>
             Capital em trânsito
           </span>
-          <span className="relative font-display text-[34px] leading-none font-extrabold tracking-tight lg:text-[40px]">{semCentavos(p.capitalTransito)}</span>
+          <span className="relative font-display text-[38px] leading-none font-extrabold tracking-tight tabular-nums lg:text-[52px]">{reais(p.capitalTransito)}</span>
           <span className="relative text-xs text-suave">
             {p.contratosAtivos} {p.contratosAtivos === 1 ? 'contrato ativo' : 'contratos ativos'} na rua
             <span className="lg:hidden"> · juros do mês {percentual}%</span>
@@ -199,7 +198,7 @@ export default function Inicio() {
               icone="moeda"
               cor="bg-marca/15 text-marca"
               barra={percentual}
-              rodape={`${percentual}% · faltam ${semCentavos(p.jurosPendentes)}`}
+              rodape={`${percentual}% · faltam ${reais(p.jurosPendentes)}`}
             />
             <Mini rotulo="Capital recebido" valor={p.capitalRecebido} icone="entrando" cor="bg-hoje/15 text-hoje" rodape="voltou pro caixa" />
             <Mini
@@ -236,20 +235,20 @@ export default function Inicio() {
               >
                 <span aria-hidden className={`pointer-events-none absolute -top-10 -right-8 -z-10 size-32 rounded-full blur-md ${info.brilho}`} />
                 <span className="flex items-center gap-2 lg:justify-between">
-                  <span className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="flex items-center gap-2 text-[15px] font-bold">
                     <span className={`size-2.5 rounded-full ring-4 ring-white/15 ${info.bolinha}`} />
                     <span className="hidden lg:inline">{info.titulo}</span>
                   </span>
-                  <span className="hidden text-2xl leading-none font-bold lg:inline">{clientes.length}</span>
+                  <span className="hidden font-display text-[38px] leading-none font-extrabold lg:inline">{clientes.length}</span>
                 </span>
-                <span className="text-[22px] leading-tight font-bold lg:hidden">{clientes.length}</span>
+                <span className="font-display text-[28px] leading-tight font-extrabold lg:hidden">{clientes.length}</span>
                 <span className="text-[11px] font-semibold lg:hidden">{info.rotulo}</span>
-                <span className="text-[10px] font-semibold lg:text-base lg:font-bold">{semCentavos(total)}</span>
-                <span className={`hidden flex-col gap-1 border-t border-white/15 pt-2 text-xs font-medium lg:flex`}>
+                <span className="text-[11px] font-bold tabular-nums lg:font-display lg:text-[24px] lg:font-extrabold">{reais(total)}</span>
+                <span className={`hidden flex-col gap-1 border-t border-white/15 pt-2 text-[13px] font-medium lg:flex`}>
                   {clientes.slice(0, 2).map((c) => (
                     <span key={c.nome} className="flex justify-between gap-2">
                       <span className="truncate">{c.nome}</span>
-                      <span className={`shrink-0 ${info.sub}`}>{s === 'critico' ? `${c.atraso} dias` : semCentavos(c.valor)}</span>
+                      <span className={`shrink-0 ${info.sub}`}>{s === 'critico' ? `${c.atraso} dias` : reais(c.valor)}</span>
                     </span>
                   ))}
                   {clientes.length > 2 && <span className={info.sub}>e mais {clientes.length - 2}</span>}
