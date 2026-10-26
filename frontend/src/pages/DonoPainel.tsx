@@ -155,9 +155,6 @@ export default function DonoPainel() {
                   <span className="text-sm text-[#BFD8FF]">Recebido em {mes}</span>
                   <span className="font-display text-[40px] leading-none font-extrabold tabular-nums lg:text-[48px]">{reais(p.recebidoMes)}</span>
                 </div>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-marca/20 text-marca-brilho">
-                  <Icone nome="entrando" />
-                </span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <Numero rotulo="Falta entrar no mês" valor={p.aReceberMes} rodape="ainda vai vencer" />
@@ -192,7 +189,7 @@ export default function DonoPainel() {
                   <button
                     key={x.chave}
                     onClick={() => setFiltro(x.chave)}
-                    className={`h-9 shrink-0 rounded-full px-3.5 text-sm font-semibold ${filtro === x.chave ? 'verde' : 'bg-superficie-2 text-suave'}`}
+                    className={`h-9 shrink-0 rounded-full px-3.5 text-sm font-semibold ${filtro === x.chave ? 'zap' : 'bg-superficie-2 text-suave'}`}
                   >
                     {x.texto} <span className="tabular-nums opacity-75">{qtd(x.chave)}</span>
                   </button>

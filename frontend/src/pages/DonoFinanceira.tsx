@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import Icone from '../components/Icone'
 import Interruptor from '../components/Interruptor'
 import MolduraDono from '../components/MolduraDono'
-import { botaoClaro, botaoEscuro, botaoVerde, botaoZap, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
+import { botaoClaro, botaoEscuro, botaoZap, campo, erroCaixa, rotulo, tituloSecao } from '../components/estilo'
 import { carregarPainelDono, donoAcoes, iso, nomeSituacao, type Cobranca, type Financeira } from '../lib/dono'
 import { dataBr, linkWhatsApp, mascaraReais, mascaraTelefone, numeroBr, reais, reaisCampo } from '../lib/formatos'
 import { MarcaFinanceira } from './DonoPainel'
@@ -82,7 +82,7 @@ function ComecarCobranca({ f, pronto }: { f: Financeira; pronto: () => void }) {
             key={p.texto}
             type="button"
             onClick={() => setComRobo(p.comRobo)}
-            className={`flex flex-col items-start gap-0.5 rounded-2xl border p-3 text-left ${p.comRobo === comRobo ? 'border-marca bg-marca/15' : 'border-borda bg-superficie-2'}`}
+            className={`flex flex-col items-start gap-0.5 rounded-2xl border p-3 text-left ${p.comRobo === comRobo ? 'zap' : 'border-borda bg-superficie-2'}`}
           >
             <span className="text-sm font-bold">{p.texto}</span>
             <span className="font-display text-lg font-extrabold tabular-nums">{reais(p.valor)}</span>
@@ -118,7 +118,7 @@ function ComecarCobranca({ f, pronto }: { f: Financeira; pronto: () => void }) {
         </label>
       )}
       {erro && <p className={erroCaixa}>{erro}</p>}
-      <button onClick={salvar} disabled={enviando || !vencimento} className={botaoVerde}>
+      <button onClick={salvar} disabled={enviando || !vencimento} className={botaoZap}>
         {enviando ? 'Salvando…' : 'Começar a cobrar'}
       </button>
     </Bloco>
@@ -152,7 +152,7 @@ function Aberta({ c, f, hoje, mudou }: { c: Cobranca; f: Financeira; hoje: strin
       </div>
       {!abrir ? (
         <div className="flex gap-2">
-          <button onClick={() => setAbrir(true)} className={`${botaoVerde} h-11 flex-1 text-sm`}>
+          <button onClick={() => setAbrir(true)} className={`${botaoZap} h-11 flex-1 text-sm`}>
             <Icone nome="certo" tamanho={18} />
             Recebi
           </button>
@@ -172,7 +172,7 @@ function Aberta({ c, f, hoje, mudou }: { c: Cobranca; f: Financeira; hoje: strin
           {erro && <p className={erroCaixa}>{erro}</p>}
           <div className="flex gap-2">
             <button onClick={() => setAbrir(false)} className={`${botaoEscuro} h-11 flex-1 text-sm`}>Cancelar</button>
-            <button onClick={confirmar} disabled={!data} className={`${botaoVerde} h-11 flex-1 text-sm`}>Confirmar {reais(c.valor)}</button>
+            <button onClick={confirmar} disabled={!data} className={`${botaoZap} h-11 flex-1 text-sm`}>Confirmar {reais(c.valor)}</button>
           </div>
         </div>
       )}
@@ -292,15 +292,15 @@ export default function DonoFinanceira() {
                   ) : (
                     (f.situacao === 'bloqueada' || f.situacao === 'parcial') && (
                       <Ajuste titulo="Liberar por 3 dias" texto="Pra quando ela prometeu pagar. O bloqueio volta sozinho depois.">
-                        <button onClick={() => acao(donoAcoes.liberarAte(f.id, maisDias(hoje, 3)))} className="h-10 shrink-0 rounded-xl bg-marca/20 px-3 text-sm font-semibold text-marca-brilho">Liberar</button>
+                        <button onClick={() => acao(donoAcoes.liberarAte(f.id, maisDias(hoje, 3)))} className="h-10 shrink-0 rounded-xl zap px-3 text-sm font-semibold">Liberar</button>
                       </Ajuste>
                     )
                   )}
                   <Ajuste titulo="Robô do Telegram" texto={f.robo ? 'Ligado' : 'Desligado'}>
-                    <Interruptor rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
+                    <Interruptor verde rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
                   </Ajuste>
                   <Ajuste titulo="Travar (só consulta)" texto="Ela vê tudo, mas não consegue mexer em nada.">
-                    <Interruptor rotulo="Travar (só consulta)" ligado={f.bloqueioManual} onChange={(v) => acao(donoAcoes.travar(f.id, v))} />
+                    <Interruptor verde rotulo="Travar (só consulta)" ligado={f.bloqueioManual} onChange={(v) => acao(donoAcoes.travar(f.id, v))} />
                   </Ajuste>
                 </Bloco>
 

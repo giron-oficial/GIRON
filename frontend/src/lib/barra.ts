@@ -41,7 +41,7 @@ export async function carregarBarra(): Promise<ResumoBarra | null> {
     statusAcesso: empresa.data.status_acesso,
     testeGratisAte: empresa.data.teste_gratis_ate,
     testeFaltam: empresa.data.teste_gratis_ate
-      ? Math.max(0, Math.ceil((Date.parse(empresa.data.teste_gratis_ate + 'T23:59:59') - Date.now()) / 86400000))
+      ? Math.max(0, Math.round((Date.parse(empresa.data.teste_gratis_ate + 'T12:00:00') - Date.parse(iso(new Date()) + 'T12:00:00')) / 86400000))
       : 0,
     clientes: clientes.count ?? 0,
     cadastrosPendentes: pendentes.count ?? 0,
