@@ -51,7 +51,7 @@ Utilitários: `cartao`, `verde` (fundo azul #2F80FF, letra branca) e `zap` (**vi
 
 ## Peças prontas — reutilize, não recrie
 
-- `components/Moldura.tsx`: computador = menu lateral fixo (opção A); celular = barra do topo (logo + iniciais que abrem conta/plano/Sair) e barra de baixo Início · Clientes · + · Calcular · Resumo (opção B). Toda tela interna fica dentro dela.
+- `components/Moldura.tsx`: computador = menu lateral fixo (opção A) com **fogo azul vivo por trás de vidro** (`components/FogoAzul.tsx` + `.fogo-azul` no index.css; peças de dentro com `vidro-menu`); celular = barra do topo (logo + iniciais que abrem conta/plano/Sair) e barra de baixo Início · Clientes · + · Calcular · Resumo (opção B). Toda tela interna fica dentro dela.
 - `components/Tela.tsx`: Moldura + "← Voltar" + título/subtítulo + `acoes` + `largo`.
 - `components/estilo.ts`: `campo`, `rotulo`, `botaoVerde`, `botaoClaro`, `botaoEscuro`, `tituloSecao`, `erroCaixa`, selos, `iniciais()`.
 - `components/Icone.tsx`: ícones de traço (24x24, traço 1.8).
