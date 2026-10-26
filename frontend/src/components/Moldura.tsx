@@ -48,6 +48,14 @@ function Plano({ r }: { r: ResumoBarra }) {
       </div>
     )
   }
+  if (r.travado) {
+    return (
+      <div className="flex flex-col gap-1 rounded-2xl bg-amanha/15 p-3.5">
+        <span className="text-xs font-bold text-amanha">Conta só para consulta</span>
+        <span className="text-xs text-suave">Você vê tudo, mas não pode alterar. Fale com o suporte do GIRON</span>
+      </div>
+    )
+  }
   if (r.testeGratisAte) {
     const faltam = r.testeFaltam
     const usado = Math.min(100, Math.round(((TESTE_DIAS - faltam) / TESTE_DIAS) * 100))

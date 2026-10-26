@@ -6,6 +6,7 @@ export type ResumoBarra = {
   subdominio: string
   logo: string | null
   statusAcesso: string
+  travado: boolean
   testeGratisAte: string | null
   testeFaltam: number
   clientes: number
@@ -23,7 +24,7 @@ export const resumoGuardado = () => ultimo
 // Dados da barra lateral: empresa, plano e contadores do menu
 export async function carregarBarra(): Promise<ResumoBarra | null> {
   const [empresa, clientes, pendentes, cobrar] = await Promise.all([
-    supabase.from('fomentados').select('nome_empresa, subdominio, logo_arquivo, status_acesso, teste_gratis_ate').maybeSingle(),
+    supabase.from('fomentados').select('nome_empresa, subdominio, logo_arquivo, status_acesso, bloqueio_manual, teste_gratis_ate').maybeSingle(),
     supabase.from('clientes').select('id', { count: 'exact', head: true }).neq('status_cadastro', 'reprovado'),
     supabase.from('clientes').select('id', { count: 'exact', head: true }).eq('status_cadastro', 'pendente'),
     supabase
@@ -39,6 +40,7 @@ export async function carregarBarra(): Promise<ResumoBarra | null> {
     subdominio: empresa.data.subdominio,
     logo: urlLogo(empresa.data.logo_arquivo),
     statusAcesso: empresa.data.status_acesso,
+    travado: empresa.data.bloqueio_manual,
     testeGratisAte: empresa.data.teste_gratis_ate,
     testeFaltam: empresa.data.teste_gratis_ate
       ? Math.max(0, Math.round((Date.parse(empresa.data.teste_gratis_ate + 'T12:00:00') - Date.parse(iso(new Date()) + 'T12:00:00')) / 86400000))
