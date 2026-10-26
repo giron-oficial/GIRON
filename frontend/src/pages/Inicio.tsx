@@ -5,13 +5,14 @@ import Moldura from '../components/Moldura'
 import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
+import { fotosClientes } from '../lib/fotos'
 
 // Cores e textos das 4 situações (bolinhas de vencimento): cartão de VIDRO da cor (transparente, borda e brilho da mesma cor)
-const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; brilho: string; sub: string; bolinha: string; clara: string; escura: string }> = {
-  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'border border-[#A37BFF]/70 bg-linear-160 from-[#A37BFF]/60 via-[#6B3FE0]/30 to-[#6B3FE0]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(163,123,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(163,123,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#D4C2FF] shadow-[0_0_10px_2px_rgba(163,123,255,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(163,123,255,0.55),transparent_70%)]', clara: 'bg-critico/15', escura: 'text-critico' },
-  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'border border-[#F0525C]/70 bg-linear-160 from-[#F0525C]/60 via-[#C8252F]/30 to-[#C8252F]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(240,82,92,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(240,82,92,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFB3B8] shadow-[0_0_10px_2px_rgba(240,82,92,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(240,82,92,0.55),transparent_70%)]', clara: 'bg-vencido/15', escura: 'text-vencido' },
-  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'border border-[#3FA9FF]/70 bg-linear-160 from-[#3FA9FF]/60 via-[#0B6FD6]/30 to-[#0B6FD6]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(63,169,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(63,169,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#F0525C] anima-pulso', brilho: 'bg-[radial-gradient(circle,rgba(63,169,255,0.55),transparent_70%)]', clara: 'bg-hoje/15', escura: 'text-hoje' },
-  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'border border-[#F5C02E]/70 bg-linear-160 from-[#F5C02E]/60 via-[#D99A00]/30 to-[#D99A00]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(245,192,46,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(245,192,46,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFE7A3] shadow-[0_0_10px_2px_rgba(245,192,46,0.9)]', brilho: 'bg-[radial-gradient(circle,rgba(245,192,46,0.55),transparent_70%)]', clara: 'bg-amanha/15', escura: 'text-amanha' },
+const situacoes: Record<Situacao, { rotulo: string; curto: string; titulo: string; cartao: string; brilho: string; anel: string; sub: string; bolinha: string; clara: string; escura: string }> = {
+  critico: { rotulo: 'Críticos', curto: 'Crítico', titulo: 'Críticos', cartao: 'border border-[#A37BFF]/70 bg-linear-160 from-[#A37BFF]/60 via-[#6B3FE0]/30 to-[#6B3FE0]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(163,123,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(163,123,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#D4C2FF] shadow-[0_0_10px_2px_rgba(163,123,255,0.9)]', anel: 'ring-critico/70', brilho: 'bg-[radial-gradient(circle,rgba(163,123,255,0.55),transparent_70%)]', clara: 'bg-critico/15', escura: 'text-critico' },
+  vencido: { rotulo: 'Vencidos', curto: 'Vencido', titulo: 'Vencidos', cartao: 'border border-[#F0525C]/70 bg-linear-160 from-[#F0525C]/60 via-[#C8252F]/30 to-[#C8252F]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(240,82,92,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(240,82,92,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFB3B8] shadow-[0_0_10px_2px_rgba(240,82,92,0.9)]', anel: 'ring-vencido/70', brilho: 'bg-[radial-gradient(circle,rgba(240,82,92,0.55),transparent_70%)]', clara: 'bg-vencido/15', escura: 'text-vencido' },
+  hoje: { rotulo: 'Hoje', curto: 'Hoje', titulo: 'Vencem hoje', cartao: 'border border-[#3FA9FF]/70 bg-linear-160 from-[#3FA9FF]/60 via-[#0B6FD6]/30 to-[#0B6FD6]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(63,169,255,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(63,169,255,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#F0525C] anima-pulso', anel: 'ring-hoje/70', brilho: 'bg-[radial-gradient(circle,rgba(63,169,255,0.55),transparent_70%)]', clara: 'bg-hoje/15', escura: 'text-hoje' },
+  amanha: { rotulo: 'Amanhã', curto: 'Amanhã', titulo: 'Vencem amanhã', cartao: 'border border-[#F5C02E]/70 bg-linear-160 from-[#F5C02E]/60 via-[#D99A00]/30 to-[#D99A00]/10 text-white backdrop-blur-xl shadow-[0_12px_36px_-12px_rgba(245,192,46,0.75),inset_0_1px_0_rgba(255,255,255,0.22),inset_0_0_24px_rgba(245,192,46,0.12)]', sub: 'text-white/75', bolinha: 'bg-[#FFE7A3] shadow-[0_0_10px_2px_rgba(245,192,46,0.9)]', anel: 'ring-amanha/70', brilho: 'bg-[radial-gradient(circle,rgba(245,192,46,0.55),transparent_70%)]', clara: 'bg-amanha/15', escura: 'text-amanha' },
 }
 const ordemSituacoes: Situacao[] = ['critico', 'vencido', 'hoje', 'amanha']
 
@@ -87,6 +88,7 @@ export default function Inicio() {
   const [erro, setErro] = useState('')
   const [filtro, setFiltro] = useState<Situacao | null>(null)
   const [verTodos, setVerTodos] = useState(false)
+  const [fotos, setFotos] = useState<Record<string, string>>({})
   const { hash } = useLocation()
 
   useEffect(() => {
@@ -94,6 +96,12 @@ export default function Inicio() {
       .then(setPainel)
       .catch((e: Error) => setErro(e.message))
   }, [])
+
+  // Selfie do cadastro de quem está na lista de cobrança (sem foto, fica com as iniciais)
+  useEffect(() => {
+    if (!painel?.cobrancas.length) return
+    fotosClientes(painel.cobrancas.map((c) => c.clienteId)).then(setFotos).catch(() => {})
+  }, [painel])
 
   // Aba "Resumo" da barra do celular: desce até os números do mês
   useEffect(() => {
@@ -269,7 +277,11 @@ export default function Inicio() {
                   key={c.parcelaId}
                   className="flex items-center gap-2.5 border-b border-superficie-2 py-2 last:border-b-0"
                 >
-                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-[13px] text-[13px] font-extrabold ${info.clara} ${info.escura}`}>{iniciais(c.cliente)}</span>
+                  {fotos[c.clienteId] ? (
+                    <img src={fotos[c.clienteId]} alt={`Foto de ${c.cliente}`} loading="lazy" className={`size-10 shrink-0 rounded-[13px] object-cover ring-2 ${info.anel}`} />
+                  ) : (
+                    <span className={`flex size-10 shrink-0 items-center justify-center rounded-[13px] text-[13px] font-extrabold ${info.clara} ${info.escura}`}>{iniciais(c.cliente)}</span>
+                  )}
                   <Link to={`/contratos/${c.contratoId}`} className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
