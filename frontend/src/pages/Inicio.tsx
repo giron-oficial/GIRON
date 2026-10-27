@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
-import { dataBr, linkWhatsApp, nomeModalidade, reais } from '../lib/formatos'
+import { dataBr, linkWhatsApp, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
@@ -303,13 +303,12 @@ export default function Inicio() {
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
                       <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)}
-                      <span className="hidden lg:inline"> · {nomeModalidade[c.modalidade] ?? c.modalidade}</span>
                     </span>
                   </Link>
-                  {/* Valor à direita, em destaque; multa/juros pequena embaixo */}
+                  {/* Total a pagar à direita na cor da situação (roxo no Crítico); embaixo, o valor normal da parcela (27/10/2026) */}
                   <Link to={`/contratos/${c.contratoId}`} className="flex shrink-0 flex-col items-end">
-                    <span className="text-sm font-extrabold">{reais(c.valor)}</span>
-                    {c.encargos > 0 && <span className="text-[11px] text-suave">+{reais(c.encargos)} multa</span>}
+                    <span className={`text-sm font-extrabold ${info.escura}`}>{reais(c.valor)}</span>
+                    {c.encargos > 0 && <span className="text-[11px] text-suave">parcela {reais(c.valor - c.encargos)}</span>}
                   </Link>
                   {c.telefone && (
                     <a
