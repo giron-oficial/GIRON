@@ -5,6 +5,7 @@ import { carregarBarra, resumoGuardado, type ResumoBarra } from '../lib/barra'
 import { supabase } from '../lib/supabase'
 import Icone, { type NomeIcone } from './Icone'
 import FogoAzul from './FogoAzul'
+import LogoTelegram from './LogoTelegram'
 import { Logo } from './Logo'
 
 const itens: { to: string; rotulo: string; icone: NomeIcone }[] = [
@@ -91,7 +92,11 @@ function Recursos({ r }: { r: ResumoBarra }) {
         title={`${rotulo}: ${ligado ? 'ligado' : 'desligado'}`}
         className="vidro-menu flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-xs font-semibold"
       >
-        <Icone nome={nome} tamanho={16} className={ligado ? cor.texto : 'text-suave'} />
+        {nome === 'telegram' ? (
+          <LogoTelegram ligado={ligado} />
+        ) : (
+          <Icone nome={nome} tamanho={16} className={ligado ? cor.texto : 'text-suave'} />
+        )}
         <span className={ligado ? '' : 'text-suave'}>{rotulo}</span>
         <span className={`size-2 rounded-full ${ligado ? cor.bolinha : 'bg-suave/50'}`} />
       </Link>
