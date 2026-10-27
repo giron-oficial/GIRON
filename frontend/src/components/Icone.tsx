@@ -98,10 +98,15 @@ const caminhos = {
   ),
   entrando: <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />,
   saindo: <path d="M12 20V8M7 13l5-5 5 5M5 4h14" />,
+  // Logo do Telegram (bolinha cheia na cor do texto + aviãozinho branco), pedido do dono em 27/10/2026
   telegram: (
     <>
-      <path d="M21 4 3 11.2l6.2 2.3L11.5 20l3.3-4.3 4.7 3.5z" />
-      <path d="m9.2 13.5 7.3-5.7" />
+      <circle cx="12" cy="12" r="10.5" fill="currentColor" stroke="none" />
+      <path
+        fill="#FFFFFF"
+        stroke="none"
+        d="M5.5 11.6l11.3-4.4c.5-.2 1 .1.8.9l-1.9 9.1c-.1.6-.5.8-1.1.5l-2.9-2.2-1.4 1.4c-.2.2-.3.3-.6.3l.2-3 5.4-4.9c.2-.2 0-.3-.3-.1l-6.7 4.2-2.9-.9c-.6-.2-.6-.6.1-.9z"
+      />
     </>
   ),
   whatsapp: (
