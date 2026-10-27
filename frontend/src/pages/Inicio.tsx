@@ -46,10 +46,11 @@ function situacaoEvento(s: Situacao): 'vence_hoje' | 'vence_amanha' | 'atrasado'
   return 'atrasado'
 }
 
+// Linha curta embaixo do nome (pedido do dono em 27/10/2026: "muito grande essa frase")
 function detalhe(c: Cobranca) {
   if (c.situacao === 'hoje') return 'vence hoje'
   if (c.situacao === 'amanha') return 'vence amanhã'
-  return c.atraso === 1 ? 'venceu ontem' : `${c.atraso} dias de atraso`
+  return c.atraso === 1 ? 'venceu ontem' : `${c.atraso} dias`
 }
 
 function mensagem(c: Cobranca, pix: string | null) {
@@ -301,10 +302,14 @@ export default function Inicio() {
                   <Link to={`/contratos/${c.contratoId}`} className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
-                      <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)} · {reais(c.valor)}
-                      {c.encargos > 0 && <span> (com {reais(c.encargos)} de multa/juros)</span>}
+                      <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)}
                       <span className="hidden lg:inline"> · {nomeModalidade[c.modalidade] ?? c.modalidade}</span>
                     </span>
+                  </Link>
+                  {/* Valor à direita, em destaque; multa/juros pequena embaixo */}
+                  <Link to={`/contratos/${c.contratoId}`} className="flex shrink-0 flex-col items-end">
+                    <span className="text-sm font-extrabold">{reais(c.valor)}</span>
+                    {c.encargos > 0 && <span className="text-[11px] text-suave">+{reais(c.encargos)} multa</span>}
                   </Link>
                   {c.telefone && (
                     <a
