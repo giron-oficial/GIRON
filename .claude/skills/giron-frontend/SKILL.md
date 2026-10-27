@@ -20,7 +20,7 @@ Nunca escrever nome, apelido, telefone ou e-mail pessoal do dono (Lellis, Flávi
 
 1. **Celular primeiro.** Toda tela tem que funcionar com 390 px de largura, botões de pelo menos 44 px.
 2. **Informação primordial no topo.** Painel: capital em trânsito (cartão azul-escuro com brilho azul, o maior); no computador, ao lado, o cartão "<mês> até agora" (juros, capital recebido, emprestado); depois as 4 situações; depois "Cobrar agora" + "Clientes do mês". No celular os números do mês vão pro fim (âncora `#resumo`, aberta pela aba "Resumo").
-3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = link e item ativo do menu. Botão principal = vidro verde (`verde`). WhatsApp = vidro verde (`zap`). Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
+3. **Escuro e calmo, com o azul só no que importa.** Cartões `cartao` (azul-escuro com borda fina, sem sombra). Azul da marca (`marca`) = link e item ativo do menu. Botão principal = vidro verde (`verde`). WhatsApp = vidro verde (`zap`). **Telegram = azul oficial do Telegram** (token `telegram` #2AABEE, utility `telegram` em vidro azul, `Interruptor telegram`) — pedido do dono em 27/10/2026: "verde é do WhatsApp"; nada do Telegram fica verde. Verde (`sucesso`) só pra "em dia", alta e pagamento recebido.
 4. **Situações em cor CHEIA, com degradê da mesma cor** e letras brancas (objeto `situacoes` de `pages/Inicio.tsx`). Bolinha do "vence hoje" vermelha piscando (`anima-pulso`).
 5. **Português simples na tela.** Sem termos técnicos e sem emoji na interface.
 

@@ -79,19 +79,24 @@ function Plano({ r }: { r: ResumoBarra }) {
   )
 }
 
-// Telegram e WhatsApp automático: bolinha verde = ligado; tocar abre o "Meu plano" nas Configurações
+// Telegram (azul Telegram) e WhatsApp automático (verde): bolinha acesa = ligado; tocar abre o "Meu plano" nas Configurações
 function Recursos({ r }: { r: ResumoBarra }) {
-  const item = (nome: 'telegram' | 'whatsapp', rotulo: string, ligado: boolean) => (
-    <Link
-      to={{ pathname: '/configuracoes', search: '?s=plano' }}
-      title={`${rotulo}: ${ligado ? 'ligado' : 'desligado'}`}
-      className="vidro-menu flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-xs font-semibold"
-    >
-      <Icone nome={nome} tamanho={16} className={ligado ? 'text-sucesso' : 'text-suave'} />
-      <span className={ligado ? '' : 'text-suave'}>{rotulo}</span>
-      <span className={`size-2 rounded-full ${ligado ? 'bg-sucesso shadow-[0_0_8px_rgba(52,209,122,0.9)]' : 'bg-suave/50'}`} />
-    </Link>
-  )
+  const item = (nome: 'telegram' | 'whatsapp', rotulo: string, ligado: boolean) => {
+    const cor = nome === 'telegram'
+      ? { texto: 'text-telegram', bolinha: 'bg-telegram shadow-[0_0_8px_rgba(42,171,238,0.9)]' }
+      : { texto: 'text-sucesso', bolinha: 'bg-sucesso shadow-[0_0_8px_rgba(52,209,122,0.9)]' }
+    return (
+      <Link
+        to={{ pathname: '/configuracoes', search: '?s=plano' }}
+        title={`${rotulo}: ${ligado ? 'ligado' : 'desligado'}`}
+        className="vidro-menu flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-xs font-semibold"
+      >
+        <Icone nome={nome} tamanho={16} className={ligado ? cor.texto : 'text-suave'} />
+        <span className={ligado ? '' : 'text-suave'}>{rotulo}</span>
+        <span className={`size-2 rounded-full ${ligado ? cor.bolinha : 'bg-suave/50'}`} />
+      </Link>
+    )
+  }
   return (
     <div className="flex gap-2">
       {item('telegram', 'Telegram', r.robo)}

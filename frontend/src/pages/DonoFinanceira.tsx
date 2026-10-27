@@ -316,7 +316,7 @@ export default function DonoFinanceira() {
                     )
                   )}
                   <Ajuste titulo="Robô do Telegram" texto={f.robo ? 'Ligado: ela consulta e lança tudo pelo Telegram' : 'Desligado'}>
-                    <Interruptor rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
+                    <Interruptor telegram rotulo="Robô do Telegram" ligado={f.robo} onChange={(v) => acao(donoAcoes.robo(f.id, v))} />
                   </Ajuste>
                   <Ajuste titulo="WhatsApp automático" texto={f.whatsapp ? (f.testeGratisAte ? 'Ligado: no teste, até 5 mensagens grátis' : 'Ligado: o sistema cobra os clientes dela sozinho') : 'Desligado: só liga se ela pedir'}>
                     <Interruptor rotulo="WhatsApp automático" ligado={f.whatsapp} onChange={(v) => acao(donoAcoes.whatsapp(f.id, v))} />

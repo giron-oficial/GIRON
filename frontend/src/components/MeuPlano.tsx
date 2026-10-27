@@ -32,8 +32,8 @@ export default function MeuPlano() {
   const plano = r.testeGratisAte
     ? { titulo: 'Teste grátis', dica: r.testeFaltam === 0 ? 'Termina hoje' : `Faltam ${r.testeFaltam} ${r.testeFaltam === 1 ? 'dia' : 'dias'} (até ${dataBr(r.testeGratisAte)})` }
     : { titulo: `${reais(r.mensalidade)} por mês`, dica: r.proximaMensalidade ? `Próximo vencimento: ${dataBr(r.proximaMensalidade.vencimento)}` : 'Plano ativo' }
-  const ativar = (recurso: string) => (
-    <a href={pedir(r.nome, recurso)} className="verde inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-bold">
+  const ativar = (recurso: string, estilo = 'verde') => (
+    <a href={pedir(r.nome, recurso)} className={`${estilo} inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-bold`}>
       Quero ativar
     </a>
   )
@@ -46,7 +46,7 @@ export default function MeuPlano() {
           titulo="Robô do Telegram"
           dica={r.robo ? 'Em construção: chega em breve' : 'Consulte e lance tudo pelo Telegram'}
         >
-          {r.robo ? <Selo ligado /> : ativar('robô do Telegram')}
+          {r.robo ? <Selo ligado /> : ativar('robô do Telegram', 'telegram')}
         </Linha>
         <Linha
           titulo="WhatsApp automático"
@@ -58,7 +58,7 @@ export default function MeuPlano() {
               : 'O sistema cobra seus clientes sozinho'
           }
         >
-          {r.whatsapp ? <Selo ligado /> : ativar('WhatsApp automático')}
+          {r.whatsapp ? <Selo ligado /> : ativar('WhatsApp automático', 'zap')}
         </Linha>
         <Linha titulo="Suporte" dica={`GIRON · ${EMAIL_SUPORTE}`} />
       </Grupo>

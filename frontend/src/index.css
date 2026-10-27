@@ -26,6 +26,7 @@
   --color-hoje: #3FA9FF;
   --color-amanha: #F5C02E;
   --color-sobre-amanha: #2A1A00;
+  --color-telegram: #2AABEE; /* azul oficial da logo do Telegram (27/10/2026) */
 }
 
 /* Cartão azul-marinho com borda fina */
@@ -64,6 +65,18 @@
   backdrop-filter: blur(12px);
   &:hover {
     background: linear-gradient(160deg, rgb(52 209 122 / 0.62), rgb(19 131 74 / 0.28));
+  }
+}
+
+/* Botão do Telegram: vidro AZUL TELEGRAM (pedido do dono em 27/10/2026: "verde é do WhatsApp") */
+@utility telegram {
+  background: linear-gradient(160deg, rgb(42 171 238 / 0.5), rgb(34 158 217 / 0.2));
+  border: 1px solid rgb(42 171 238 / 0.7);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px -10px rgb(42 171 238 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25), inset 0 0 16px rgb(42 171 238 / 0.15);
+  backdrop-filter: blur(12px);
+  &:hover {
+    background: linear-gradient(160deg, rgb(42 171 238 / 0.62), rgb(34 158 217 / 0.28));
   }
 }
 
