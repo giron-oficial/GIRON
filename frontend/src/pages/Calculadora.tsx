@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type InputHTMLAttributes } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import CalculadoraNormal from '../components/CalculadoraNormal'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, campo, erroCaixa, rotulo, tituloSecao, botaoZap } from '../components/estilo'
@@ -70,8 +71,15 @@ function CaixaTexto({ titulo, texto, telefone, aoEnviar }: { titulo: string; tex
   )
 }
 
+type Aba = 'giron' | 'normal'
+const abas: { id: Aba; texto: string }[] = [
+  { id: 'giron', texto: 'Calculadora GIRON' },
+  { id: 'normal', texto: 'Normal' },
+]
+
 export default function Calculadora() {
   const navegar = useNavigate()
+  const [aba, setAba] = useState<Aba>('giron')
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [nome, setNome] = useState('')
   const [cliente, setCliente] = useState<Cliente | null>(null)
@@ -187,7 +195,24 @@ export default function Calculadora() {
   const primeiroNome = nome.trim().split(/\s+/)[0] ?? ''
 
   return (
-    <Tela titulo="Calculadora" subtitulo="Simule, mande pro cliente e feche o empréstimo">
+    <Tela titulo="Calculadora" subtitulo={aba === 'giron' ? 'Simule, mande pro cliente e feche o empréstimo' : 'Pra qualquer conta do dia a dia'}>
+      <div className="mt-4 flex gap-2" role="tablist">
+        {abas.map((a) => (
+          <button
+            key={a.id}
+            role="tab"
+            onClick={() => setAba(a.id)}
+            aria-selected={aba === a.id}
+            className={`flex h-10 shrink-0 items-center rounded-full px-4 text-sm font-semibold transition ${
+              aba === a.id ? 'verde font-bold' : 'cartao text-suave hover:text-texto'
+            }`}
+          >
+            {a.texto}
+          </button>
+        ))}
+      </div>
+
+      {aba === 'normal' ? <CalculadoraNormal /> : (<>
       <section className="cartao mt-4 flex flex-col gap-4 rounded-[26px] p-5 lg:p-6">
         <div className="relative">
           <label className={rotulo} htmlFor="nome">Cliente</label>
@@ -333,6 +358,7 @@ export default function Calculadora() {
           </section>
         </>
       )}
+      </>)}
     </Tela>
   )
 }
