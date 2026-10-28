@@ -194,7 +194,6 @@ export default function Inicio() {
         <section id="resumo" aria-label={`Resumo de ${mes}`} className="grid scroll-mt-4 grid-cols-2 gap-2.5 max-lg:order-1 lg:col-span-12 lg:grid-cols-5 lg:gap-3.5">
           <CartaoMes
             className="col-span-2 lg:col-span-1"
-            cor="roxo"
             rotulo="Capital emprestado"
             valor={reais(p.emprestado)}
             sub={`saiu em ${Mes} · ${plural(p.contratosNovos, 'contrato novo', 'contratos novos')}`}
@@ -205,14 +204,12 @@ export default function Inicio() {
             }
           />
           <CartaoMes
-            cor="azul"
             rotulo="Capital recebido"
             valor={reais(p.capitalRecebido)}
             sub={`em ${Mes}`}
             destaque={pctVoltou !== null ? `voltou ${pctVoltou}% do emprestado no mês` : 'voltou pro caixa'}
           />
           <CartaoMes
-            cor="verdeAgua"
             rotulo="Juros a receber"
             valor={reais(p.jurosPendentes)}
             sub={`ainda falta em ${Mes}`}
@@ -220,14 +217,12 @@ export default function Inicio() {
             destaque={`já recebeu ${percentual}% dos ${reais(totalJuros)} previstos`}
           />
           <CartaoMes
-            cor="verde"
             rotulo="Já pagaram"
             valor={String(p.contratosPagaram)}
             sub={`${plural(p.contratosPagaram, 'contrato', 'contratos')} · ${plural(p.clientesPagaram, 'cliente', 'clientes')}`}
             destaque={`juros recebidos: ${reais(p.jurosRecebidos)}`}
           />
           <CartaoMes
-            cor="amarelo"
             rotulo="Faltam pagar"
             valor={String(contratosFaltam)}
             sub={`${plural(contratosFaltam, 'contrato', 'contratos')} · ${plural(clientesFaltam, 'cliente', 'clientes')}`}
