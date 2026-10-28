@@ -94,6 +94,10 @@ select pg_temp.r('ligar no interruptor resolve o pedido aberto',
 
 -- Textos do aviso
 reset role;
+select pg_temp.r('cada pedido entra na fila de avisos do dono (e-mail)',
+  (select count(*) from giron_admin.avisos_dono where texto like '%Financeira <Pedido> A%' and email_em is null) = 3);
+select pg_temp.r('aviso do robo traz o valor novo',
+  exists (select 1 from giron_admin.avisos_dono where assunto like '%Robô do Telegram' and texto like '%R$ 69,90 -> R$ 89,90%'));
 select pg_temp.r('valor em reais no formato do Brasil',
   giron_admin.reais(1234.5) = 'R$ 1.234,50' and giron_admin.reais(89.9) = 'R$ 89,90');
 select pg_temp.r('nome da empresa sem quebrar o Telegram',
