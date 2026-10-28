@@ -38,7 +38,7 @@ export default function Clientes() {
   const [copiado, setCopiado] = useState(false)
   const [erroLink, setErroLink] = useState('')
   // Situação de cada cliente (cor da logo do WhatsApp ao lado do valor, pedido do dono 28/10/2026)
-  const [cobrar, setCobrar] = useState<{ porCliente: Map<string, Cobranca[]>; pix: Pix | null } | null>(null)
+  const [cobrar, setCobrar] = useState<{ porCliente: Map<string, Cobranca[]>; pix: Pix[] } | null>(null)
   useEffect(() => {
     cobrancasPorCliente().then(setCobrar).catch(() => setCobrar(null))
   }, [])

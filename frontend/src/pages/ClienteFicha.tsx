@@ -68,7 +68,7 @@ export default function ClienteFicha() {
   const [erroLocal, setErroLocal] = useState('')
   const [editando, setEditando] = useState(false)
   // Parcelas vencidas, de hoje e de amanhã: o botão WhatsApp já abre com a cobrança escrita
-  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; pix: Pix | null } | null>(null)
+  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; pix: Pix[] } | null>(null)
 
   useEffect(() => {
     cobrancasDoCliente(id!).then(setCobrar).catch(() => setCobrar(null))
@@ -205,7 +205,7 @@ export default function ClienteFicha() {
           <BotaoCobrar
             telefone={cliente.telefone}
             cobrancas={cobrar?.cobrancas ?? []}
-            pix={cobrar?.pix ?? null}
+            pix={cobrar?.pix ?? []}
             origem="ficha"
             className={cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}
             classePix="col-span-2"

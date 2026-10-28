@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import type { Situacao } from '../lib/painel'
 import { codigoPix, mensagemCliente, type Cobranca, type Pix } from '../lib/painel'
-import { linkWhatsApp } from '../lib/formatos'
+import { linkWhatsApp, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import Icone from './Icone'
 import { botaoClaro } from './estilo'
@@ -39,7 +40,7 @@ export function LogoWhatsApp({ tamanho = 20, className = '' }: { tamanho?: numbe
 export const situacaoDe = (cs: Cobranca[]) => gravidade.find((g) => cs.some((c) => c.situacao === g))
 
 // Só a logo, pra listas (Clientes): mesma cor e mesma mensagem do botão
-export function IconeCobrar({ telefone, cobrancas, pix }: { telefone: string; cobrancas: Cobranca[]; pix: Pix | null }) {
+export function IconeCobrar({ telefone, cobrancas, pix }: { telefone: string; cobrancas: Cobranca[]; pix: Pix[] }) {
   const pior = situacaoDe(cobrancas)
   const situacao = pior ?? 'em_dia'
   return (
@@ -57,7 +58,7 @@ export function IconeCobrar({ telefone, cobrancas, pix }: { telefone: string; co
   )
 }
 
-export default function BotaoCobrar({ telefone, cobrancas, pix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; pix: Pix | null; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
+export default function BotaoCobrar({ telefone, cobrancas, pix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; pix: Pix[]; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
   const pior = situacaoDe(cobrancas)
   const situacao = pior ?? 'em_dia'
   const href = pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, pix)) : linkWhatsApp(telefone)
@@ -73,17 +74,70 @@ export default function BotaoCobrar({ telefone, cobrancas, pix, origem, classNam
       <LogoWhatsApp className={corLogo[situacao]} />
       {texto[situacao]}
     </a>
-    {pior && pix && <BotaoPix telefone={telefone} codigo={codigoPix(pix, cobrancas.reduce((t, c) => t + c.valor, 0))} className={`${botaoClaro} ${classePix}`} />}
+    {pior && pix.length > 0 && <BotaoPix telefone={telefone} chaves={pix} valor={cobrancas.reduce((t, c) => t + c.valor, 0)} className={`${botaoClaro} ${classePix}`} />}
     </>
   )
 }
 
-// 2ª mensagem: só o "Pix Copia e Cola" com o valor, pro cliente segurar o dedo, copiar e colar no banco
-export function BotaoPix({ telefone, codigo, className, rotulo = true }: { telefone: string; codigo: string; className: string; rotulo?: boolean }) {
-  return (
-    <a href={linkWhatsApp(telefone, codigo)} target="_blank" rel="noreferrer" aria-label="Mandar o Pix Copia e Cola" className={className}>
+const nomeTipo: Record<string, string> = { cpf: 'CPF', cnpj: 'CNPJ', telefone: 'Telefone', email: 'E-mail', aleatoria: 'Aleatória' }
+
+// 2ª mensagem: só o "Pix Copia e Cola" com o valor, pro cliente segurar o dedo, copiar e colar no banco.
+// Uma chave só: vai direto. Várias: abre a janela pra escolher (a Padrão em primeiro) — pedido do dono, 28/10/2026.
+export function BotaoPix({ telefone, chaves, valor, className, rotulo = true }: { telefone: string; chaves: Pix[]; valor: number; className: string; rotulo?: boolean }) {
+  const [aberto, setAberto] = useState(false)
+  const conteudo = (
+    <>
       <Icone nome="pix" tamanho={18} className="text-marca" />
       {rotulo && 'Mandar Pix'}
-    </a>
+    </>
+  )
+  if (chaves.length === 1) {
+    return (
+      <a href={linkWhatsApp(telefone, codigoPix(chaves[0], valor))} target="_blank" rel="noreferrer" aria-label="Mandar o Pix Copia e Cola" className={className}>
+        {conteudo}
+      </a>
+    )
+  }
+  return (
+    <>
+      <button type="button" onClick={() => setAberto(true)} aria-label="Escolher a chave Pix" className={className}>
+        {conteudo}
+      </button>
+      {aberto && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 backdrop-blur-sm sm:items-center" onClick={() => setAberto(false)}>
+          <div role="dialog" aria-modal="true" aria-label="Escolher a chave Pix" onClick={(e) => e.stopPropagation()} className="cartao flex w-full max-w-sm flex-col gap-3 rounded-[18px] p-5 text-left shadow-2xl shadow-black/60">
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex flex-col">
+                <span className="font-bold">Qual chave Pix mandar?</span>
+                <span className="text-xs text-suave">Vai o Pix Copia e Cola de {reais(valor)}</span>
+              </span>
+              <button type="button" onClick={() => setAberto(false)} aria-label="Fechar" className="-mt-1 -mr-1 flex size-9 items-center justify-center rounded-xl text-suave hover:bg-white/5">
+                <Icone nome="xis" tamanho={18} />
+              </button>
+            </div>
+            {chaves.map((k, i) => (
+              <a
+                key={k.tipo + k.chave}
+                href={linkWhatsApp(telefone, codigoPix(k, valor))}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setAberto(false)}
+                className="flex items-center gap-3 rounded-2xl bg-superficie-2 p-3 hover:bg-borda"
+              >
+                <Icone nome="pix" tamanho={20} className="shrink-0 text-marca" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-xs text-suave">
+                    {nomeTipo[k.tipo] ?? k.tipo}
+                    {i === 0 && <span className="ml-2 rounded-md bg-marca/15 px-1.5 py-0.5 text-[10px] font-extrabold tracking-wide text-marca uppercase">Padrão</span>}
+                  </span>
+                  <span className="truncate text-sm font-bold">{k.chave}</span>
+                </span>
+                <Icone nome="seta" tamanho={16} className="shrink-0 text-suave" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   )
 }

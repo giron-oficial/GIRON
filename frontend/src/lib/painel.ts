@@ -20,7 +20,7 @@ export type Cobranca = {
   situacao: Situacao
 }
 
-// Chave Pix padrão + nome da empresa: dá pra montar o "Pix Copia e Cola" com o valor
+// Chaves Pix da empresa (Configurações; a Padrão vem primeiro) + nome dela: monta o "Pix Copia e Cola" com o valor
 export type Pix = { chave: string; tipo: string; nome: string }
 
 export const codigoPix = (pix: Pix, valor: number) => pixCopiaCola({ ...pix, valor })
@@ -42,7 +42,7 @@ export type Painel = {
   contratosMes: number // contratos com parcela vencendo no mês
   contratosPagaram: number // desses, os que já pagaram tudo do mês
   cobrancas: Cobranca[]
-  pix: Pix | null
+  pix: Pix[]
   historicoCapital: PontoCapital[] // capital na rua no fim de cada um dos últimos 5 meses + hoje
 }
 
@@ -114,13 +114,12 @@ const venceuEm = (c: Cobranca) => `venceu em ${dataBr(c.vencimento)} (${c.atraso
 
 const AVISO_PIX = ' Vou te mandar o Pix Copia e Cola na próxima mensagem: é só copiar e colar no app do banco, o valor já vai certinho.'
 
-function montarPix(linha: unknown, nome?: string | null): Pix | null {
-  const c = linha as { chave: string; tipo: string } | null
-  return c ? { chave: c.chave, tipo: c.tipo, nome: nome ?? '' } : null
+function montarPix(linhas: unknown, nome?: string | null): Pix[] {
+  return ((linhas ?? []) as { chave: string; tipo: string }[]).map((c) => ({ chave: c.chave, tipo: c.tipo, nome: nome ?? '' }))
 }
 
 // Mensagem pronta pro WhatsApp de uma parcela (Cobrar agora do painel)
-export function mensagemCobranca(c: Cobranca, pix: Pix | null) {
+export function mensagemCobranca(c: Cobranca, pix: Pix[]) {
   const nome = c.cliente.split(' ')[0]
   const valor = reais(c.valor)
   const texto =
@@ -131,11 +130,11 @@ export function mensagemCobranca(c: Cobranca, pix: Pix | null) {
         : c.encargos > 0
           ? `${nome}, sua parcela ${venceuEm(c)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
           : `${nome}, sua parcela de ${valor} ${venceuEm(c)}.`
-  return pix ? texto + AVISO_PIX : texto
+  return pix.length ? texto + AVISO_PIX : texto
 }
 
 // Mensagem do botão WhatsApp da ficha/contrato: junta as parcelas em aberto (vencidas, de hoje e de amanhã)
-export function mensagemCliente(cs: Cobranca[], pix: Pix | null) {
+export function mensagemCliente(cs: Cobranca[], pix: Pix[]) {
   if (cs.length === 1) return mensagemCobranca(cs[0], pix)
   const nome = cs[0].cliente.split(' ')[0]
   const linhas = cs.map((c) =>
@@ -143,12 +142,12 @@ export function mensagemCliente(cs: Cobranca[], pix: Pix | null) {
   )
   const total = cs.reduce((t, c) => t + c.valor, 0)
   const texto = `${nome}, você tem ${cs.length} parcelas em aberto:\n${linhas.join('\n')}\nTotal hoje: ${reais(total)}.`
-  return pix ? `${texto}\n${AVISO_PIX.trim()}` : texto
+  return pix.length ? `${texto}\n${AVISO_PIX.trim()}` : texto
 }
 
 // Parcelas em aberto vencidas, de hoje e de amanhã de contratos ativos (botões WhatsApp coloridos).
 // Sem filtro = de todos os clientes (lista de Clientes); com clienteId = ficha; com contratoId = só aquele contrato.
-async function cobrancasAbertas(filtro: { clienteId?: string; contratoId?: string }): Promise<{ cobrancas: Cobranca[]; pix: Pix | null }> {
+async function cobrancasAbertas(filtro: { clienteId?: string; contratoId?: string }): Promise<{ cobrancas: Cobranca[]; pix: Pix[] }> {
   const agora = new Date()
   const hoje = iso(agora)
   const amanha = iso(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1))
@@ -158,7 +157,7 @@ async function cobrancasAbertas(filtro: { clienteId?: string; contratoId?: strin
   const [config, pendentes, pix, empresa] = await Promise.all([
     supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
     consulta.order('vencimento').range(0, 9999),
-    supabase.from('chaves_pix').select('chave, tipo').eq('padrao', true).maybeSingle(),
+    supabase.from('chaves_pix').select('chave, tipo').order('padrao', { ascending: false }).order('numero'),
     supabase.from('fomentados').select('nome_empresa').maybeSingle(),
   ])
   if (pendentes.error) throw new Error('Não foi possível ver as parcelas.')
@@ -172,7 +171,7 @@ async function cobrancasAbertas(filtro: { clienteId?: string; contratoId?: strin
 export const cobrancasDoCliente = (clienteId: string, contratoId?: string) => cobrancasAbertas({ clienteId, contratoId })
 
 // Lista de Clientes: as cobranças em aberto agrupadas por cliente
-export async function cobrancasPorCliente(): Promise<{ porCliente: Map<string, Cobranca[]>; pix: Pix | null }> {
+export async function cobrancasPorCliente(): Promise<{ porCliente: Map<string, Cobranca[]>; pix: Pix[] }> {
   const { cobrancas, pix } = await cobrancasAbertas({})
   const porCliente = new Map<string, Cobranca[]>()
   for (const c of cobrancas) porCliente.set(c.clienteId, [...(porCliente.get(c.clienteId) ?? []), c])
@@ -210,7 +209,7 @@ export async function carregarPainel(): Promise<Painel> {
       .gte('vencimento', inicioMes)
       .lte('vencimento', fimMes)
       .not('contratos.status', 'in', '(cancelado,convertido)'),
-    supabase.from('chaves_pix').select('chave, tipo').eq('padrao', true).maybeSingle(),
+    supabase.from('chaves_pix').select('chave, tipo').order('padrao', { ascending: false }).order('numero'),
     supabase.from('pagamentos').select('pago_em, parte_capital').is('estornado_em', null).gt('parte_capital', 0).gte('pago_em', inicioHistorico).range(0, 9999),
   ])
   const erro = [empresa, config, contratos, pagamentos, pendentes, parcelasMes, capitalVolta].find((r) => r.error)?.error
