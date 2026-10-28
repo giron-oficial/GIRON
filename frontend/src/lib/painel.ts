@@ -101,6 +101,13 @@ function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoj
   }
 }
 
+// A chave Pix vai SOZINHA numa 2ª mensagem (botão "Mandar Pix"): no WhatsApp o cliente só copia a mensagem inteira
+// (pedido do dono, 28/10/2026: "o cliente tem preguiça de digitar")
+// "(3 dias de atraso)" junto da data de vencimento (pedido do dono, 28/10/2026)
+const venceuEm = (c: Cobranca) => `venceu em ${dataBr(c.vencimento)} (${c.atraso === 1 ? '1 dia' : `${c.atraso} dias`} de atraso)`
+
+const AVISO_PIX = ' Vou te mandar a chave Pix na próxima mensagem, é só copiar e colar no app do banco.'
+
 // Mensagem pronta pro WhatsApp de uma parcela (Cobrar agora do painel)
 export function mensagemCobranca(c: Cobranca, pix: string | null) {
   const nome = c.cliente.split(' ')[0]
@@ -111,9 +118,9 @@ export function mensagemCobranca(c: Cobranca, pix: string | null) {
       : c.situacao === 'amanha'
         ? `${nome}, amanhã vence sua parcela de ${valor}.`
         : c.encargos > 0
-          ? `${nome}, sua parcela venceu em ${dataBr(c.vencimento)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
-          : `${nome}, sua parcela de ${valor} venceu em ${dataBr(c.vencimento)}.`
-  return pix ? `${texto} Pix: ${pix}` : texto
+          ? `${nome}, sua parcela ${venceuEm(c)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
+          : `${nome}, sua parcela de ${valor} ${venceuEm(c)}.`
+  return pix ? texto + AVISO_PIX : texto
 }
 
 // Mensagem do botão WhatsApp da ficha/contrato: junta as parcelas em aberto (vencidas, de hoje e de amanhã)
@@ -121,11 +128,11 @@ export function mensagemCliente(cs: Cobranca[], pix: string | null) {
   if (cs.length === 1) return mensagemCobranca(cs[0], pix)
   const nome = cs[0].cliente.split(' ')[0]
   const linhas = cs.map((c) =>
-    `• ${reais(c.valor)}: ${c.situacao === 'hoje' ? 'vence hoje' : c.situacao === 'amanha' ? 'vence amanhã' : `venceu em ${dataBr(c.vencimento)}`}${c.encargos > 0 ? ' (com multa e juros de atraso)' : ''}`,
+    `• ${reais(c.valor)}: ${c.situacao === 'hoje' ? 'vence hoje' : c.situacao === 'amanha' ? 'vence amanhã' : c.encargos > 0 ? venceuEm(c).replace(' de atraso)', ' de atraso, com multa e juros)') : venceuEm(c)}`,
   )
   const total = cs.reduce((t, c) => t + c.valor, 0)
   const texto = `${nome}, você tem ${cs.length} parcelas em aberto:\n${linhas.join('\n')}\nTotal hoje: ${reais(total)}.`
-  return pix ? `${texto}\nPix: ${pix}` : texto
+  return pix ? `${texto}\n${AVISO_PIX.trim()}` : texto
 }
 
 // Parcelas do cliente vencidas, de hoje e de amanhã (botão WhatsApp da ficha; com contratoId, só desse contrato)

@@ -208,6 +208,7 @@ export default function ClienteFicha() {
             chavePix={cobrar?.chavePix ?? null}
             origem="ficha"
             className={cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}
+            classePix="col-span-2"
           />
         </div>
       </section>

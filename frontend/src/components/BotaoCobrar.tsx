@@ -2,6 +2,7 @@ import type { Situacao } from '../lib/painel'
 import { mensagemCliente, type Cobranca } from '../lib/painel'
 import { linkWhatsApp } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
+import Icone from './Icone'
 import { botaoClaro } from './estilo'
 
 // Botão WhatsApp da ficha do cliente e do contrato (pedido do dono, 28/10/2026).
@@ -34,11 +35,12 @@ export function LogoWhatsApp({ tamanho = 20, className = '' }: { tamanho?: numbe
   )
 }
 
-export default function BotaoCobrar({ telefone, cobrancas, chavePix, origem, className = '' }: { telefone: string; cobrancas: Cobranca[]; chavePix: string | null; origem: 'ficha' | 'contrato'; className?: string }) {
+export default function BotaoCobrar({ telefone, cobrancas, chavePix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; chavePix: string | null; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
   const pior = gravidade.find((g) => cobrancas.some((c) => c.situacao === g))
   const situacao = pior ?? 'em_dia'
   const href = pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, chavePix)) : linkWhatsApp(telefone)
   return (
+    <>
     <a
       href={href}
       target="_blank"
@@ -48,6 +50,18 @@ export default function BotaoCobrar({ telefone, cobrancas, chavePix, origem, cla
     >
       <LogoWhatsApp className={corLogo[situacao]} />
       {texto[situacao]}
+    </a>
+    {pior && chavePix && <BotaoPix telefone={telefone} chavePix={chavePix} className={`${botaoClaro} ${classePix}`} />}
+    </>
+  )
+}
+
+// 2ª mensagem: só a chave Pix, pro cliente segurar o dedo, copiar e colar no banco
+export function BotaoPix({ telefone, chavePix, className, rotulo = true }: { telefone: string; chavePix: string; className: string; rotulo?: boolean }) {
+  return (
+    <a href={linkWhatsApp(telefone, chavePix)} target="_blank" rel="noreferrer" aria-label="Mandar a chave Pix sozinha" className={className}>
+      <Icone nome="pix" tamanho={18} className="text-marca" />
+      {rotulo && 'Mandar Pix'}
     </a>
   )
 }

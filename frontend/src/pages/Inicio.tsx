@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { BotaoPix } from '../components/BotaoCobrar'
 import CartaoMes from '../components/CartaoMes'
 import Icone from '../components/Icone'
 import Moldura from '../components/Moldura'
@@ -317,6 +318,9 @@ export default function Inicio() {
                       <Icone nome="whatsapp" />
                       <span className="hidden lg:inline">Cobrar</span>
                     </a>
+                  )}
+                  {c.telefone && p.chavePix && (
+                    <BotaoPix telefone={c.telefone} chavePix={p.chavePix} rotulo={false} className="cartao flex size-11 shrink-0 items-center justify-center rounded-xl lg:size-9" />
                   )}
                 </div>
               )
