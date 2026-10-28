@@ -47,6 +47,9 @@ export type Financeira = {
 
 export type Alerta = { financeira: Financeira; texto: string; cor: 'vencido' | 'amanha' | 'hoje' | 'critico' | 'suave' }
 
+// Pedido da financeira pra ativar o robô do Telegram ou o WhatsApp automático (migração 0022)
+export type Pedido = { id: string; financeira: Financeira; recurso: 'agente_telegram' | 'whatsapp_automatico'; atual: number; nova: number | null; pedidoEm: string }
+
 export type Mes = { rotulo: string; mensalidade: number; implantacao: number; atual: boolean }
 
 export type PainelDono = {
@@ -57,6 +60,7 @@ export type PainelDono = {
   mensalFixo: number
   meses: Mes[]
   alertas: Alerta[]
+  pedidos: Pedido[]
   contagem: Record<SituacaoFinanceira, number>
 }
 
@@ -84,7 +88,7 @@ function situacao(f: { statusAcesso: string; testeGratisAte: string | null; cobr
 }
 
 export async function carregarPainelDono(): Promise<PainelDono> {
-  const [fom, ass, rec, uso] = await Promise.all([
+  const [fom, ass, rec, uso, ped] = await Promise.all([
     supabase
       .from('fomentados')
       .select('id, nome_empresa, subdominio, logo_arquivo, criado_em, status_acesso, bloqueio_manual, teste_gratis_ate, liberado_manual_ate, mensalidade_valor, responsavel_nome, telefone, observacao_dono')
@@ -92,8 +96,9 @@ export async function carregarPainelDono(): Promise<PainelDono> {
     supabase.from('assinaturas').select('id, tenant_id, tipo, vencimento, valor, pago_em, parcela, parcelas_total').order('vencimento'),
     supabase.from('recursos_extras').select('tenant_id, recurso, liberado'),
     supabase.rpc('dono_uso'),
+    supabase.from('pedidos_ativacao').select('id, tenant_id, recurso, mensalidade_atual, mensalidade_nova, pedido_em').eq('status', 'pendente').order('pedido_em'),
   ])
-  const erro = fom.error ?? ass.error ?? rec.error ?? uso.error
+  const erro = fom.error ?? ass.error ?? rec.error ?? uso.error ?? ped.error
   if (erro) throw erro
 
   const hoje = iso(new Date())
@@ -202,12 +207,20 @@ export async function carregarPainelDono(): Promise<PainelDono> {
       .reduce((s, f) => s + f.mensalidade, 0),
     meses,
     alertas,
+    pedidos: (ped.data ?? []).flatMap((x) => {
+      const financeira = financeiras.find((f) => f.id === x.tenant_id)
+      return financeira
+        ? [{ id: x.id, financeira, recurso: x.recurso, atual: Number(x.mensalidade_atual), nova: x.mensalidade_nova == null ? null : Number(x.mensalidade_nova), pedidoEm: x.pedido_em }]
+        : []
+    }),
     contagem,
   }
 }
 
 // Ações do dono (todas conferidas no banco: só o dono do GIRON consegue)
 export const donoAcoes = {
+  liberarPedido: (id: string) => supabase.rpc('dono_liberar_pedido', { p_pedido: id }),
+  recusarPedido: (id: string) => supabase.rpc('dono_recusar_pedido', { p_pedido: id }),
   comecarCobranca: (p: { tenant: string; mensalidade: number; primeiroVencimento: string; implantacao: number; parcelas: number; implantacaoVencimento: string; comRobo: boolean }) =>
     supabase.rpc('dono_comecar_cobranca', {
       p_tenant: p.tenant,

@@ -4,7 +4,7 @@ import { CORES } from '../components/GraficoProgressao'
 import Icone from '../components/Icone'
 import MolduraDono from '../components/MolduraDono'
 import { erroCaixa, iniciais, tituloSecao } from '../components/estilo'
-import { carregarPainelDono, nomeSituacao, type Financeira, type Mes, type PainelDono, type SituacaoFinanceira } from '../lib/dono'
+import { carregarPainelDono, donoAcoes, nomeSituacao, type Financeira, type Mes, type PainelDono, type Pedido, type SituacaoFinanceira } from '../lib/dono'
 import { dataBr, reais } from '../lib/formatos'
 
 // Cores do gráfico: as mesmas validadas do gráfico dos Relatórios
@@ -119,15 +119,66 @@ function Linha({ f }: { f: Financeira }) {
   )
 }
 
+// Pedidos de ativação (robô do Telegram / WhatsApp): a financeira já confirmou com a senha; o dono libera ou recusa
+function Pedidos({ pedidos, mudou }: { pedidos: Pedido[]; mudou: () => void }) {
+  const [ocupado, setOcupado] = useState('')
+  const [erro, setErro] = useState('')
+  async function agir(id: string, acao: 'liberar' | 'recusar') {
+    if (acao === 'recusar' && !confirm('Recusar este pedido? Nada vai ser ligado.')) return
+    setErro('')
+    setOcupado(id)
+    const { error } = acao === 'liberar' ? await donoAcoes.liberarPedido(id) : await donoAcoes.recusarPedido(id)
+    setOcupado('')
+    if (error) return setErro('Não deu certo. Atualize a página e tente de novo.')
+    mudou()
+  }
+  return (
+    <section aria-label="Pedidos de ativação" className="vidro flex flex-col gap-3 rounded-[18px] p-4 lg:col-span-12 lg:p-5">
+      <h2 className={`${tituloSecao} flex items-center gap-2`}>
+        <span className="size-2.5 rounded-full bg-hoje anima-pulso" />
+        Pedidos de ativação · {pedidos.length}
+      </h2>
+      {pedidos.map((x) => (
+        <div key={x.id} className="flex flex-col gap-3 rounded-2xl bg-superficie-2/60 p-3 sm:flex-row sm:items-center">
+          <Link to={`/dono/${x.financeira.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+            <MarcaFinanceira f={x.financeira} className="size-10 rounded-xl text-sm" />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-bold">{x.financeira.nome}</span>
+              <span className="text-xs text-suave">
+                Quer ativar o <strong className="text-texto">{x.recurso === 'agente_telegram' ? 'robô do Telegram' : 'WhatsApp automático'}</strong> · {dataBr(x.pedidoEm.slice(0, 10))}
+              </span>
+              <span className="text-xs text-suave tabular-nums">
+                Mensalidade {reais(x.atual)} → {x.nova !== null ? <strong className="text-texto">{reais(x.nova)}</strong> : 'valor a combinar'}
+              </span>
+            </span>
+          </Link>
+          <div className="grid grid-cols-2 gap-2 sm:flex">
+            <button onClick={() => agir(x.id, 'recusar')} disabled={!!ocupado} className="h-11 rounded-xl bg-superficie-2 px-4 text-sm font-semibold text-suave hover:text-texto disabled:opacity-60">
+              Recusar
+            </button>
+            <button onClick={() => agir(x.id, 'liberar')} disabled={!!ocupado} className="verde inline-flex h-11 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-extrabold disabled:opacity-60">
+              <Icone nome="certo" tamanho={16} />
+              {ocupado === x.id ? 'Liberando…' : 'Liberar'}
+            </button>
+          </div>
+        </div>
+      ))}
+      {erro && <p className={erroCaixa}>{erro}</p>}
+    </section>
+  )
+}
+
 export default function DonoPainel() {
   const [p, setP] = useState<PainelDono | null>(null)
   const [erro, setErro] = useState('')
   const [filtro, setFiltro] = useState<SituacaoFinanceira | 'todas'>('todas')
 
-  useEffect(() => {
+  const carregar = () =>
     carregarPainelDono()
       .then(setP)
       .catch(() => setErro('Não foi possível carregar o painel. Confira a internet e tente de novo.'))
+  useEffect(() => {
+    carregar()
   }, [])
 
   const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' })
@@ -149,6 +200,7 @@ export default function DonoPainel() {
 
         {p && (
           <div className="grid gap-4 lg:grid-cols-12">
+            {p.pedidos.length > 0 && <Pedidos pedidos={p.pedidos} mudou={carregar} />}
             <section aria-label="Dinheiro do mês" className="vidro flex flex-col gap-4 rounded-[18px] p-5 lg:col-span-7">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 flex-col gap-1">
