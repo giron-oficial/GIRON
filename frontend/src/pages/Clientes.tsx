@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { IconeCobrar } from '../components/BotaoCobrar'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import { botaoClaro, botaoVerde, iniciais, seloCadastro, botaoZap } from '../components/estilo'
@@ -7,6 +8,7 @@ import { cpfEscondido, idCliente, lerId, mascaraTelefone, reais } from '../lib/f
 import { rastrear } from '../lib/analytics'
 import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
+import { cobrancasPorCliente, type Cobranca, type Pix } from '../lib/painel'
 
 type Cliente = {
   id: string
@@ -35,6 +37,11 @@ export default function Clientes() {
   const [link, setLink] = useState('')
   const [copiado, setCopiado] = useState(false)
   const [erroLink, setErroLink] = useState('')
+  // Situação de cada cliente (cor da logo do WhatsApp ao lado do valor, pedido do dono 28/10/2026)
+  const [cobrar, setCobrar] = useState<{ porCliente: Map<string, Cobranca[]>; pix: Pix | null } | null>(null)
+  useEffect(() => {
+    cobrancasPorCliente().then(setCobrar).catch(() => setCobrar(null))
+  }, [])
 
   async function gerarLink() {
     setErroLink('')
@@ -170,8 +177,8 @@ export default function Clientes() {
           const ativos = c.contratos.filter((k) => k.status === 'ativo')
           const aberto = ativos.reduce((t, k) => t + Number(k.capital_em_aberto), 0)
           return (
-            <li key={c.id}>
-              <Link to={`/clientes/${c.id}`} className="cartao flex items-center gap-3 rounded-[20px] p-3 transition hover:border-marca/40 active:scale-[0.99]">
+            <li key={c.id} className="cartao flex items-center gap-1 rounded-[20px] pr-2 transition hover:border-marca/40">
+              <Link to={`/clientes/${c.id}`} className="flex min-w-0 flex-1 items-center gap-3 p-3 pr-1 active:scale-[0.99]">
                 {fotos[c.id] ? (
                   <img src={fotos[c.id]} alt={`Foto de ${c.nome_completo}`} loading="lazy" className="size-11 shrink-0 rounded-[14px] object-cover" />
                 ) : (
@@ -196,6 +203,9 @@ export default function Clientes() {
                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${selo.classe}`}>{selo.texto}</span>
                   )}
                 </div>
+              </Link>
+              {c.telefone && cobrar && <IconeCobrar telefone={c.telefone} cobrancas={cobrar.porCliente.get(c.id) ?? []} pix={cobrar.pix} />}
+              <Link to={`/clientes/${c.id}`} tabIndex={-1} aria-hidden="true" className="flex h-10 items-center">
                 <Icone nome="seta" tamanho={16} className="shrink-0 text-suave" />
               </Link>
             </li>

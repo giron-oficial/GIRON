@@ -146,25 +146,37 @@ export function mensagemCliente(cs: Cobranca[], pix: Pix | null) {
   return pix ? `${texto}\n${AVISO_PIX.trim()}` : texto
 }
 
-// Parcelas do cliente vencidas, de hoje e de amanhã (botão WhatsApp da ficha; com contratoId, só desse contrato)
-export async function cobrancasDoCliente(clienteId: string, contratoId?: string): Promise<{ cobrancas: Cobranca[]; pix: Pix | null }> {
+// Parcelas em aberto vencidas, de hoje e de amanhã de contratos ativos (botões WhatsApp coloridos).
+// Sem filtro = de todos os clientes (lista de Clientes); com clienteId = ficha; com contratoId = só aquele contrato.
+async function cobrancasAbertas(filtro: { clienteId?: string; contratoId?: string }): Promise<{ cobrancas: Cobranca[]; pix: Pix | null }> {
   const agora = new Date()
   const hoje = iso(agora)
   const amanha = iso(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1))
-  let consulta = supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', amanha).eq('contratos.status', 'ativo').eq('contratos.cliente_id', clienteId)
-  if (contratoId) consulta = consulta.eq('contratos.id', contratoId)
+  let consulta = supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', amanha).eq('contratos.status', 'ativo')
+  if (filtro.clienteId) consulta = consulta.eq('contratos.cliente_id', filtro.clienteId)
+  if (filtro.contratoId) consulta = consulta.eq('contratos.id', filtro.contratoId)
   const [config, pendentes, pix, empresa] = await Promise.all([
     supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
-    consulta.order('vencimento'),
+    consulta.order('vencimento').range(0, 9999),
     supabase.from('chaves_pix').select('chave, tipo').eq('padrao', true).maybeSingle(),
     supabase.from('fomentados').select('nome_empresa').maybeSingle(),
   ])
-  if (pendentes.error) throw new Error('Não foi possível ver as parcelas do cliente.')
+  if (pendentes.error) throw new Error('Não foi possível ver as parcelas.')
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
   const jaPago = await pagoNasParciais(linhas)
   const regra = regraDaConfig(config.data)
   const cobrancas = linhas.map((l) => cobrancaDaLinha(l, jaPago.get(l.id) ?? SEM_PAGAMENTO, regra, hoje)).filter((c): c is Cobranca => !!c && c.valor > 0)
   return { cobrancas, pix: montarPix(pix.data, empresa.data?.nome_empresa) }
+}
+
+export const cobrancasDoCliente = (clienteId: string, contratoId?: string) => cobrancasAbertas({ clienteId, contratoId })
+
+// Lista de Clientes: as cobranças em aberto agrupadas por cliente
+export async function cobrancasPorCliente(): Promise<{ porCliente: Map<string, Cobranca[]>; pix: Pix | null }> {
+  const { cobrancas, pix } = await cobrancasAbertas({})
+  const porCliente = new Map<string, Cobranca[]>()
+  for (const c of cobrancas) porCliente.set(c.clienteId, [...(porCliente.get(c.clienteId) ?? []), c])
+  return { porCliente, pix }
 }
 
 // Junta tudo que o painel inicial mostra. A segurança (cada Fomentado só vê o que é dele) é feita pelo banco (RLS).

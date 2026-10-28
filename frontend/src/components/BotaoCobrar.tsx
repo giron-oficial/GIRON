@@ -35,8 +35,30 @@ export function LogoWhatsApp({ tamanho = 20, className = '' }: { tamanho?: numbe
   )
 }
 
+// Situação mais grave das cobranças em aberto (sem nenhuma = em dia)
+export const situacaoDe = (cs: Cobranca[]) => gravidade.find((g) => cs.some((c) => c.situacao === g))
+
+// Só a logo, pra listas (Clientes): mesma cor e mesma mensagem do botão
+export function IconeCobrar({ telefone, cobrancas, pix }: { telefone: string; cobrancas: Cobranca[]; pix: Pix | null }) {
+  const pior = situacaoDe(cobrancas)
+  const situacao = pior ?? 'em_dia'
+  return (
+    <a
+      href={pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, pix)) : linkWhatsApp(telefone)}
+      target="_blank"
+      rel="noreferrer"
+      onClick={() => pior && rastrear('cobranca_enviada', { canal: 'whatsapp_clientes', situacao: evento[pior] })}
+      aria-label={`${texto[situacao]} no WhatsApp`}
+      title={texto[situacao]}
+      className="flex size-10 shrink-0 items-center justify-center rounded-xl hover:bg-white/5"
+    >
+      <LogoWhatsApp tamanho={22} className={corLogo[situacao]} />
+    </a>
+  )
+}
+
 export default function BotaoCobrar({ telefone, cobrancas, pix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; pix: Pix | null; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
-  const pior = gravidade.find((g) => cobrancas.some((c) => c.situacao === g))
+  const pior = situacaoDe(cobrancas)
   const situacao = pior ?? 'em_dia'
   const href = pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, pix)) : linkWhatsApp(telefone)
   return (
