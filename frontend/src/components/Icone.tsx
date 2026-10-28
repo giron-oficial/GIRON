@@ -31,6 +31,7 @@ const caminhos = {
       <path d="M4.5 20c1-3.8 4-6 7.5-6s6.5 2.2 7.5 6" />
     </>
   ),
+  lapis: <path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4" />,
   maleta: <path d="M4 8h16v11H4zM9 8V5h6v3M4 13h16" />,
   imagem: (
     <>

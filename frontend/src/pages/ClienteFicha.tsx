@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Tela from '../components/Tela'
 import BarraRecuperacao from '../components/BarraRecuperacao'
+import EditarCliente from '../components/EditarCliente'
 import { recuperacao } from '../lib/recuperacao'
 import { botaoClaro, botaoVerde, botaoZap, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
 import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
@@ -34,13 +35,16 @@ function Linha({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
   )
 }
 
-function Bloco({ titulo, icone, children }: { titulo: string; icone: NomeIcone; children: ReactNode }) {
+function Bloco({ titulo, icone, acao, children }: { titulo: string; icone: NomeIcone; acao?: ReactNode; children: ReactNode }) {
   return (
     <section className="cartao rounded-[22px] p-4 lg:p-5">
-      <h2 className={`${tituloSecao} flex items-center gap-2`}>
-        <Icone nome={icone} tamanho={16} />
-        {titulo}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className={`${tituloSecao} flex items-center gap-2`}>
+          <Icone nome={icone} tamanho={16} />
+          {titulo}
+        </h2>
+        {acao}
+      </div>
       <div className="mt-1">{children}</div>
     </section>
   )
@@ -61,6 +65,7 @@ export default function ClienteFicha() {
   const [linkLocal, setLinkLocal] = useState('')
   const [copiadoLocal, setCopiadoLocal] = useState(false)
   const [erroLocal, setErroLocal] = useState('')
+  const [editando, setEditando] = useState(false)
   // Parcelas que vencem hoje ou já venceram: o botão WhatsApp já abre com a cobrança escrita
   const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; chavePix: string | null } | null>(null)
 
@@ -240,7 +245,16 @@ export default function ClienteFicha() {
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2 lg:items-start">
         <div className="flex flex-col gap-3">
-          <Bloco titulo="Dados" icone="usuario">
+          <Bloco
+            titulo="Dados"
+            icone="usuario"
+            acao={
+              <button onClick={() => setEditando(true)} className="flex h-9 items-center gap-1.5 rounded-xl bg-superficie-2 px-3 text-sm font-semibold text-marca hover:text-texto">
+                <Icone nome="lapis" tamanho={15} />
+                Editar
+              </button>
+            }
+          >
             <div className="divide-y divide-superficie-2">
               <Linha rotulo="Telefone" valor={mascaraTelefone(cliente.telefone)} />
               {cliente.cpf_final ? (
@@ -280,6 +294,17 @@ export default function ClienteFicha() {
                 <Linha rotulo="Dia de vencimento" valor={cliente.dia_vencimento_preferido ? `todo dia ${cliente.dia_vencimento_preferido}` : null} />
               </div>
             </Bloco>
+          )}
+
+          {editando && (
+            <EditarCliente
+              cliente={cliente}
+              fechar={() => setEditando(false)}
+              salvo={() => {
+                setEditando(false)
+                setRecarregar((n) => n + 1)
+              }}
+            />
           )}
 
           {(cliente.trabalho_empresa || cliente.trabalho_endereco || cliente.trabalho_telefone) && (
