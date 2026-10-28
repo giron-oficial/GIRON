@@ -4,9 +4,9 @@ import CartaoMes from '../components/CartaoMes'
 import Icone from '../components/Icone'
 import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
-import { dataBr, linkWhatsApp, reais } from '../lib/formatos'
+import { linkWhatsApp, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
-import { carregarPainel, type Cobranca, type Painel, type Situacao } from '../lib/painel'
+import { carregarPainel, mensagemCobranca, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
 import { carregarBarra, resumoGuardado } from '../lib/barra'
 
@@ -52,20 +52,6 @@ function detalhe(c: Cobranca) {
   if (c.situacao === 'hoje') return 'vence hoje'
   if (c.situacao === 'amanha') return 'vence amanhã'
   return c.atraso === 1 ? 'venceu ontem' : `${c.atraso} dias`
-}
-
-function mensagem(c: Cobranca, pix: string | null) {
-  const nome = c.cliente.split(' ')[0]
-  const valor = reais(c.valor)
-  const texto =
-    c.situacao === 'hoje'
-      ? `${nome}, hoje vence sua parcela de ${valor}.`
-      : c.situacao === 'amanha'
-        ? `${nome}, amanhã vence sua parcela de ${valor}.`
-        : c.encargos > 0
-          ? `${nome}, sua parcela venceu em ${dataBr(c.vencimento)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
-          : `${nome}, sua parcela de ${valor} venceu em ${dataBr(c.vencimento)}.`
-  return pix ? `${texto} Pix: ${pix}` : texto
 }
 
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`
@@ -321,7 +307,7 @@ export default function Inicio() {
                   </Link>
                   {c.telefone && (
                     <a
-                      href={linkWhatsApp(c.telefone, mensagem(c, p.chavePix))}
+                      href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.chavePix))}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_inicio', situacao: situacaoEvento(c.situacao) })}

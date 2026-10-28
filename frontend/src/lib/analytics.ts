@@ -16,7 +16,7 @@
 // - contrato_convertido    { modalidade, sistema, origem: 'novo_emprestimo' }
 // - pagamento_registrado, amortizacao_registrada, estorno_registrado
 // - simulacao_enviada      { canal: 'copiar' | 'whatsapp' }
-// - cobranca_enviada       { canal: 'whatsapp_inicio', situacao: 'vence_hoje' | 'vence_amanha' | 'atrasado' }
+// - cobranca_enviada       { canal: 'whatsapp_inicio' | 'whatsapp_ficha', situacao: 'vence_hoje' | 'vence_amanha' | 'atrasado' }
 //                          { canal: 'extrato_imagem' | 'extrato_texto', modo: 'cliente' | 'empresa' }
 // - link_cadastro_gerado   { origem: 'clientes' | 'calculadora' }
 // - cadastro_avaliado      { resultado: 'aprovado' | 'reprovado' }

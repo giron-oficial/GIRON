@@ -1,4 +1,5 @@
-import { encargosAtraso, regraDaConfig } from './atraso'
+import { encargosAtraso, regraDaConfig, type RegraAtraso } from './atraso'
+import { dataBr, reais } from './formatos'
 import { supabase } from './supabase'
 
 // Situação de uma parcela pendente (cores das bolinhas de vencimento)
@@ -57,6 +58,92 @@ const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 const diasEntre = (de: string, ate: string) => Math.round((Date.parse(ate + 'T12:00:00') - Date.parse(de + 'T12:00:00')) / 86400000)
 const soma = <T>(xs: T[], f: (x: T) => number) => xs.reduce((t, x) => t + f(x), 0)
 
+type JaPago = { juro: number; total: number; multa: number; juroAtraso: number }
+const SEM_PAGAMENTO: JaPago = { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
+
+const SELECT_PENDENTES = 'id, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, status, clientes(nome_completo, telefone))'
+
+// Parcelas com pagamento parcial: quanto já entrou em cada uma (pra descontar)
+async function pagoNasParciais(linhas: LinhaPendente[]) {
+  const parciais = linhas.filter((l) => l.status === 'parcial').map((l) => l.id)
+  const jaPago = new Map<string, JaPago>()
+  if (!parciais.length) return jaPago
+  const { data } = await supabase.from('pagamentos').select('parcela_id, parte_juro, parte_capital, multa, juro_atraso').in('parcela_id', parciais).is('estornado_em', null)
+  for (const p of (data ?? []) as { parcela_id: string; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]) {
+    const atual = jaPago.get(p.parcela_id) ?? { ...SEM_PAGAMENTO }
+    atual.juro += Number(p.parte_juro)
+    atual.total += Number(p.parte_juro) + Number(p.parte_capital)
+    atual.multa += Number(p.multa)
+    atual.juroAtraso += Number(p.juro_atraso)
+    jaPago.set(p.parcela_id, atual)
+  }
+  return jaPago
+}
+
+// Parcela pendente -> cobrança (null se vence depois de amanhã)
+function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoje: string): Cobranca | null {
+  const atraso = diasEntre(l.vencimento, hoje)
+  if (atraso < -1) return null
+  const situacao: Situacao = atraso >= regra.diasCritico ? 'critico' : atraso >= 1 ? 'vencido' : atraso === 0 ? 'hoje' : 'amanha'
+  const encargos = encargosAtraso(atraso, regra, pago.multa, pago.juroAtraso).total
+  return {
+    parcelaId: l.id,
+    contratoId: l.contratos.id,
+    clienteId: l.contratos.cliente_id,
+    cliente: l.contratos.clientes?.nome_completo ?? 'Cliente',
+    telefone: l.contratos.clientes?.telefone ?? '',
+    modalidade: l.contratos.modalidade,
+    vencimento: l.vencimento,
+    valor: Math.max(0, Number(l.valor) - pago.total) + encargos,
+    encargos,
+    atraso,
+    situacao,
+  }
+}
+
+// Mensagem pronta pro WhatsApp de uma parcela (Cobrar agora do painel)
+export function mensagemCobranca(c: Cobranca, pix: string | null) {
+  const nome = c.cliente.split(' ')[0]
+  const valor = reais(c.valor)
+  const texto =
+    c.situacao === 'hoje'
+      ? `${nome}, hoje vence sua parcela de ${valor}.`
+      : c.situacao === 'amanha'
+        ? `${nome}, amanhã vence sua parcela de ${valor}.`
+        : c.encargos > 0
+          ? `${nome}, sua parcela venceu em ${dataBr(c.vencimento)}. Com multa e juros de atraso, hoje o valor é ${valor}.`
+          : `${nome}, sua parcela de ${valor} venceu em ${dataBr(c.vencimento)}.`
+  return pix ? `${texto} Pix: ${pix}` : texto
+}
+
+// Mensagem do botão WhatsApp da ficha: junta todas as parcelas que vencem hoje ou já venceram
+export function mensagemCliente(cs: Cobranca[], pix: string | null) {
+  if (cs.length === 1) return mensagemCobranca(cs[0], pix)
+  const nome = cs[0].cliente.split(' ')[0]
+  const linhas = cs.map((c) =>
+    `• ${reais(c.valor)}: ${c.situacao === 'hoje' ? 'vence hoje' : `venceu em ${dataBr(c.vencimento)}`}${c.encargos > 0 ? ' (com multa e juros de atraso)' : ''}`,
+  )
+  const total = cs.reduce((t, c) => t + c.valor, 0)
+  const texto = `${nome}, você tem ${cs.length} parcelas em aberto:\n${linhas.join('\n')}\nTotal hoje: ${reais(total)}.`
+  return pix ? `${texto}\nPix: ${pix}` : texto
+}
+
+// Parcelas do cliente que vencem hoje ou já venceram (botão WhatsApp da ficha)
+export async function cobrancasDoCliente(clienteId: string): Promise<{ cobrancas: Cobranca[]; chavePix: string | null }> {
+  const hoje = iso(new Date())
+  const [config, pendentes, pix] = await Promise.all([
+    supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
+    supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', hoje).eq('contratos.status', 'ativo').eq('contratos.cliente_id', clienteId).order('vencimento'),
+    supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
+  ])
+  if (pendentes.error) throw new Error('Não foi possível ver as parcelas do cliente.')
+  const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
+  const jaPago = await pagoNasParciais(linhas)
+  const regra = regraDaConfig(config.data)
+  const cobrancas = linhas.map((l) => cobrancaDaLinha(l, jaPago.get(l.id) ?? SEM_PAGAMENTO, regra, hoje)).filter((c): c is Cobranca => !!c && c.valor > 0)
+  return { cobrancas, chavePix: (pix.data as { chave: string } | null)?.chave ?? null }
+}
+
 // Junta tudo que o painel inicial mostra. A segurança (cada Fomentado só vê o que é dele) é feita pelo banco (RLS).
 export async function carregarPainel(): Promise<Painel> {
   const agora = new Date()
@@ -78,7 +165,7 @@ export async function carregarPainel(): Promise<Painel> {
     supabase.from('pagamentos').select('parte_juro, parte_capital, multa, juro_atraso').is('estornado_em', null).gte('pago_em', inicioMes).lte('pago_em', fimMes),
     supabase
       .from('parcelas')
-      .select('id, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, status, clientes(nome_completo, telefone))')
+      .select(SELECT_PENDENTES)
       .neq('status', 'paga')
       .lte('vencimento', limite)
       .eq('contratos.status', 'ativo'),
@@ -103,45 +190,15 @@ export async function carregarPainel(): Promise<Painel> {
   const pagos = (pagamentos.data ?? []) as { parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
 
-  // Parcelas com pagamento parcial: desconta o que já entrou
-  const parciais = linhas.filter((l) => l.status === 'parcial').map((l) => l.id)
-  const jaPago = new Map<string, { juro: number; total: number; multa: number; juroAtraso: number }>()
-  if (parciais.length) {
-    const { data } = await supabase.from('pagamentos').select('parcela_id, parte_juro, parte_capital, multa, juro_atraso').in('parcela_id', parciais).is('estornado_em', null)
-    for (const p of (data ?? []) as { parcela_id: string; parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]) {
-      const atual = jaPago.get(p.parcela_id) ?? { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
-      atual.juro += Number(p.parte_juro)
-      atual.total += Number(p.parte_juro) + Number(p.parte_capital)
-      atual.multa += Number(p.multa)
-      atual.juroAtraso += Number(p.juro_atraso)
-      jaPago.set(p.parcela_id, atual)
-    }
-  }
-
+  const jaPago = await pagoNasParciais(linhas)
   const regra = regraDaConfig(config.data)
-  const dias = regra.diasCritico
   const cobrancas: Cobranca[] = []
   let jurosPendentes = 0
   for (const l of linhas) {
-    const pago = jaPago.get(l.id) ?? { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
+    const pago = jaPago.get(l.id) ?? SEM_PAGAMENTO
     if (l.vencimento >= inicioMes && l.vencimento <= fimMes) jurosPendentes += Math.max(0, Number(l.parte_juro) - pago.juro)
-    const atraso = diasEntre(l.vencimento, hoje)
-    if (atraso < -1) continue
-    const situacao: Situacao = atraso >= dias ? 'critico' : atraso >= 1 ? 'vencido' : atraso === 0 ? 'hoje' : 'amanha'
-    const encargos = encargosAtraso(atraso, regra, pago.multa, pago.juroAtraso).total
-    cobrancas.push({
-      parcelaId: l.id,
-      contratoId: l.contratos.id,
-      clienteId: l.contratos.cliente_id,
-      cliente: l.contratos.clientes?.nome_completo ?? 'Cliente',
-      telefone: l.contratos.clientes?.telefone ?? '',
-      modalidade: l.contratos.modalidade,
-      vencimento: l.vencimento,
-      valor: Math.max(0, Number(l.valor) - pago.total) + encargos,
-      encargos,
-      atraso,
-      situacao,
-    })
+    const c = cobrancaDaLinha(l, pago, regra, hoje)
+    if (c) cobrancas.push(c)
   }
   cobrancas.sort((a, b) => ordem[a.situacao] - ordem[b.situacao] || b.atraso - a.atraso)
 
