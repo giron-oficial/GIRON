@@ -3,13 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Icone, { type NomeIcone } from '../components/Icone'
 import Tela from '../components/Tela'
 import BarraRecuperacao from '../components/BarraRecuperacao'
+import BotaoCobrar from '../components/BotaoCobrar'
 import EditarCliente from '../components/EditarCliente'
 import { recuperacao } from '../lib/recuperacao'
-import { botaoClaro, botaoVerde, botaoZap, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
+import { botaoClaro, botaoVerde, campo, iniciais, seloCadastro, seloContrato, tituloSecao } from '../components/estilo'
 import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
-import { cobrancasDoCliente, mensagemCliente, type Cobranca } from '../lib/painel'
+import { cobrancasDoCliente, type Cobranca } from '../lib/painel'
 
 type Arquivo = { id: string; tipo: string; caminho_arquivo: string }
 type Local = { id: string; nome: string; latitude: number; longitude: number; precisao_metros: number | null; foto_arquivo: string | null; registrado_em: string }
@@ -66,7 +67,7 @@ export default function ClienteFicha() {
   const [copiadoLocal, setCopiadoLocal] = useState(false)
   const [erroLocal, setErroLocal] = useState('')
   const [editando, setEditando] = useState(false)
-  // Parcelas que vencem hoje ou já venceram: o botão WhatsApp já abre com a cobrança escrita
+  // Parcelas vencidas, de hoje e de amanhã: o botão WhatsApp já abre com a cobrança escrita
   const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; chavePix: string | null } | null>(null)
 
   useEffect(() => {
@@ -201,23 +202,13 @@ export default function ClienteFicha() {
               Novo empréstimo
             </Link>
           )}
-          {cobrar?.cobrancas.length ? (
-            <a
-              href={linkWhatsApp(cliente.telefone, mensagemCliente(cobrar.cobrancas, cobrar.chavePix))}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_ficha', situacao: cobrar.cobrancas.some((c) => c.situacao !== 'hoje') ? 'atrasado' : 'vence_hoje' })}
-              className={`${botaoZap} ${cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}`}
-            >
-              <Icone nome="whatsapp" tamanho={18} />
-              {cobrar.cobrancas.some((c) => c.situacao !== 'hoje') ? 'Cobrar atraso' : 'Cobrar hoje'}
-            </a>
-          ) : (
-            <a href={linkWhatsApp(cliente.telefone)} target="_blank" rel="noreferrer" className={`${botaoClaro} ${cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}`}>
-              <Icone nome="whatsapp" tamanho={18} />
-              WhatsApp
-            </a>
-          )}
+          <BotaoCobrar
+            telefone={cliente.telefone}
+            cobrancas={cobrar?.cobrancas ?? []}
+            chavePix={cobrar?.chavePix ?? null}
+            origem="ficha"
+            className={cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}
+          />
         </div>
       </section>
 

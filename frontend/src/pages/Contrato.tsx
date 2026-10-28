@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import BotaoCobrar from '../components/BotaoCobrar'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
 import BarraRecuperacao from '../components/BarraRecuperacao'
@@ -10,6 +11,7 @@ import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { rastrear } from '../lib/analytics'
 import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
+import { cobrancasDoCliente, type Cobranca } from '../lib/painel'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = {
@@ -19,7 +21,7 @@ type Pagamento = {
 type ContratoT = {
   id: string; numero: number; modalidade: string; sistema_calculo: string | null; capital: number; juro_percentual: number
   juro_valor: number; quantidade_parcelas: number | null; data_contrato: string; status: string; capital_em_aberto: number
-  cliente_id: string; convertido_de: string | null; convertido_para: string | null; clientes: { numero: number; nome_completo: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
+  cliente_id: string; convertido_de: string | null; convertido_para: string | null; clientes: { numero: number; nome_completo: string; telefone: string } | null; parcelas: Parcela[]; pagamentos: Pagamento[]
 }
 
 const hoje = () => new Date().toLocaleDateString('sv-SE')
@@ -75,7 +77,7 @@ export default function Contrato() {
     return supabase
       .from('contratos')
       .select(`id, numero, modalidade, sistema_calculo, capital, juro_percentual, juro_valor, quantidade_parcelas, data_contrato,
-               status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(numero, nome_completo), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
+               status, capital_em_aberto, cliente_id, convertido_de, convertido_para, clientes(numero, nome_completo, telefone), parcelas(id, numero, vencimento, valor, parte_juro, parte_capital, status),
                pagamentos(id, parcela_id, tipo, valor_pago, desconto, acrescimo, parte_juro, parte_capital, multa, juro_atraso, pago_em, observacao, estornado_em, motivo_estorno, ordem)`)
       .eq('id', id!)
       .order('numero', { referencedTable: 'parcelas' })
@@ -85,6 +87,12 @@ export default function Contrato() {
         setCarregando(false)
       })
   }, [id])
+
+  // Parcelas em aberto deste contrato: o botão WhatsApp já abre com a cobrança escrita
+  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; chavePix: string | null } | null>(null)
+  useEffect(() => {
+    if (c?.cliente_id && c.status === 'ativo') cobrancasDoCliente(c.cliente_id, c.id).then(setCobrar).catch(() => setCobrar(null))
+  }, [c?.cliente_id, c?.id, c?.status, c?.pagamentos?.length])
 
   // Selfie do cadastro no topo (só se o cliente tiver)
   useEffect(() => {
@@ -185,10 +193,15 @@ export default function Contrato() {
   return (
     <Tela titulo={`Contrato ${idContrato(c.numero)}`} subtitulo={c.clientes ? `${c.clientes.nome_completo} · ${idCliente(c.clientes.numero)}` : undefined} voltar={`/clientes/${c.cliente_id}`} foto={foto} largo
       acoes={
-        <Link to={`/contratos/${c.id}/extrato`} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-borda bg-superficie px-4 text-sm font-bold">
-          <Icone nome="relatorios" tamanho={18} />
-          Extrato
-        </Link>
+        <div className="flex gap-2">
+          {c.clientes?.telefone && (
+            <BotaoCobrar telefone={c.clientes.telefone} cobrancas={cobrar?.cobrancas ?? []} chavePix={cobrar?.chavePix ?? null} origem="contrato" className="h-11 px-4 text-sm" />
+          )}
+          <Link to={`/contratos/${c.id}/extrato`} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-borda bg-superficie px-4 text-sm font-bold">
+            <Icone nome="relatorios" tamanho={18} />
+            Extrato
+          </Link>
+        </div>
       }
     >
       {c.convertido_para && (

@@ -116,24 +116,28 @@ export function mensagemCobranca(c: Cobranca, pix: string | null) {
   return pix ? `${texto} Pix: ${pix}` : texto
 }
 
-// Mensagem do botão WhatsApp da ficha: junta todas as parcelas que vencem hoje ou já venceram
+// Mensagem do botão WhatsApp da ficha/contrato: junta as parcelas em aberto (vencidas, de hoje e de amanhã)
 export function mensagemCliente(cs: Cobranca[], pix: string | null) {
   if (cs.length === 1) return mensagemCobranca(cs[0], pix)
   const nome = cs[0].cliente.split(' ')[0]
   const linhas = cs.map((c) =>
-    `• ${reais(c.valor)}: ${c.situacao === 'hoje' ? 'vence hoje' : `venceu em ${dataBr(c.vencimento)}`}${c.encargos > 0 ? ' (com multa e juros de atraso)' : ''}`,
+    `• ${reais(c.valor)}: ${c.situacao === 'hoje' ? 'vence hoje' : c.situacao === 'amanha' ? 'vence amanhã' : `venceu em ${dataBr(c.vencimento)}`}${c.encargos > 0 ? ' (com multa e juros de atraso)' : ''}`,
   )
   const total = cs.reduce((t, c) => t + c.valor, 0)
   const texto = `${nome}, você tem ${cs.length} parcelas em aberto:\n${linhas.join('\n')}\nTotal hoje: ${reais(total)}.`
   return pix ? `${texto}\nPix: ${pix}` : texto
 }
 
-// Parcelas do cliente que vencem hoje ou já venceram (botão WhatsApp da ficha)
-export async function cobrancasDoCliente(clienteId: string): Promise<{ cobrancas: Cobranca[]; chavePix: string | null }> {
-  const hoje = iso(new Date())
+// Parcelas do cliente vencidas, de hoje e de amanhã (botão WhatsApp da ficha; com contratoId, só desse contrato)
+export async function cobrancasDoCliente(clienteId: string, contratoId?: string): Promise<{ cobrancas: Cobranca[]; chavePix: string | null }> {
+  const agora = new Date()
+  const hoje = iso(agora)
+  const amanha = iso(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1))
+  let consulta = supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', amanha).eq('contratos.status', 'ativo').eq('contratos.cliente_id', clienteId)
+  if (contratoId) consulta = consulta.eq('contratos.id', contratoId)
   const [config, pendentes, pix] = await Promise.all([
     supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
-    supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', hoje).eq('contratos.status', 'ativo').eq('contratos.cliente_id', clienteId).order('vencimento'),
+    consulta.order('vencimento'),
     supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
   ])
   if (pendentes.error) throw new Error('Não foi possível ver as parcelas do cliente.')
