@@ -221,6 +221,26 @@ export default function ClienteFicha() {
         </div>
       </section>
 
+      {/* Resumo do cliente até hoje (pedido do dono, 28/10/2026): quanto saiu pra ele e quanto já voltou */}
+      {hist.contratos > 0 && (
+        <section aria-label="Resumo do cliente" className="vidro mt-3 grid grid-cols-2 rounded-[22px] p-4 lg:p-5">
+          <div className="@container flex min-w-0 flex-col gap-0.5 pr-3">
+            <span className="text-[11px] tracking-[0.12em] text-suave uppercase">Emprestado</span>
+            <span className="truncate font-display text-[clamp(15px,11cqi,28px)] leading-tight font-extrabold tabular-nums">{reais(hist.emprestado)}</span>
+            <span className="text-xs text-suave">{hist.contratos} {hist.contratos === 1 ? 'contrato' : 'contratos'} até hoje</span>
+          </div>
+          <div className="@container flex min-w-0 flex-col gap-0.5 border-l border-superficie-2 pl-3 lg:pl-5">
+            <span className="text-[11px] tracking-[0.12em] text-suave uppercase">Recebido</span>
+            <span className="truncate font-display text-[clamp(15px,11cqi,28px)] leading-tight font-extrabold tabular-nums">{reais(hist.pago)}</span>
+            {saldo >= 0 ? (
+              <span className="text-xs font-semibold text-sucesso tabular-nums">▲ {reais(saldo)} a mais (lucro)</span>
+            ) : (
+              <span className="text-xs text-suave tabular-nums">faltam {reais(-saldo)} pra empatar</span>
+            )}
+          </div>
+        </section>
+      )}
+
       {cliente.status_cadastro !== 'aprovado' && (
         <section className="mt-3 flex flex-col gap-3 rounded-[22px] bg-linear-135 from-[#F5C02E] to-[#D99A00] p-4 text-white shadow-lg shadow-amanha/30 lg:flex-row lg:items-center lg:p-5">
           <div className="flex-1">
