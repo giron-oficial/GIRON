@@ -28,9 +28,12 @@ export type Painel = {
   jurosPendentes: number
   capitalRecebido: number
   emprestado: number
+  emprestadoMesPassado: number
   contratosNovos: number
   clientesMes: number
   clientesPagaram: number
+  contratosMes: number // contratos com parcela vencendo no mês
+  contratosPagaram: number // desses, os que já pagaram tudo do mês
   cobrancas: Cobranca[]
   chavePix: string | null
   historicoCapital: PontoCapital[] // capital na rua no fim de cada um dos últimos 5 meses + hoje
@@ -63,6 +66,7 @@ export async function carregarPainel(): Promise<Painel> {
   const amanha = iso(new Date(ano, mes, agora.getDate() + 1))
   const inicioMes = iso(new Date(ano, mes, 1))
   const fimMes = iso(new Date(ano, mes + 1, 0))
+  const inicioMesPassado = iso(new Date(ano, mes - 1, 1))
   const limite = amanha > fimMes ? amanha : fimMes
 
   const inicioHistorico = iso(new Date(ano, mes - 5, 1))
@@ -80,7 +84,7 @@ export async function carregarPainel(): Promise<Painel> {
       .eq('contratos.status', 'ativo'),
     supabase
       .from('parcelas')
-      .select('status, contratos!inner(cliente_id, status)')
+      .select('status, contratos!inner(id, cliente_id, status)')
       .gte('vencimento', inicioMes)
       .lte('vencimento', fimMes)
       .not('contratos.status', 'in', '(cancelado,convertido)'),
@@ -92,7 +96,10 @@ export async function carregarPainel(): Promise<Painel> {
 
   const listaContratos = (contratos.data ?? []) as { capital: number; capital_em_aberto: number; data_contrato: string; status: string; convertido_de: string | null }[]
   const ativos = listaContratos.filter((c) => c.status === 'ativo')
-  const novos = listaContratos.filter((c) => c.data_contrato >= inicioMes && c.data_contrato <= fimMes && c.status !== 'cancelado' && !c.convertido_de) // conversão não é dinheiro novo
+  // conversão não é dinheiro novo
+  const novosEntre = (de: string, ate: string) => listaContratos.filter((c) => c.data_contrato >= de && c.data_contrato <= ate && c.status !== 'cancelado' && !c.convertido_de)
+  const novos = novosEntre(inicioMes, fimMes)
+  const novosMesPassado = novosEntre(inicioMesPassado, iso(new Date(ano, mes, 0)))
   const pagos = (pagamentos.data ?? []) as { parte_juro: number; parte_capital: number; multa: number; juro_atraso: number }[]
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
 
@@ -138,11 +145,13 @@ export async function carregarPainel(): Promise<Painel> {
   }
   cobrancas.sort((a, b) => ordem[a.situacao] - ordem[b.situacao] || b.atraso - a.atraso)
 
-  // Clientes com parcela no mês: quem já quitou tudo do mês conta como "pagou"
+  // Clientes e contratos com parcela no mês: quem já quitou tudo do mês conta como "pagou"
   const porCliente = new Map<string, boolean>()
-  for (const p of (parcelasMes.data ?? []) as unknown as { status: string; contratos: { cliente_id: string } }[]) {
+  const porContrato = new Map<string, boolean>()
+  for (const p of (parcelasMes.data ?? []) as unknown as { status: string; contratos: { id: string; cliente_id: string } }[]) {
     const id = p.contratos.cliente_id
     porCliente.set(id, (porCliente.get(id) ?? true) && p.status === 'paga')
+    porContrato.set(p.contratos.id, (porContrato.get(p.contratos.id) ?? true) && p.status === 'paga')
   }
 
   // Capital na rua no passado: parte do valor de hoje e volta no tempo
@@ -168,9 +177,12 @@ export async function carregarPainel(): Promise<Painel> {
     jurosPendentes,
     capitalRecebido: soma(pagos, (p) => Number(p.parte_capital)),
     emprestado: soma(novos, (c) => Number(c.capital)),
+    emprestadoMesPassado: soma(novosMesPassado, (c) => Number(c.capital)),
     contratosNovos: novos.length,
     clientesMes: porCliente.size,
     clientesPagaram: [...porCliente.values()].filter(Boolean).length,
+    contratosMes: porContrato.size,
+    contratosPagaram: [...porContrato.values()].filter(Boolean).length,
     cobrancas,
     chavePix: (pix.data as { chave: string } | null)?.chave ?? null,
     historicoCapital,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import Icone, { type NomeIcone } from '../components/Icone'
+import CartaoMes from '../components/CartaoMes'
+import Icone from '../components/Icone'
 import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
 import { dataBr, linkWhatsApp, reais } from '../lib/formatos'
@@ -67,23 +68,7 @@ function mensagem(c: Cobranca, pix: string | null) {
   return pix ? `${texto} Pix: ${pix}` : texto
 }
 
-function Mini({ rotulo, valor, icone, cor, rodape, barra }: { rotulo: string; valor: number; icone: NomeIcone; cor: string; rodape: string; barra?: number }) {
-  return (
-    <div className="@container flex min-w-0 flex-col gap-1.5 border-l border-superficie-2 pl-3 first:border-l-0 first:pl-0 lg:pl-4">
-      <span className={`flex size-7.5 items-center justify-center rounded-[10px] ${cor}`}>
-        <Icone nome={icone} tamanho={15} />
-      </span>
-      <span className="truncate text-[11px] text-suave lg:text-xs">{rotulo}</span>
-      <span className="truncate font-display text-[clamp(15px,14.5cqi,30px)] leading-tight font-extrabold tabular-nums">{reais(valor)}</span>
-      {barra !== undefined && (
-        <div className="h-1 overflow-hidden rounded-full bg-superficie-2 lg:h-1.5">
-          <div className="h-full rounded-full bg-linear-90 from-marca-clara to-marca" style={{ width: `${barra}%` }} />
-        </div>
-      )}
-      <span className="truncate text-[10px] text-suave lg:text-xs">{rodape}</span>
-    </div>
-  )
-}
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`
 
 export default function Inicio() {
   // WhatsApp automático ligado? (aviso pequeno no "Cobrar agora")
@@ -153,7 +138,14 @@ export default function Inicio() {
   const lista = filtro ? p.cobrancas.filter((c) => c.situacao === filtro) : p.cobrancas
   const visiveis = verTodos ? lista : lista.slice(0, 5)
   const nome = empresa.nome_empresa.split(' ')[0]
-  const mes = new Date().toLocaleDateString('pt-BR', { month: 'long' })
+  const agora = new Date()
+  const mes = agora.toLocaleDateString('pt-BR', { month: 'long' })
+  const Mes = mes.charAt(0).toUpperCase() + mes.slice(1)
+  const mesPassado = new Date(agora.getFullYear(), agora.getMonth() - 1, 1).toLocaleDateString('pt-BR', { month: 'long' })
+  const pctDoMesPassado = p.emprestadoMesPassado > 0 ? Math.round((p.emprestado / p.emprestadoMesPassado) * 100) : null
+  const pctVoltou = p.emprestado > 0 ? Math.round((p.capitalRecebido / p.emprestado) * 100) : null
+  const contratosFaltam = p.contratosMes - p.contratosPagaram
+  const clientesFaltam = p.clientesMes - p.clientesPagaram
 
   return (
     <Moldura>
@@ -180,7 +172,7 @@ export default function Inicio() {
 
         <section
           aria-label="Capital em trânsito"
-          className="vidro relative flex flex-col gap-4 overflow-hidden rounded-[18px] px-5 py-4.5 sm:flex-row sm:items-end lg:col-span-6 lg:p-5"
+          className="vidro relative flex flex-col gap-4 overflow-hidden rounded-[18px] px-5 py-4.5 sm:flex-row sm:items-end lg:col-span-12 lg:p-5"
         >
           <div className="flex shrink-0 flex-col gap-2">
             <span className="relative flex items-center gap-1.5 text-xs text-suave lg:text-[13px]">
@@ -199,26 +191,48 @@ export default function Inicio() {
           </div>
         </section>
 
-        <section id="resumo" aria-label="Resumo do mês" className="vidro scroll-mt-4 rounded-[18px] p-4 max-lg:order-1 lg:col-span-6 lg:p-5">
-          <h2 className="mb-3 text-sm font-bold first-letter:uppercase">{mes} até agora</h2>
-          <div className="grid grid-cols-3">
-            <Mini
-              rotulo="Juros recebidos"
-              valor={p.jurosRecebidos}
-              icone="moeda"
-              cor="bg-marca/15 text-marca"
-              barra={percentual}
-              rodape={`${percentual}% · faltam ${reais(p.jurosPendentes)}`}
-            />
-            <Mini rotulo="Capital recebido" valor={p.capitalRecebido} icone="entrando" cor="bg-hoje/15 text-hoje" rodape="voltou pro caixa" />
-            <Mini
-              rotulo="Emprestado"
-              valor={p.emprestado}
-              icone="saindo"
-              cor="bg-amanha/15 text-amanha"
-              rodape={`${p.contratosNovos} ${p.contratosNovos === 1 ? 'contrato novo' : 'contratos novos'}`}
-            />
-          </div>
+        <section id="resumo" aria-label={`Resumo de ${mes}`} className="grid scroll-mt-4 grid-cols-2 gap-2.5 max-lg:order-1 lg:col-span-12 lg:grid-cols-5 lg:gap-3.5">
+          <CartaoMes
+            className="col-span-2 lg:col-span-1"
+            cor="roxo"
+            rotulo="Capital emprestado"
+            valor={reais(p.emprestado)}
+            sub={`saiu em ${Mes} · ${plural(p.contratosNovos, 'contrato novo', 'contratos novos')}`}
+            destaque={
+              pctDoMesPassado !== null
+                ? <>{pctDoMesPassado}% do que saiu em {mesPassado} <span className="whitespace-nowrap">({reais(p.emprestadoMesPassado)})</span></>
+                : `nada saiu em ${mesPassado}`
+            }
+          />
+          <CartaoMes
+            cor="azul"
+            rotulo="Capital recebido"
+            valor={reais(p.capitalRecebido)}
+            sub={`em ${Mes}`}
+            destaque={pctVoltou !== null ? `voltou ${pctVoltou}% do emprestado no mês` : 'voltou pro caixa'}
+          />
+          <CartaoMes
+            cor="verdeAgua"
+            rotulo="Juros a receber"
+            valor={reais(p.jurosPendentes)}
+            sub={`ainda falta em ${Mes}`}
+            barra={percentual}
+            destaque={`já recebeu ${percentual}% dos ${reais(totalJuros)} previstos`}
+          />
+          <CartaoMes
+            cor="verde"
+            rotulo="Já pagaram"
+            valor={String(p.contratosPagaram)}
+            sub={`${plural(p.contratosPagaram, 'contrato', 'contratos')} · ${plural(p.clientesPagaram, 'cliente', 'clientes')}`}
+            destaque={`juros recebidos: ${reais(p.jurosRecebidos)}`}
+          />
+          <CartaoMes
+            cor="amarelo"
+            rotulo="Faltam pagar"
+            valor={String(contratosFaltam)}
+            sub={`${plural(contratosFaltam, 'contrato', 'contratos')} · ${plural(clientesFaltam, 'cliente', 'clientes')}`}
+            destaque={`juros a receber: ${reais(p.jurosPendentes)}`}
+          />
         </section>
 
         <section aria-label="Situação dos clientes" className="grid grid-cols-4 gap-2 lg:col-span-12 lg:gap-3.5">
