@@ -1,5 +1,5 @@
 import type { Situacao } from '../lib/painel'
-import { mensagemCliente, type Cobranca } from '../lib/painel'
+import { codigoPix, mensagemCliente, type Cobranca, type Pix } from '../lib/painel'
 import { linkWhatsApp } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import Icone from './Icone'
@@ -35,10 +35,10 @@ export function LogoWhatsApp({ tamanho = 20, className = '' }: { tamanho?: numbe
   )
 }
 
-export default function BotaoCobrar({ telefone, cobrancas, chavePix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; chavePix: string | null; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
+export default function BotaoCobrar({ telefone, cobrancas, pix, origem, className = '', classePix = '' }: { telefone: string; cobrancas: Cobranca[]; pix: Pix | null; origem: 'ficha' | 'contrato'; className?: string; classePix?: string }) {
   const pior = gravidade.find((g) => cobrancas.some((c) => c.situacao === g))
   const situacao = pior ?? 'em_dia'
-  const href = pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, chavePix)) : linkWhatsApp(telefone)
+  const href = pior ? linkWhatsApp(telefone, mensagemCliente(cobrancas, pix)) : linkWhatsApp(telefone)
   return (
     <>
     <a
@@ -51,15 +51,15 @@ export default function BotaoCobrar({ telefone, cobrancas, chavePix, origem, cla
       <LogoWhatsApp className={corLogo[situacao]} />
       {texto[situacao]}
     </a>
-    {pior && chavePix && <BotaoPix telefone={telefone} chavePix={chavePix} className={`${botaoClaro} ${classePix}`} />}
+    {pior && pix && <BotaoPix telefone={telefone} codigo={codigoPix(pix, cobrancas.reduce((t, c) => t + c.valor, 0))} className={`${botaoClaro} ${classePix}`} />}
     </>
   )
 }
 
-// 2ª mensagem: só a chave Pix, pro cliente segurar o dedo, copiar e colar no banco
-export function BotaoPix({ telefone, chavePix, className, rotulo = true }: { telefone: string; chavePix: string; className: string; rotulo?: boolean }) {
+// 2ª mensagem: só o "Pix Copia e Cola" com o valor, pro cliente segurar o dedo, copiar e colar no banco
+export function BotaoPix({ telefone, codigo, className, rotulo = true }: { telefone: string; codigo: string; className: string; rotulo?: boolean }) {
   return (
-    <a href={linkWhatsApp(telefone, chavePix)} target="_blank" rel="noreferrer" aria-label="Mandar a chave Pix sozinha" className={className}>
+    <a href={linkWhatsApp(telefone, codigo)} target="_blank" rel="noreferrer" aria-label="Mandar o Pix Copia e Cola" className={className}>
       <Icone nome="pix" tamanho={18} className="text-marca" />
       {rotulo && 'Mandar Pix'}
     </a>

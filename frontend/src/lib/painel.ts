@@ -1,5 +1,6 @@
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from './atraso'
 import { dataBr, reais } from './formatos'
+import { pixCopiaCola } from './pix'
 import { supabase } from './supabase'
 
 // Situação de uma parcela pendente (cores das bolinhas de vencimento)
@@ -19,6 +20,11 @@ export type Cobranca = {
   situacao: Situacao
 }
 
+// Chave Pix padrão + nome da empresa: dá pra montar o "Pix Copia e Cola" com o valor
+export type Pix = { chave: string; tipo: string; nome: string }
+
+export const codigoPix = (pix: Pix, valor: number) => pixCopiaCola({ ...pix, valor })
+
 export type Empresa = { nome_empresa: string; status_acesso: string; teste_gratis_ate: string | null }
 
 export type Painel = {
@@ -36,7 +42,7 @@ export type Painel = {
   contratosMes: number // contratos com parcela vencendo no mês
   contratosPagaram: number // desses, os que já pagaram tudo do mês
   cobrancas: Cobranca[]
-  chavePix: string | null
+  pix: Pix | null
   historicoCapital: PontoCapital[] // capital na rua no fim de cada um dos últimos 5 meses + hoje
 }
 
@@ -106,10 +112,15 @@ function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoj
 // "(3 dias de atraso)" junto da data de vencimento (pedido do dono, 28/10/2026)
 const venceuEm = (c: Cobranca) => `venceu em ${dataBr(c.vencimento)} (${c.atraso === 1 ? '1 dia' : `${c.atraso} dias`} de atraso)`
 
-const AVISO_PIX = ' Vou te mandar a chave Pix na próxima mensagem, é só copiar e colar no app do banco.'
+const AVISO_PIX = ' Vou te mandar o Pix Copia e Cola na próxima mensagem: é só copiar e colar no app do banco, o valor já vai certinho.'
+
+function montarPix(linha: unknown, nome?: string | null): Pix | null {
+  const c = linha as { chave: string; tipo: string } | null
+  return c ? { chave: c.chave, tipo: c.tipo, nome: nome ?? '' } : null
+}
 
 // Mensagem pronta pro WhatsApp de uma parcela (Cobrar agora do painel)
-export function mensagemCobranca(c: Cobranca, pix: string | null) {
+export function mensagemCobranca(c: Cobranca, pix: Pix | null) {
   const nome = c.cliente.split(' ')[0]
   const valor = reais(c.valor)
   const texto =
@@ -124,7 +135,7 @@ export function mensagemCobranca(c: Cobranca, pix: string | null) {
 }
 
 // Mensagem do botão WhatsApp da ficha/contrato: junta as parcelas em aberto (vencidas, de hoje e de amanhã)
-export function mensagemCliente(cs: Cobranca[], pix: string | null) {
+export function mensagemCliente(cs: Cobranca[], pix: Pix | null) {
   if (cs.length === 1) return mensagemCobranca(cs[0], pix)
   const nome = cs[0].cliente.split(' ')[0]
   const linhas = cs.map((c) =>
@@ -136,23 +147,24 @@ export function mensagemCliente(cs: Cobranca[], pix: string | null) {
 }
 
 // Parcelas do cliente vencidas, de hoje e de amanhã (botão WhatsApp da ficha; com contratoId, só desse contrato)
-export async function cobrancasDoCliente(clienteId: string, contratoId?: string): Promise<{ cobrancas: Cobranca[]; chavePix: string | null }> {
+export async function cobrancasDoCliente(clienteId: string, contratoId?: string): Promise<{ cobrancas: Cobranca[]; pix: Pix | null }> {
   const agora = new Date()
   const hoje = iso(agora)
   const amanha = iso(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1))
   let consulta = supabase.from('parcelas').select(SELECT_PENDENTES).neq('status', 'paga').lte('vencimento', amanha).eq('contratos.status', 'ativo').eq('contratos.cliente_id', clienteId)
   if (contratoId) consulta = consulta.eq('contratos.id', contratoId)
-  const [config, pendentes, pix] = await Promise.all([
+  const [config, pendentes, pix, empresa] = await Promise.all([
     supabase.from('fomentado_configuracoes').select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde').maybeSingle(),
     consulta.order('vencimento'),
-    supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
+    supabase.from('chaves_pix').select('chave, tipo').eq('padrao', true).maybeSingle(),
+    supabase.from('fomentados').select('nome_empresa').maybeSingle(),
   ])
   if (pendentes.error) throw new Error('Não foi possível ver as parcelas do cliente.')
   const linhas = (pendentes.data ?? []) as unknown as LinhaPendente[]
   const jaPago = await pagoNasParciais(linhas)
   const regra = regraDaConfig(config.data)
   const cobrancas = linhas.map((l) => cobrancaDaLinha(l, jaPago.get(l.id) ?? SEM_PAGAMENTO, regra, hoje)).filter((c): c is Cobranca => !!c && c.valor > 0)
-  return { cobrancas, chavePix: (pix.data as { chave: string } | null)?.chave ?? null }
+  return { cobrancas, pix: montarPix(pix.data, empresa.data?.nome_empresa) }
 }
 
 // Junta tudo que o painel inicial mostra. A segurança (cada Fomentado só vê o que é dele) é feita pelo banco (RLS).
@@ -186,7 +198,7 @@ export async function carregarPainel(): Promise<Painel> {
       .gte('vencimento', inicioMes)
       .lte('vencimento', fimMes)
       .not('contratos.status', 'in', '(cancelado,convertido)'),
-    supabase.from('chaves_pix').select('chave').eq('padrao', true).maybeSingle(),
+    supabase.from('chaves_pix').select('chave, tipo').eq('padrao', true).maybeSingle(),
     supabase.from('pagamentos').select('pago_em, parte_capital').is('estornado_em', null).gt('parte_capital', 0).gte('pago_em', inicioHistorico).range(0, 9999),
   ])
   const erro = [empresa, config, contratos, pagamentos, pendentes, parcelasMes, capitalVolta].find((r) => r.error)?.error
@@ -252,7 +264,7 @@ export async function carregarPainel(): Promise<Painel> {
     contratosMes: porContrato.size,
     contratosPagaram: [...porContrato.values()].filter(Boolean).length,
     cobrancas,
-    chavePix: (pix.data as { chave: string } | null)?.chave ?? null,
+    pix: montarPix(pix.data, (empresa.data as Empresa | null)?.nome_empresa),
     historicoCapital,
   }
 }

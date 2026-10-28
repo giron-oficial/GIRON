@@ -10,7 +10,7 @@ import { botaoClaro, botaoVerde, campo, iniciais, seloCadastro, seloContrato, ti
 import { cpfEscondido, cpfValido, dataBr, idCliente, idContrato, linkWhatsApp, mascaraCpf, mascaraTelefone, nomeModalidade, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { supabase } from '../lib/supabase'
-import { cobrancasDoCliente, type Cobranca } from '../lib/painel'
+import { cobrancasDoCliente, type Cobranca, type Pix } from '../lib/painel'
 
 type Arquivo = { id: string; tipo: string; caminho_arquivo: string }
 type Local = { id: string; nome: string; latitude: number; longitude: number; precisao_metros: number | null; foto_arquivo: string | null; registrado_em: string }
@@ -68,7 +68,7 @@ export default function ClienteFicha() {
   const [erroLocal, setErroLocal] = useState('')
   const [editando, setEditando] = useState(false)
   // Parcelas vencidas, de hoje e de amanhã: o botão WhatsApp já abre com a cobrança escrita
-  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; chavePix: string | null } | null>(null)
+  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; pix: Pix | null } | null>(null)
 
   useEffect(() => {
     cobrancasDoCliente(id!).then(setCobrar).catch(() => setCobrar(null))
@@ -205,7 +205,7 @@ export default function ClienteFicha() {
           <BotaoCobrar
             telefone={cliente.telefone}
             cobrancas={cobrar?.cobrancas ?? []}
-            chavePix={cobrar?.chavePix ?? null}
+            pix={cobrar?.pix ?? null}
             origem="ficha"
             className={cliente.status_cadastro === 'aprovado' ? '' : 'col-span-2'}
             classePix="col-span-2"

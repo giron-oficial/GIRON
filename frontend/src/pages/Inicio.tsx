@@ -7,7 +7,7 @@ import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
 import { linkWhatsApp, reais } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
-import { carregarPainel, mensagemCobranca, type Cobranca, type Painel, type Situacao } from '../lib/painel'
+import { carregarPainel, codigoPix, mensagemCobranca, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
 import { carregarBarra, resumoGuardado } from '../lib/barra'
 
@@ -308,7 +308,7 @@ export default function Inicio() {
                   </Link>
                   {c.telefone && (
                     <a
-                      href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.chavePix))}
+                      href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.pix))}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_inicio', situacao: situacaoEvento(c.situacao) })}
@@ -319,8 +319,8 @@ export default function Inicio() {
                       <span className="hidden lg:inline">Cobrar</span>
                     </a>
                   )}
-                  {c.telefone && p.chavePix && (
-                    <BotaoPix telefone={c.telefone} chavePix={p.chavePix} rotulo={false} className="cartao flex size-11 shrink-0 items-center justify-center rounded-xl lg:size-9" />
+                  {c.telefone && p.pix && (
+                    <BotaoPix telefone={c.telefone} codigo={codigoPix(p.pix, c.valor)} rotulo={false} className="cartao flex size-11 shrink-0 items-center justify-center rounded-xl lg:size-9" />
                   )}
                 </div>
               )

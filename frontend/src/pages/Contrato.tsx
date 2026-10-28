@@ -11,7 +11,7 @@ import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { rastrear } from '../lib/analytics'
 import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
-import { cobrancasDoCliente, type Cobranca } from '../lib/painel'
+import { cobrancasDoCliente, type Cobranca, type Pix } from '../lib/painel'
 
 type Parcela = { id: string; numero: number; vencimento: string; valor: number; parte_juro: number; parte_capital: number; status: string }
 type Pagamento = {
@@ -89,7 +89,7 @@ export default function Contrato() {
   }, [id])
 
   // Parcelas em aberto deste contrato: o botão WhatsApp já abre com a cobrança escrita
-  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; chavePix: string | null } | null>(null)
+  const [cobrar, setCobrar] = useState<{ cobrancas: Cobranca[]; pix: Pix | null } | null>(null)
   useEffect(() => {
     if (c?.cliente_id && c.status === 'ativo') cobrancasDoCliente(c.cliente_id, c.id).then(setCobrar).catch(() => setCobrar(null))
   }, [c?.cliente_id, c?.id, c?.status, c?.pagamentos?.length])
@@ -195,7 +195,7 @@ export default function Contrato() {
       acoes={
         <div className="flex flex-wrap gap-2">
           {c.clientes?.telefone && (
-            <BotaoCobrar telefone={c.clientes.telefone} cobrancas={cobrar?.cobrancas ?? []} chavePix={cobrar?.chavePix ?? null} origem="contrato" className="h-11 px-4 text-sm" classePix="h-11 px-4 text-sm" />
+            <BotaoCobrar telefone={c.clientes.telefone} cobrancas={cobrar?.cobrancas ?? []} pix={cobrar?.pix ?? null} origem="contrato" className="h-11 px-4 text-sm" classePix="h-11 px-4 text-sm" />
           )}
           <Link to={`/contratos/${c.id}/extrato`} className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-borda bg-superficie px-4 text-sm font-bold">
             <Icone nome="relatorios" tamanho={18} />
