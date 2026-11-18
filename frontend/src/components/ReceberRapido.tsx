@@ -7,6 +7,9 @@ import type { Cobranca } from '../lib/painel'
 import { supabase } from '../lib/supabase'
 
 const r2 = (v: number) => Math.round(v * 100) / 100
+const corAtraso: Record<Cobranca['situacao'], string> = {
+  critico: 'bg-critico/15 text-critico', vencido: 'bg-vencido/15 text-vencido', hoje: 'bg-hoje/15 text-hoje', amanha: 'bg-amanha/15 text-amanha',
+}
 
 // Receber sem sair do Início (celular): mostra o TOTAL, um campo "Recebeu" e Confirmar.
 // Recebeu menos que o total? A diferença sai primeiro da multa/juro de atraso (desconto);
@@ -87,21 +90,34 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
       >
         <div className="flex items-center justify-between gap-3">
           <span className="truncate font-bold">{c.cliente}</span>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${tipo.classe}`}>{tipo.texto}</span>
-          <button onClick={fechar} aria-label="Fechar" className="-mr-2 ml-auto flex size-10 shrink-0 items-center justify-center rounded-xl text-suave">
+          <button onClick={fechar} aria-label="Fechar" className="-mr-2 flex size-10 shrink-0 items-center justify-center rounded-xl text-suave">
             <Icone nome="xis" tamanho={18} />
           </button>
         </div>
 
-        <div className="flex items-end justify-between">
-          <span className="text-sm text-suave">Total</span>
-          <span className="font-display text-3xl font-extrabold tabular-nums">{reais(total)}</span>
+        <div className="-mt-2 flex flex-wrap gap-1.5">
+          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${tipo.classe}`}>
+            {c.modalidade === 'recorrente'
+              ? 'Recorrente · só juros'
+              : itens.length > 1
+                ? `Parcelado · ${itens.length} parcelas`
+                : `Parcelado · ${c.numeroParcela}${c.totalParcelas ? ` de ${c.totalParcelas}` : 'ª'}`}
+          </span>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${corAtraso[c.situacao]}`}>
+            {c.atraso > 0 ? `${c.atraso} ${c.atraso === 1 ? 'dia' : 'dias'} de atraso` : c.atraso === 0 ? 'Vence hoje' : 'Vence amanhã'}
+          </span>
         </div>
-        {(c.encargos > 0 || itens.length > 1) && (
-          <p className="-mt-2 text-right text-xs text-suave tabular-nums">
-            {itens.length > 1 ? `${itens.length} parcelas ` : ''}{reais(parcela)}{c.encargos > 0 ? ` + multa ${reais(c.encargos)}` : ''}
-          </p>
-        )}
+
+        <div className="flex flex-col gap-1 rounded-2xl bg-superficie-2 p-3 text-sm tabular-nums">
+          <div className="flex justify-between"><span className="text-suave">{c.modalidade === 'recorrente' ? 'Juros do mês' : 'Valor normal'}</span><span className="font-semibold">{reais(parcela)}</span></div>
+          {c.encargos > 0 && (
+            <div className="flex justify-between"><span className="text-suave">Multa e juros de atraso</span><span className="font-semibold text-vencido">+ {reais(c.encargos)}</span></div>
+          )}
+          <div className="mt-1 flex items-end justify-between border-t border-borda pt-2">
+            <span className="text-suave">Total</span>
+            <span className="font-display text-2xl font-extrabold">{reais(total)}</span>
+          </div>
+        </div>
 
         <div className="relative">
           <input
