@@ -6,7 +6,7 @@ import CartaoMes from '../components/CartaoMes'
 import Icone from '../components/Icone'
 import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
-import { linkWhatsApp, reais } from '../lib/formatos'
+import { linkWhatsApp, reais, tipoEmprestimo } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import { carregarPainel, mensagemCobranca, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
@@ -309,6 +309,7 @@ export default function Inicio() {
                   <Link to={`/contratos/${c.contratoId}`} className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
+                      <span className={`mr-1 rounded-full px-1.5 py-px text-[10px] font-bold ${tipoEmprestimo(c.modalidade).classe}`}>{tipoEmprestimo(c.modalidade).texto}</span>
                       <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)}
                     </span>
                   </Link>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icone from './Icone'
 import { botaoVerde, campo, erroCaixa } from './estilo'
-import { dataBr, mascaraReais, numeroBr, reais, reaisCampo } from '../lib/formatos'
+import { dataBr, mascaraReais, numeroBr, reais, reaisCampo, tipoEmprestimo } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import type { Cobranca } from '../lib/painel'
 import { supabase } from '../lib/supabase'
@@ -57,7 +57,13 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-bold">{c.cliente}</span>
-            <span className="text-xs text-suave">Venc. {dataBr(c.vencimento)}</span>
+            <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-suave">
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${tipoEmprestimo(c.modalidade).classe}`}>{tipoEmprestimo(c.modalidade).texto}</span>
+              {c.modalidade === 'recorrente'
+                ? 'só juros do mês'
+                : `parcela ${c.numeroParcela}${c.totalParcelas ? ` de ${c.totalParcelas}` : ''}`}
+              {' · venc. '}{dataBr(c.vencimento)}
+            </span>
           </div>
           <button onClick={fechar} aria-label="Fechar" className="-mt-1 -mr-1 flex size-10 items-center justify-center rounded-xl text-suave">
             <Icone nome="xis" tamanho={18} />

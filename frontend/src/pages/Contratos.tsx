@@ -6,7 +6,7 @@ import BarraRecuperacao from '../components/BarraRecuperacao'
 import { recuperacao } from '../lib/recuperacao'
 import { seloContrato } from '../components/estilo'
 import { regraDaConfig } from '../lib/atraso'
-import { dataBr, idCliente, idContrato, lerId, nomeModalidade, reais } from '../lib/formatos'
+import { dataBr, idCliente, idContrato, lerId, nomeModalidade, reais, tipoEmprestimo } from '../lib/formatos'
 import { fotosClientes } from '../lib/fotos'
 import { supabase } from '../lib/supabase'
 
@@ -159,7 +159,7 @@ export default function Contratos() {
                   <span className="truncate font-bold">{k.clientes?.nome_completo ?? 'Cliente'}</span>
                   <span className="text-xs font-bold text-texto/80 tabular-nums">{k.clientes ? idCliente(k.clientes.numero) : ''}</span>
                   <span className="truncate text-xs text-suave">
-                    {nomeModalidade[k.modalidade] ?? k.modalidade} · {reais(k.capital)}
+                    <span className={`mr-1 rounded-full px-1.5 py-px text-[10px] font-bold ${tipoEmprestimo(k.modalidade).classe}`}>{tipoEmprestimo(k.modalidade).texto}</span>{k.modalidade !== 'recorrente' && `${nomeModalidade[k.modalidade] ?? k.modalidade} · `}{reais(k.capital)}
                     {k.status === 'ativo' && k.proximo ? ` · vence ${dataBr(k.proximo)}` : ` · ${dataBr(k.data_contrato)}`}
                   </span>
                   <BarraRecuperacao r={recuperacao(k.capital, k.pagamentos ?? [])} compacta />

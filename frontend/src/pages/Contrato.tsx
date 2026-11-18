@@ -6,7 +6,7 @@ import Tela from '../components/Tela'
 import BarraRecuperacao from '../components/BarraRecuperacao'
 import { recuperacao } from '../lib/recuperacao'
 import { botaoVerde, campo, erroCaixa, rotulo, seloContrato, tituloSecao } from '../components/estilo'
-import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo } from '../lib/formatos'
+import { dataBr, idCliente, idContrato, mascaraReais, nomeModalidade, nomeSistema, numeroBr, percentualCompleto, reais, reaisCampo, tipoEmprestimo } from '../lib/formatos'
 import { encargosAtraso, regraDaConfig, type RegraAtraso } from '../lib/atraso'
 import { rastrear } from '../lib/analytics'
 import { fotosClientes } from '../lib/fotos'
@@ -241,7 +241,10 @@ export default function Contrato() {
             <div className="pointer-events-none absolute -top-14 -right-12 size-44 rounded-full bg-[radial-gradient(circle,rgb(76_194_255/0.5),transparent_70%)]" />
             <div className="relative flex items-center justify-between">
               <span className="text-xs text-[#BFD8FF]">Falta voltar do capital</span>
-              <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${sc.classe}`}>{sc.texto}</span>
+              <span className="flex gap-1.5">
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tipoEmprestimo(c.modalidade).classe}`}>{tipoEmprestimo(c.modalidade).texto}</span>
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${sc.classe}`}>{sc.texto}</span>
+              </span>
             </div>
             <p className="relative mt-2 text-[34px] leading-none font-extrabold tabular-nums">{reais(c.capital_em_aberto)}</p>
             <div className="relative mt-4 flex flex-col gap-1.5">

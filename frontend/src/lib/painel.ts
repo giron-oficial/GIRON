@@ -13,6 +13,8 @@ export type Cobranca = {
   cliente: string
   telefone: string
   modalidade: string
+  numeroParcela: number
+  totalParcelas: number | null
   vencimento: string
   valor: number // valor cheio: o que falta da parcela + multa e juro de atraso
   encargos: number // só a multa + juro de atraso (0 antes do Crítico)
@@ -56,7 +58,8 @@ type LinhaPendente = {
   valor: number
   parte_juro: number
   status: string
-  contratos: { id: string; cliente_id: string; modalidade: string; clientes: { nome_completo: string; telefone: string } | null }
+  numero: number
+  contratos: { id: string; cliente_id: string; modalidade: string; quantidade_parcelas: number | null; clientes: { nome_completo: string; telefone: string } | null }
 }
 
 const ordem: Record<Situacao, number> = { critico: 0, vencido: 1, hoje: 2, amanha: 3 }
@@ -69,7 +72,7 @@ const soma = <T>(xs: T[], f: (x: T) => number) => xs.reduce((t, x) => t + f(x), 
 type JaPago = { juro: number; total: number; multa: number; juroAtraso: number }
 const SEM_PAGAMENTO: JaPago = { juro: 0, total: 0, multa: 0, juroAtraso: 0 }
 
-const SELECT_PENDENTES = 'id, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, status, clientes(nome_completo, telefone))'
+const SELECT_PENDENTES = 'id, numero, vencimento, valor, parte_juro, status, contratos!inner(id, cliente_id, modalidade, quantidade_parcelas, status, clientes(nome_completo, telefone))'
 
 // Parcelas com pagamento parcial: quanto já entrou em cada uma (pra descontar)
 async function pagoNasParciais(linhas: LinhaPendente[]) {
@@ -102,6 +105,8 @@ function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoj
     cliente: l.contratos.clientes?.nome_completo ?? 'Cliente',
     telefone: l.contratos.clientes?.telefone ?? '',
     modalidade: l.contratos.modalidade,
+    numeroParcela: l.numero,
+    totalParcelas: l.contratos.quantidade_parcelas,
     vencimento: l.vencimento,
     valor: Math.max(0, Number(l.valor) - pago.total) + encargos,
     encargos,

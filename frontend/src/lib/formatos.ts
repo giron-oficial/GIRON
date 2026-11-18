@@ -83,3 +83,10 @@ export function lerId(texto: string): { cliente: number; contrato?: number } | n
   const m = texto.trim().toLowerCase().match(/^#\s*(\d+)(?:\s*[-/ ]?\s*ct\s*-?\s*(\d+))?$/)
   return m ? { cliente: Number(m[1]), contrato: m[2] ? Number(m[2]) : undefined } : null
 }
+
+// Tipo do empréstimo pro dono não se perder: Recorrente (só juros todo mês) x Parcelado (parcela abate a dívida)
+export function tipoEmprestimo(modalidade: string) {
+  return modalidade === 'recorrente'
+    ? { texto: 'Recorrente', explica: 'só juros do mês', classe: 'bg-marca-clara/15 text-marca-clara' }
+    : { texto: 'Parcelado', explica: (nomeModalidade[modalidade] ?? modalidade).toLowerCase(), classe: 'bg-marca/20 text-[#9CC3FF]' }
+}
