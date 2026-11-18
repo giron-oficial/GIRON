@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BotaoPix } from '../components/BotaoCobrar'
+import ReceberRapido from '../components/ReceberRapido'
 import CartaoMes from '../components/CartaoMes'
 import Icone from '../components/Icone'
 import Moldura from '../components/Moldura'
@@ -70,11 +71,21 @@ export default function Inicio() {
   const [fotos, setFotos] = useState<Record<string, string>>({})
   const { hash } = useLocation()
 
+  const [recebendo, setRecebendo] = useState<Cobranca | null>(null)
+  const [aviso, setAviso] = useState('')
+
   useEffect(() => {
     carregarPainel()
       .then(setPainel)
       .catch((e: Error) => setErro(e.message))
   }, [])
+
+  function recebeu(nome: string) {
+    setRecebendo(null)
+    setAviso(`Recebido de ${nome.split(' ')[0]} ✓`)
+    setTimeout(() => setAviso(''), 2500)
+    carregarPainel().then(setPainel).catch(() => {})
+  }
 
   // Selfie do cadastro de quem está na lista de cobrança (sem foto, fica com as iniciais)
   useEffect(() => {
@@ -306,14 +317,15 @@ export default function Inicio() {
                     <span className={`text-sm font-extrabold ${info.escura}`}>{reais(c.valor)}</span>
                     {c.encargos > 0 && <span className="text-[11px] text-suave">parcela {reais(c.valor - c.encargos)}</span>}
                   </Link>
-                  <Link
-                    to={`/contratos/${c.contratoId}?pagar=${c.parcelaId}`}
+                  <button
+                    type="button"
+                    onClick={() => setRecebendo(c)}
                     aria-label={`Receber pagamento de ${c.cliente}`}
                     className="verde flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
                   >
                     <Icone nome="moeda" />
                     <span className="hidden lg:inline">Receber</span>
-                  </Link>
+                  </button>
                   {c.telefone && (
                     <a
                       href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.pix))}
@@ -363,6 +375,10 @@ export default function Inicio() {
             </div>
         </section>
       </main>
+      {recebendo && <ReceberRapido c={recebendo} fechar={() => setRecebendo(null)} pronto={() => recebeu(recebendo.cliente)} />}
+      {aviso && (
+        <div role="status" className="fixed inset-x-0 bottom-24 z-50 mx-auto w-fit rounded-full bg-sucesso px-5 py-2.5 text-sm font-bold text-[#04210F] shadow-lg lg:bottom-8">{aviso}</div>
+      )}
     </Moldura>
   )
 }

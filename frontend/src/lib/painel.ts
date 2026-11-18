@@ -16,6 +16,8 @@ export type Cobranca = {
   vencimento: string
   valor: number // valor cheio: o que falta da parcela + multa e juro de atraso
   encargos: number // só a multa + juro de atraso (0 antes do Crítico)
+  multa: number
+  juroAtraso: number
   atraso: number
   situacao: Situacao
 }
@@ -91,7 +93,8 @@ function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoj
   const atraso = diasEntre(l.vencimento, hoje)
   if (atraso < -1) return null
   const situacao: Situacao = atraso >= regra.diasCritico ? 'critico' : atraso >= 1 ? 'vencido' : atraso === 0 ? 'hoje' : 'amanha'
-  const encargos = encargosAtraso(atraso, regra, pago.multa, pago.juroAtraso).total
+  const enc = encargosAtraso(atraso, regra, pago.multa, pago.juroAtraso)
+  const encargos = enc.total
   return {
     parcelaId: l.id,
     contratoId: l.contratos.id,
@@ -102,6 +105,8 @@ function cobrancaDaLinha(l: LinhaPendente, pago: JaPago, regra: RegraAtraso, hoj
     vencimento: l.vencimento,
     valor: Math.max(0, Number(l.valor) - pago.total) + encargos,
     encargos,
+    multa: enc.multa,
+    juroAtraso: enc.juro,
     atraso,
     situacao,
   }
