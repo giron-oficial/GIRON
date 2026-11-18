@@ -306,6 +306,14 @@ export default function Inicio() {
                     <span className={`text-sm font-extrabold ${info.escura}`}>{reais(c.valor)}</span>
                     {c.encargos > 0 && <span className="text-[11px] text-suave">parcela {reais(c.valor - c.encargos)}</span>}
                   </Link>
+                  <Link
+                    to={`/contratos/${c.contratoId}?pagar=${c.parcelaId}`}
+                    aria-label={`Receber pagamento de ${c.cliente}`}
+                    className="verde flex size-11 shrink-0 items-center justify-center rounded-xl lg:h-9 lg:w-auto lg:gap-2 lg:px-4 lg:text-[13px] lg:font-extrabold"
+                  >
+                    <Icone nome="moeda" />
+                    <span className="hidden lg:inline">Receber</span>
+                  </Link>
                   {c.telefone && (
                     <a
                       href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.pix))}

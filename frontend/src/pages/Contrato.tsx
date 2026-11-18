@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState, type InputHTMLAttributes } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import BotaoCobrar from '../components/BotaoCobrar'
 import Icone from '../components/Icone'
 import Tela from '../components/Tela'
@@ -50,6 +50,10 @@ function CampoReais({ id, ...resto }: { id: string } & InputHTMLAttributes<HTMLI
 
 export default function Contrato() {
   const { id } = useParams()
+  const [busca] = useSearchParams()
+  const pagarParcela = busca.get('pagar') // vindo do botão Receber do Início
+  const abriuAuto = useRef(false)
+  const [regraOk, setRegraOk] = useState(false)
   const [c, setC] = useState<ContratoT | null>(null)
   const [foto, setFoto] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -108,7 +112,7 @@ export default function Contrato() {
       .from('fomentado_configuracoes')
       .select('dias_para_critico, multa_atraso_valor, juro_diario_atraso_valor, juro_atraso_desde')
       .maybeSingle()
-      .then(({ data }) => setRegra(regraDaConfig(data)))
+      .then(({ data }) => { setRegra(regraDaConfig(data)); setRegraOk(true) })
   }, [])
 
   // Multa e juro de atraso que esta parcela deve hoje (descontando o que já entrou dela)
@@ -127,6 +131,21 @@ export default function Contrato() {
     setMulta(e.multa ? reaisCampo(e.multa) : '')
     setJuroAtraso(e.juro ? reaisCampo(e.juro) : '')
   }
+
+  // Veio do botão Receber: já abre a caixa de pagamento da parcela
+  useEffect(() => {
+    if (!pagarParcela || abriuAuto.current || !c || !regraOk || c.status !== 'ativo') return
+    const p = c.parcelas.find((x) => x.id === pagarParcela && x.status !== 'paga')
+      ?? c.parcelas.find((x) => x.status !== 'paga')
+    if (!p) return
+    abriuAuto.current = true
+    const t = setTimeout(() => {
+      abrirPagamento(p)
+      document.getElementById(`parcela-${p.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 0)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagarParcela, c, regraOk])
 
   async function registrarPagamento() {
     if (!pagando) return
@@ -326,7 +345,7 @@ export default function Contrato() {
               const enc = p.status !== 'paga' && c.status === 'ativo' ? encargosDe(p) : null
               const somaEnc = (multa ? numeroBr(multa) : 0) + (juroAtraso ? numeroBr(juroAtraso) : 0)
               return (
-                <li key={p.id} className={`rounded-2xl transition ${aberta ? 'bg-superficie-2 ring-2 ring-marca-clara' : 'bg-superficie-2/60'}`}>
+                <li key={p.id} id={`parcela-${p.id}`} className={`rounded-2xl transition ${aberta ? 'bg-superficie-2 ring-2 ring-marca-clara' : 'bg-superficie-2/60'}`}>
                   <button
                     type="button"
                     onClick={() => p.status !== 'paga' && c.status === 'ativo' && abrirPagamento(p)}
@@ -346,6 +365,9 @@ export default function Contrato() {
                       <span className="text-[11px] text-suave tabular-nums">juro {reais(p.parte_juro)}</span>
                       {enc && enc.total > 0 && <span className="text-[11px] font-bold text-critico tabular-nums">+ {reais(enc.total)} multa/juros</span>}
                     </div>
+                    {p.status !== 'paga' && c.status === 'ativo' && !aberta && (
+                      <span className="verde flex h-9 shrink-0 items-center rounded-xl px-3 text-[13px] font-extrabold">Receber</span>
+                    )}
                   </button>
 
                   {aberta && (
