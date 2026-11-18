@@ -4,5 +4,5 @@
 set -euo pipefail
 cd "$(dirname "$0")/../frontend"
 npm run build
-rsync -a --delete dist/ giron-vps:/opt/giron/app-teste/html/
+rsync -a --delete --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r dist/ giron-vps:/opt/giron/app-teste/html/
 echo "Publicado em https://teste.gironga.com.br"
