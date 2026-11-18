@@ -54,7 +54,8 @@ export default function EmprestimoNovo() {
   const [modalidade, setModalidade] = useState<Modalidade>('mensal')
   const [juroPct, setJuroPct] = useState('')
   const [juroValor, setJuroValor] = useState('')
-  const [ultimoJuro, setUltimoJuro] = useState<'pct' | 'valor'>('pct')
+  const [ultimoJuro, setUltimoJuro] = useState<'pct' | 'valor' | 'parcela'>('pct')
+  const [valorParcela, setValorParcela] = useState('')
   const [qtd, setQtd] = useState('')
   const [inicio, setInicio] = useState(hoje())
   const [primeiro, setPrimeiro] = useState('')
@@ -153,10 +154,33 @@ export default function EmprestimoNovo() {
     if (cap && meses && v) setJuroPct(percentualCompleto((numeroBr(v) / (cap * meses)) * 100))
   }
 
+  // Valor da parcela -> juro (forma da Empresa: parcela = (capital + juro total) / parcelas)
+  function aplicarParcela(v: string) {
+    const vp = v ? numeroBr(v) : 0
+    if (!cap || !n || !meses || !vp) return
+    const jt = Math.round((vp * n - cap) * 100) / 100
+    if (jt < 0) return
+    setJuroValor(reaisCampo(jt))
+    setJuroPct(percentualCompleto(Math.round((jt / (cap * meses)) * 100 * 1e6) / 1e6))
+    setSistema('empresa')
+  }
+
+  function digitarParcela(t: string) {
+    const v = mascaraReais(t)
+    setValorParcela(v)
+    setUltimoJuro('parcela')
+    aplicarParcela(v)
+  }
+
+  // Valor da parcela mostrado: o digitado, ou o da forma Empresa calculado pelo %
+  const parcelaMostrada = ultimoJuro === 'parcela' ? valorParcela : (calc.empresa?.parcelas[0] ? reaisCampo(calc.empresa.parcelas[0].valor) : '')
+  const parcelaPequena = ultimoJuro === 'parcela' && !!valorParcela && !!cap && !!n && numeroBr(valorParcela) * n < cap
+
   // Mudou o valor emprestado ou o prazo: recalcula o lado que não foi digitado por último
   useEffect(() => {
     if (!cap || !meses) return
     const t = setTimeout(() => {
+      if (ultimoJuro === 'parcela' && valorParcela) aplicarParcela(valorParcela)
       if (ultimoJuro === 'pct' && juroPct) setJuroValor(reaisCampo(Math.round(cap * (numeroBr(juroPct) / 100) * meses * 100) / 100))
       if (ultimoJuro === 'valor' && juroValor) setJuroPct(percentualCompleto((numeroBr(juroValor) / (cap * meses)) * 100))
     }, 0)
@@ -265,6 +289,17 @@ export default function EmprestimoNovo() {
               Quantidade de parcelas <span className="font-normal text-suave">({unidade})</span>
             </label>
             <input id="qtd" inputMode="numeric" value={qtd} onChange={(e) => setQtd(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder={modalidade === 'diario' ? '20' : '10'} className={`${campo} tabular-nums`} />
+          </div>
+        )}
+
+        {!recorrente && (
+          <div className="rounded-2xl border border-marca-clara/40 bg-marca-clara/10 p-3">
+            <label className={`${rotulo} text-marca-clara`} htmlFor="vparc">
+              Valor da parcela <span className="font-normal text-suave">(o juro se calcula sozinho)</span>
+            </label>
+            <CampoComSinal id="vparc" sinal="R$" lado="antes" inputMode="numeric" value={parcelaMostrada} onChange={(e) => digitarParcela(e.target.value)} placeholder="0,00" />
+            {(!cap || !n) && <p className="mt-1.5 text-xs text-suave">Preencha o valor emprestado e a quantidade de parcelas primeiro.</p>}
+            {parcelaPequena && <p className="mt-1.5 text-xs text-vencido">Com esse valor as parcelas não pagam nem o valor emprestado.</p>}
           </div>
         )}
 
