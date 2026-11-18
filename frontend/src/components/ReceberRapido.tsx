@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import Icone from './Icone'
 import { botaoVerde, campo, erroCaixa } from './estilo'
-import { dataBr, mascaraReais, numeroBr, reais, reaisCampo, tipoEmprestimo } from '../lib/formatos'
+import { mascaraReais, numeroBr, reais, tipoEmprestimo } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
 import type { Cobranca } from '../lib/painel'
 import { supabase } from '../lib/supabase'
 
-// Receber sem sair do Início (celular primeiro): sobe de baixo, um campo e um botão.
-// Em branco = paga tudo que falta (parcela + multa/juro de atraso). Desconto e observação ficam em "Mais opções".
+const r2 = (v: number) => Math.round(v * 100) / 100
+
+// Receber sem sair do Início (celular): mostra o TOTAL, um campo "Recebeu" e Confirmar.
+// Recebeu menos que o total? A diferença sai primeiro da multa/juro de atraso (desconto);
+// o que passar disso fica devendo na parcela.
 export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fechar: () => void; pronto: () => void }) {
   const [valor, setValor] = useState('')
-  const [semMulta, setSemMulta] = useState(false)
-  const [mais, setMais] = useState(false)
-  const [desconto, setDesconto] = useState('')
-  const [obs, setObs] = useState('')
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
 
@@ -24,26 +22,33 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
     return () => window.removeEventListener('keydown', esc)
   }, [fechar])
 
-  const multa = semMulta ? 0 : c.multa
-  const juroAtraso = semMulta ? 0 : c.juroAtraso
-  const cheio = Math.round((c.valor - c.encargos + multa + juroAtraso) * 100) / 100
-  const desc = desconto ? numeroBr(desconto) : 0
+  const total = r2(c.valor)
+  const parcela = r2(c.valor - c.encargos)
+  const recebeu = valor ? numeroBr(valor) : total
+  const falta = Math.max(0, r2(total - recebeu))
+  const desconto = Math.min(falta, c.encargos) // perdoa da multa/juro de atraso
+  const devendo = r2(falta - desconto)
+  // tira o desconto primeiro do juro de atraso, depois da multa
+  const juroAtraso = r2(Math.max(0, c.juroAtraso - desconto))
+  const multa = r2(Math.max(0, c.multa - Math.max(0, desconto - c.juroAtraso)))
 
   async function confirmar() {
-    const v = valor ? numeroBr(valor) : Math.round((cheio - desc) * 100) / 100
-    if (!v || v <= 0) return setErro('Informe o valor recebido.')
+    if (!recebeu || recebeu <= 0) return setErro('Informe quanto recebeu.')
+    if (recebeu > total + 0.01) return setErro(`O máximo é ${reais(total)}.`)
     setErro(''); setSalvando(true)
     const { error } = await supabase.rpc('pagamento_registrar', {
-      p_parcela_id: c.parcelaId, p_valor_pago: v,
-      p_desconto: desc, p_acrescimo: 0,
+      p_parcela_id: c.parcelaId, p_valor_pago: recebeu,
+      p_desconto: 0, p_acrescimo: 0,
       p_multa: multa, p_juro_atraso: juroAtraso,
-      p_observacao: obs || null,
+      p_observacao: desconto > 0 ? `Desconto de ${reais(desconto)} na multa/juros` : null,
     })
     setSalvando(false)
     if (error) return setErro(error.message)
     rastrear('pagamento_registrado', { origem: 'inicio_rapido' })
     pronto()
   }
+
+  const tipo = tipoEmprestimo(c.modalidade)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={fechar}>
@@ -54,66 +59,43 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
         onClick={(e) => e.stopPropagation()}
         className="cartao flex w-full max-w-sm flex-col gap-3 rounded-t-[22px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl shadow-black/60 sm:rounded-[18px]"
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate font-bold">{c.cliente}</span>
-            <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-suave">
-              <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${tipoEmprestimo(c.modalidade).classe}`}>{tipoEmprestimo(c.modalidade).texto}</span>
-              {c.modalidade === 'recorrente'
-                ? 'só juros do mês'
-                : `parcela ${c.numeroParcela}${c.totalParcelas ? ` de ${c.totalParcelas}` : ''}`}
-              {' · venc. '}{dataBr(c.vencimento)}
-            </span>
-          </div>
-          <button onClick={fechar} aria-label="Fechar" className="-mt-1 -mr-1 flex size-10 items-center justify-center rounded-xl text-suave">
+        <div className="flex items-center justify-between gap-3">
+          <span className="truncate font-bold">{c.cliente}</span>
+          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${tipo.classe}`}>{tipo.texto}</span>
+          <button onClick={fechar} aria-label="Fechar" className="-mr-2 ml-auto flex size-10 shrink-0 items-center justify-center rounded-xl text-suave">
             <Icone nome="xis" tamanho={18} />
           </button>
         </div>
+
+        <div className="flex items-end justify-between">
+          <span className="text-sm text-suave">Total</span>
+          <span className="font-display text-3xl font-extrabold tabular-nums">{reais(total)}</span>
+        </div>
+        {c.encargos > 0 && (
+          <p className="-mt-2 text-right text-xs text-suave tabular-nums">{reais(parcela)} + multa {reais(c.encargos)}</p>
+        )}
 
         <div className="relative">
           <input
             autoFocus
             inputMode="numeric"
-            aria-label="Valor recebido"
+            aria-label="Quanto recebeu"
             value={valor}
             onChange={(e) => setValor(mascaraReais(e.target.value))}
-            placeholder={reaisCampo(Math.max(0, cheio - desc))}
-            className={`${campo} h-14 pl-12 font-display text-2xl font-extrabold tabular-nums placeholder:text-texto/60`}
+            placeholder={`Recebeu? (${reais(total).replace('R$', '').trim()})`}
+            className={`${campo} h-14 pl-12 text-xl font-bold tabular-nums`}
           />
           <span className="pointer-events-none absolute top-1/2 left-4 mt-[3px] -translate-y-1/2 text-sm font-semibold text-suave">R$</span>
         </div>
-        <p className="-mt-1 text-xs text-suave">
-          Em branco = recebe {reais(Math.max(0, cheio - desc))}. Pagou menos? Digite o valor.
-        </p>
 
-        {c.encargos > 0 && (
-          <button
-            type="button"
-            onClick={() => setSemMulta(!semMulta)}
-            aria-pressed={semMulta}
-            className="flex items-center justify-between rounded-xl bg-superficie-2 px-3 py-2.5 text-left text-sm"
-          >
-            <span className={semMulta ? 'text-suave line-through' : ''}>Multa e juros {reais(c.encargos)}</span>
-            <span className="text-xs font-bold text-marca">{semMulta ? 'Cobrar' : 'Tirar'}</span>
-          </button>
-        )}
-
-        {mais ? (
-          <div className="grid grid-cols-2 gap-2">
-            <input inputMode="numeric" aria-label="Desconto" value={desconto} onChange={(e) => setDesconto(mascaraReais(e.target.value))} placeholder="Desconto R$" className={`${campo} tabular-nums`} />
-            <input aria-label="Observação" value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Obs. (ex.: Pix)" className={campo} />
-          </div>
-        ) : (
-          <button type="button" onClick={() => setMais(true)} className="self-start text-xs font-semibold text-suave">+ Desconto ou observação</button>
-        )}
-
+        {desconto > 0 && <p className="-mt-1 text-sm font-semibold text-sucesso">Desconto de {reais(desconto)} na multa</p>}
+        {devendo > 0 && <p className="-mt-1 text-sm font-semibold text-amanha">Fica devendo {reais(devendo)}</p>}
         {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
 
         <button onClick={confirmar} disabled={salvando} className={`${botaoVerde} h-14 w-full text-lg`}>
           <Icone nome="certo" tamanho={20} />
-          {salvando ? 'Salvando…' : 'Confirmar'}
+          {salvando ? 'Salvando…' : `Confirmar ${reais(recebeu)}`}
         </button>
-        <Link to={`/contratos/${c.contratoId}`} className="text-center text-xs font-semibold text-suave">Ver contrato</Link>
       </div>
     </div>
   )
