@@ -28,7 +28,7 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
   const itens = c.itens ?? [c] // parcelas em aberto do contrato, da mais velha pra mais nova
   const total = r2(c.valor)
   const parcela = r2(c.valor - c.encargos)
-  const recebeu = valor ? numeroBr(valor) : total
+  const recebeu = valor ? numeroBr(valor) : parcela // padrão: valor normal (sem multa)
   const falta = Math.max(0, r2(total - recebeu))
   const desconto = Math.min(falta, c.encargos) // perdoa da multa/juro de atraso
   const devendo = r2(falta - desconto)
@@ -126,13 +126,23 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
             aria-label="Quanto recebeu"
             value={valor}
             onChange={(e) => setValor(mascaraReais(e.target.value))}
-            placeholder={`Recebeu? (${reais(total).replace('R$', '').trim()})`}
+            placeholder={reais(parcela).replace('R$', '').trim()}
             className={`${campo} h-14 pl-12 text-xl font-bold tabular-nums`}
           />
           <span className="pointer-events-none absolute top-1/2 left-4 mt-[3px] -translate-y-1/2 text-sm font-semibold text-suave">R$</span>
         </div>
 
-        {desconto > 0 && <p className="-mt-1 text-sm font-semibold text-sucesso">Desconto de {reais(desconto)} na multa</p>}
+        {c.encargos > 0 && (
+          <div className="-mt-1 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setValor('')} className={`h-10 rounded-xl text-sm font-bold ${!valor ? 'bg-marca/25 text-[#9CC3FF]' : 'bg-superficie-2 text-suave'}`}>
+              Normal {reais(parcela)}
+            </button>
+            <button type="button" onClick={() => setValor(mascaraReais(total.toFixed(2).replace('.', '')))} className={`h-10 rounded-xl text-sm font-bold ${valor && Math.abs(recebeu - total) < 0.01 ? 'bg-vencido/20 text-vencido' : 'bg-superficie-2 text-suave'}`}>
+              Com multa {reais(total)}
+            </button>
+          </div>
+        )}
+        {desconto > 0 && <p className="-mt-1 text-sm font-semibold text-sucesso">{desconto >= c.encargos ? 'Sem multa e juros de atraso' : `Desconto de ${reais(desconto)} na multa`}</p>}
         {devendo > 0 && <p className="-mt-1 text-sm font-semibold text-amanha">Fica devendo {reais(devendo)}</p>}
         {erro && <p role="alert" className={erroCaixa}>{erro}</p>}
 
