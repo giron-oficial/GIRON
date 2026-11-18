@@ -8,7 +8,7 @@ import Moldura from '../components/Moldura'
 import LinhaCapital from '../components/LinhaCapital'
 import { linkWhatsApp, reais, tipoEmprestimo } from '../lib/formatos'
 import { rastrear } from '../lib/analytics'
-import { carregarPainel, mensagemCobranca, type Cobranca, type Painel, type Situacao } from '../lib/painel'
+import { carregarPainel, mensagemCliente, type Cobranca, type Painel, type Situacao } from '../lib/painel'
 import { fotosClientes } from '../lib/fotos'
 import { carregarBarra, resumoGuardado } from '../lib/barra'
 
@@ -310,7 +310,7 @@ export default function Inicio() {
                     <span className="truncate text-sm font-bold">{c.cliente}</span>
                     <span className="truncate text-xs text-suave">
                       <span className={`mr-1 rounded-full px-1.5 py-px text-[10px] font-bold ${tipoEmprestimo(c.modalidade).classe}`}>{tipoEmprestimo(c.modalidade).texto}</span>
-                      <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {detalhe(c)}
+                      <span className={`font-bold ${info.escura}`}>{info.curto}</span> · {(c.itens?.length ?? 1) > 1 ? `${c.itens!.length} parcelas` : detalhe(c)}
                     </span>
                   </Link>
                   {/* Total a pagar à direita na cor da situação (roxo no Crítico); embaixo, o valor normal da parcela (27/10/2026) */}
@@ -329,7 +329,7 @@ export default function Inicio() {
                   </button>
                   {c.telefone && (
                     <a
-                      href={linkWhatsApp(c.telefone, mensagemCobranca(c, p.pix))}
+                      href={linkWhatsApp(c.telefone, mensagemCliente(c.itens ?? [c], p.pix))}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => rastrear('cobranca_enviada', { canal: 'whatsapp_inicio', situacao: situacaoEvento(c.situacao) })}

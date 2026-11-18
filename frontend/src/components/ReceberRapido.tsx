@@ -22,29 +22,55 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
     return () => window.removeEventListener('keydown', esc)
   }, [fechar])
 
+  const itens = c.itens ?? [c] // parcelas em aberto do contrato, da mais velha pra mais nova
   const total = r2(c.valor)
   const parcela = r2(c.valor - c.encargos)
   const recebeu = valor ? numeroBr(valor) : total
   const falta = Math.max(0, r2(total - recebeu))
   const desconto = Math.min(falta, c.encargos) // perdoa da multa/juro de atraso
   const devendo = r2(falta - desconto)
-  // tira o desconto primeiro do juro de atraso, depois da multa
-  const juroAtraso = r2(Math.max(0, c.juroAtraso - desconto))
-  const multa = r2(Math.max(0, c.multa - Math.max(0, desconto - c.juroAtraso)))
+
+  // Plano: tira o desconto da multa/juro (da parcela mais velha pra frente); depois o valor recebido
+  // paga as parcelas na ordem. O que não couber fica como pagamento parcial na última tocada.
+  function plano() {
+    let sobraDesc = desconto
+    let sobra = recebeu
+    const passos: { id: string; valor: number; multa: number; juro: number }[] = []
+    for (const it of itens) {
+      const tiraJuro = Math.min(sobraDesc, it.juroAtraso); sobraDesc = r2(sobraDesc - tiraJuro)
+      const tiraMulta = Math.min(sobraDesc, it.multa); sobraDesc = r2(sobraDesc - tiraMulta)
+      const juro = r2(it.juroAtraso - tiraJuro)
+      const multa = r2(it.multa - tiraMulta)
+      const precisa = r2(it.valor - it.encargos + juro + multa)
+      if (sobra <= 0.004) break
+      const paga = r2(Math.min(sobra, precisa))
+      passos.push({ id: it.parcelaId, valor: paga, multa, juro })
+      sobra = r2(sobra - paga)
+    }
+    return passos
+  }
 
   async function confirmar() {
     if (!recebeu || recebeu <= 0) return setErro('Informe quanto recebeu.')
     if (recebeu > total + 0.01) return setErro(`O máximo é ${reais(total)}.`)
     setErro(''); setSalvando(true)
-    const { error } = await supabase.rpc('pagamento_registrar', {
-      p_parcela_id: c.parcelaId, p_valor_pago: recebeu,
-      p_desconto: 0, p_acrescimo: 0,
-      p_multa: multa, p_juro_atraso: juroAtraso,
-      p_observacao: desconto > 0 ? `Desconto de ${reais(desconto)} na multa/juros` : null,
-    })
+    const obs = desconto > 0 ? `Desconto de ${reais(desconto)} na multa/juros` : null
+    let feitos = 0
+    for (const passo of plano()) {
+      const { error } = await supabase.rpc('pagamento_registrar', {
+        p_parcela_id: passo.id, p_valor_pago: passo.valor,
+        p_desconto: 0, p_acrescimo: 0,
+        p_multa: passo.multa, p_juro_atraso: passo.juro,
+        p_observacao: feitos === 0 ? obs : null,
+      })
+      if (error) {
+        setSalvando(false)
+        return setErro(feitos > 0 ? `${feitos} parcela(s) baixada(s). Na próxima deu erro: ${error.message}` : error.message)
+      }
+      feitos++
+    }
     setSalvando(false)
-    if (error) return setErro(error.message)
-    rastrear('pagamento_registrado', { origem: 'inicio_rapido' })
+    rastrear('pagamento_registrado', { origem: 'inicio_rapido', parcelas: feitos })
     pronto()
   }
 
@@ -71,8 +97,10 @@ export default function ReceberRapido({ c, fechar, pronto }: { c: Cobranca; fech
           <span className="text-sm text-suave">Total</span>
           <span className="font-display text-3xl font-extrabold tabular-nums">{reais(total)}</span>
         </div>
-        {c.encargos > 0 && (
-          <p className="-mt-2 text-right text-xs text-suave tabular-nums">{reais(parcela)} + multa {reais(c.encargos)}</p>
+        {(c.encargos > 0 || itens.length > 1) && (
+          <p className="-mt-2 text-right text-xs text-suave tabular-nums">
+            {itens.length > 1 ? `${itens.length} parcelas ` : ''}{reais(parcela)}{c.encargos > 0 ? ` + multa ${reais(c.encargos)}` : ''}
+          </p>
         )}
 
         <div className="relative">

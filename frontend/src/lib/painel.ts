@@ -22,6 +22,7 @@ export type Cobranca = {
   juroAtraso: number
   atraso: number
   situacao: Situacao
+  itens?: Cobranca[] // Início: todas as parcelas em aberto do contrato (da mais velha pra mais nova)
 }
 
 // Chaves Pix da empresa (Configurações; a Padrão vem primeiro) + nome dela: monta o "Pix Copia e Cola" com o valor
@@ -144,6 +145,19 @@ export function mensagemCobranca(c: Cobranca, pix: Pix[]) {
 }
 
 // Mensagem do botão WhatsApp da ficha/contrato: junta as parcelas em aberto (vencidas, de hoje e de amanhã)
+// Uma linha por contrato: soma as parcelas em aberto; a situação é a da mais atrasada (18/11/2026 — dono
+// pagava uma parcela e a próxima atrasada do mesmo cliente aparecia igual, parecendo que não deu baixa)
+export function agruparPorContrato(cs: Cobranca[]): Cobranca[] {
+  const grupos = new Map<string, Cobranca[]>()
+  for (const c of cs) grupos.set(c.contratoId, [...(grupos.get(c.contratoId) ?? []), c])
+  const r2 = (v: number) => Math.round(v * 100) / 100
+  return [...grupos.values()].map((g) => {
+    const itens = [...g].sort((a, b) => a.vencimento.localeCompare(b.vencimento))
+    const soma = (f: (c: Cobranca) => number) => r2(itens.reduce((t, c) => t + f(c), 0))
+    return { ...itens[0], valor: soma((c) => c.valor), encargos: soma((c) => c.encargos), multa: soma((c) => c.multa), juroAtraso: soma((c) => c.juroAtraso), itens }
+  })
+}
+
 export function mensagemCliente(cs: Cobranca[], pix: Pix[]) {
   if (cs.length === 1) return mensagemCobranca(cs[0], pix)
   const nome = cs[0].cliente.split(' ')[0]
@@ -245,6 +259,7 @@ export async function carregarPainel(): Promise<Painel> {
     if (c) cobrancas.push(c)
   }
   cobrancas.sort((a, b) => ordem[a.situacao] - ordem[b.situacao] || b.atraso - a.atraso)
+  const porContratoCobranca = agruparPorContrato(cobrancas)
 
   // Clientes e contratos com parcela no mês: quem já quitou tudo do mês conta como "pagou"
   const porCliente = new Map<string, boolean>()
@@ -284,7 +299,7 @@ export async function carregarPainel(): Promise<Painel> {
     clientesPagaram: [...porCliente.values()].filter(Boolean).length,
     contratosMes: porContrato.size,
     contratosPagaram: [...porContrato.values()].filter(Boolean).length,
-    cobrancas,
+    cobrancas: porContratoCobranca,
     pix: montarPix(pix.data, (empresa.data as Empresa | null)?.nome_empresa),
     historicoCapital,
   }
